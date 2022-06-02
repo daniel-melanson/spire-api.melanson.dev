@@ -39,9 +39,12 @@ class Term(models.Model):
         choices=[("S", "Spring"), ("SU", "Summer"), ("F", "Fall"), ("W", "Winter")]
     )
 
+    class Meta:
+        unique_together = [["year", "season"]]
+
 
 class Subject(models.Model):
-    name = models.CharField(max_length=30, unique=True, validators=[])
+    name = models.CharField(max_length=30, unique=True)
     subject_id = models.CharField(
         max_length=10,
         unique=True,
@@ -56,6 +59,9 @@ class Course(models.Model):
     )
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=10, validators=[validate_course_id_number])
+
+    class Meta:
+        unique_together = [["subject", "number"]]
 
 
 class Section(models.Model):
