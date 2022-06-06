@@ -1,48 +1,42 @@
-import re
-
-from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-COURSE_ID_REGEXP = r"^[A-Z]{3,10} $"
-COURSE_ID_NUMBER_REGEXP = r"^$"
-COURSE_TITLE_REGEXP = r"^$"
+COURSE_ID_REGEXP = r"^.+$"
+COURSE_ID_NUMBER_REGEXP = r"^.+$"
+COURSE_TITLE_REGEXP = r"^.+$"
+
+SUBJECT_ID_REGEXP = r"^.+$"
+SUBJECT_TITLE_REGEXP = r"^.+$"
 
 
-def validation_generator(f, msg):
-    def validator(value: str):
-        if not f(value):
-            raise ValidationError(
-                _("%(value)s %(msg)s"), params={"value": value, "msg": msg}
-            )
+def re_validator_factory(r: str, msg: str):
+    assert r.startswith("^") and r.endswith("$")
 
-    return validator
+    return RegexValidator(regex=r, message=msg)
 
 
-validate_alphabetic = validation_generator(lambda x: x.isalpha(), "must be alphabetic")
+_course_id_validator = re_validator_factory(COURSE_ID_REGEXP, "must be a course ID (match course ID RegExp)")
 
-validate_upper = validation_generator(lambda x: x.isupper(), "must be uppercase")
-
-validate_course_id = validation_generator(
-    lambda x: re.match(COURSE_ID_REGEXP, x), "must be a course ID"
+_course_id_number_validator = re_validator_factory(
+    COURSE_ID_NUMBER_REGEXP,
+    "must be a course ID number (match course title number RegExp)",
 )
 
-validate_course_id_number = validation_generator(
-    lambda x: re.match(COURSE_ID_NUMBER_REGEXP, x), "must be a course ID number"
+_course_title_validator = re_validator_factory(
+    COURSE_TITLE_REGEXP, "must be a course title (match course title RegExp)"
 )
 
-validate_term_year = validation_generator(
-    lambda x: 2010 < x < 2050, "must be a valid term year"
-)
+_subject_id_validator = re_validator_factory(SUBJECT_ID_REGEXP, "must be a  title (match subject id RegExp)")
 
-validate_course_title = validation_generator(
-    lambda x: re.match(COURSE_TITLE_REGEXP, x), "must be a course title"
+_subject_title_validator = re_validator_factory(
+    SUBJECT_TITLE_REGEXP, "must be a  title (match subject title RegExp)"
 )
 
 
 class Term(models.Model):
     term_id = models.AutoField(primary_key=True)
-    year = models.SmallIntegerField(validators=[validate_term_year])
+    year = models.SmallIntegerField(validators=[MinValueValidator(2010), MaxValueValidator(2050)])
     season = models.CharField(
         max_length=2,
         choices=[("S", "Spring"), ("SU", "Summer"), ("F", "Fall"), ("W", "Winter")],
@@ -53,22 +47,20 @@ class Term(models.Model):
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=30, unique=True)
+    name = models.CharField(max_length=30, unique=True, validators=[_subject_title_validator])
     subject_id = models.CharField(
         max_length=8,
         unique=True,
         primary_key=True,
-        validators=[],
+        validators=[_subject_id_validator],
     )
 
 
 class Course(models.Model):
-    course_id = models.CharField(
-        max_length=32, primary_key=True, validators=[validate_course_id]
-    )
+    course_id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    number = models.CharField(max_length=8, validators=[validate_course_id_number])
-    title = models.CharField(max_length=128, validators=[validate_course_title])
+    number = models.CharField(max_length=8, validators=[_course_id_number_validator])
+    title = models.CharField(max_length=128, validators=[_course_title_validator])
     description = models.CharField(max_length=1024, null=True)
 
     class Meta:
@@ -86,18 +78,16 @@ class Section(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     term = models.ForeignKey(Term, on_delete=models.CASCADE)
     details = models.JSONField()
-    restriction = models.JSONField(null=True)
+    restrictions = models.JSONField(null=True)
     availability = models.JSONField()
     description = models.CharField(max_length=1024, null=True)
     overview = models.CharField(max_length=1024, null=True)
-    meeting_days_and_time = models.CharField(max_length=32)
-    meeting_room = models.CharField(max_length=32)
-    meeting_instructors = models.ManyToManyField(Staff)
-    meeting_dates = models.CharField(max_length=32)
+    meeting_info = models.JSONField()
+    instructors = models.ManyToManyField(Staff)
 
 
 class SectionCoverage(models.Model):
     term = models.CharField(max_length=32, primary_key=True)
-    completed = models.CharField(default=False)
+    completed = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
