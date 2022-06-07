@@ -1,6 +1,6 @@
 # spire-api.melanson.dev
 
-A REST API for [UMass Spire](https://www.spire.umass.edu/).
+An API for public information on [UMass Spire](https://www.spire.umass.edu/).
 
 ## Purpose
 

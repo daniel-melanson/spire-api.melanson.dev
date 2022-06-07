@@ -8,6 +8,7 @@ django = "*"
 psycopg2-binary = "*"
 djangorestframework = "*"
 pyyaml = "*"
+uritemplate = "*"
 
 [dev-packages]
 
@@ -19,3 +20,5 @@ genschema = "python manage.py generateschema --file ./root/static/openapi-schema
 dev = "python manage.py runserver"
 makemigrations = "python manage.py makemigrations"
 migrate = "python manage.py migrate"
+black = "black -l 110 ./"
+isort = "isort ./"
