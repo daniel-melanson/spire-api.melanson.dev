@@ -1,23 +1,23 @@
 import logging
-from logging import DEBUG
-from typing import Optional, TypedDict
-
-from selenium.webdriver.common.by import By
+from typing import NamedTuple, Optional
 
 from scraper import SpireDriver
 from scraper.shared import assert_match, scrape_spire_tables
+from selenium.webdriver.common.by import By
+
+from spire.models import Course, Subject
+from spire.regexp import (COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP,
+                          SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP)
 
 log = logging.getLogger(__name__)
-log.setLevel(DEBUG)
 
 
-class SpireSubject(TypedDict):
+class SpireSubject(NamedTuple):
     id: str
-    name: str
-    courses: list[str]
+    title: str
 
 
-class SpireCourse(TypedDict):
+class SpireCourse(NamedTuple):
     id: str
     subject: str
     number: str
@@ -33,7 +33,7 @@ def scrape_course_page(driver: SpireDriver) -> SpireCourse:
     raw_title = title_element.text
 
     title_match = assert_match(
-        r"((?P<subject>[A-Za-z\-&]{2,20})\s+(?P<number>[\w\d\-]{2,50}))\s+-\s+(?P<title>.{3,100})",
+        SUBJECT_ID_REGEXP + r"\s+" + COURSE_ID_NUM_REGEXP + r"\s+-\s+" + COURSE_TITLE_REGEXP,
         raw_title,
     )
 
@@ -51,7 +51,9 @@ def scrape_course_page(driver: SpireDriver) -> SpireCourse:
         title=title_match.group("title"),
         details=tables["Course Detail"],
         description=tables["Description"] if "Description" in tables else None,
-        enrollment_information=tables["Enrollment Information"] if "Enrollment Information" in tables else None,
+        enrollment_information=tables["Enrollment Information"]
+        if "Enrollment Information" in tables
+        else None,
     )
 
 
@@ -59,9 +61,6 @@ def scrape_catalog(driver: SpireDriver):
     log.info("Scraping course catalog...")
 
     driver.navigate_to("catalog")
-
-    subjects = []
-    courses = []
 
     # For each uppercase letter
     for ascii_code in range(65, 90):
@@ -79,12 +78,11 @@ def scrape_catalog(driver: SpireDriver):
 
             subject_title = subject_link.text
 
-            subject_match = assert_match(r"(?P<id>[A-Z\-&]{3,20}) - (?P<name>[A-Za-z\- :]{3,100})", subject_title)
+            subject_match = assert_match(SUBJECT_ID_REGEXP + " - " + SUBJECT_TITLE_REGEXP, subject_title)
 
             subject = SpireSubject(
                 id=subject_match.group("id").upper(),
-                name=subject_match.group("name"),
-                courses=[],
+                title=subject_match.group("title"),
             )
 
             log.debug("Initialized subject: %s.", subject)
@@ -106,18 +104,14 @@ def scrape_catalog(driver: SpireDriver):
                     log.warning("Mismatched course subjects: %s != %s.", course["subject"], subject["id"])
 
                 log.info("Scraped course: %s.", course)
-                subject["courses"].append(course["id"])
-                courses.append(course)
 
                 log.debug("Scraped course, returning...")
                 driver.click("DERIVED_SAA_CRS_RETURN_PB")
                 log.debug("Returned.")
 
             log.info("Scraped subject: %s.", subject)
-            subjects.append(subject)
             log.debug("Collapsing subject...")
             driver.click(subject_link_id)
             log.debug("Subject collapsed.")
 
     log.info("Scraped course catalog.")
-    return (subjects, courses)

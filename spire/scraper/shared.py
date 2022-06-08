@@ -1,20 +1,18 @@
 import logging
 import re
-from logging import DEBUG
 from typing import Tuple
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from scraper.SpireDriver import SpireDriver
+from spire.scraper.SpireDriver import SpireDriver
 
 log = logging.getLogger(__name__)
-log.setLevel(DEBUG)
 
 
 def assert_match(r, s):
-    log.debug("Matching: %s", s)
-    str_match = re.match(r, s)
+    log.debug("Full matching: %s against %s", s, r)
+    str_match = re.fullmatch(r, s)
     assert str_match
     return str_match
 
@@ -31,7 +29,7 @@ FIELD_VALUE_IDS = {
     "win0divSSR_CLS_DTL_WRK_GRADING_BASISlbl": "win0divGRADE_BASIS_TBL_DESCRFORMAL",
     "win0divSSR_CLS_DTL_WRK_CONSENTlbl": "win0divPSXLATITEM_XLATLONGNAME$209$",
     "win0divSSR_CLS_DTL_WRK_SSR_DROP_CONSENTlbl": "win0divPSXLATITEM_XLATLONGNAME$229$",
-    "win0divSSR_CLS_DTL_WRK_CRS_TOPIC_IDlbl":"win0divCRSE_TOPICS_DESCR"
+    "win0divSSR_CLS_DTL_WRK_CRS_TOPIC_IDlbl": "win0divCRSE_TOPICS_DESCR",
 }
 
 
@@ -181,7 +179,9 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
         scraped_table_names.add(table_name)
 
         table_content_selector = (
-            TABLE_CONTENT_SELECTORS[table_name] if table_name in TABLE_CONTENT_SELECTORS else "table.PSGROUPBOX"
+            TABLE_CONTENT_SELECTORS[table_name]
+            if table_name in TABLE_CONTENT_SELECTORS
+            else "table.PSGROUPBOX"
         )
         if table_name in TABLE_SCRAPERS:
             for table_content in table.find_elements(By.CSS_SELECTOR, table_content_selector):

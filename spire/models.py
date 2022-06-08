@@ -5,16 +5,16 @@ from django.core.validators import (MaxValueValidator, MinValueValidator,
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-COURSE_ID_REGEXP = r"^.+$"
-COURSE_ID_NUMBER_REGEXP = r"^.+$"
-COURSE_TITLE_REGEXP = r"^.+$"
-
-SUBJECT_ID_REGEXP = r"^.+$"
-SUBJECT_TITLE_REGEXP = r"^.+$"
+from spire.regexp import (COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP,
+                          COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP,
+                          SUBJECT_TITLE_REGEXP)
 
 
 def re_validator_factory(r: str, msg: str):
-    assert r.startswith("^") and r.endswith("$")
+    assert r.startswith("^") == r.endswith("$")
+
+    if not r.startswith("^"):
+        r = "^" + r + "$"
 
     return RegexValidator(regex=r, message=msg)
 
@@ -22,7 +22,7 @@ def re_validator_factory(r: str, msg: str):
 _course_id_validator = re_validator_factory(COURSE_ID_REGEXP, "must be a course ID (match course ID RegExp)")
 
 _course_id_number_validator = re_validator_factory(
-    COURSE_ID_NUMBER_REGEXP,
+    COURSE_ID_NUM_REGEXP,
     "must be a course ID number (match course title number RegExp)",
 )
 

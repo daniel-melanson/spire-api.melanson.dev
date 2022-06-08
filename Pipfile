@@ -9,6 +9,7 @@ psycopg2-binary = "*"
 djangorestframework = "*"
 pyyaml = "*"
 uritemplate = "*"
+selenium = "*"
 
 [dev-packages]
 

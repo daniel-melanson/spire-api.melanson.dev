@@ -1,12 +1,14 @@
 import logging
 from logging import DEBUG
-from typing import Optional, Tuple, TypedDict
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
+from typing import Optional, TypedDict
 
 from scraper.shared import assert_match, scrape_spire_tables
 from scraper.SpireDriver import SpireDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+
+from spire.regexp import (COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP,
+                          SUBJECT_ID_REGEXP)
 
 log = logging.getLogger(__name__)
 log.setLevel(DEBUG)
@@ -44,12 +46,16 @@ def scrape_search_results(driver: SpireDriver, term: str):
     for span_id in course_title_span_ids:
         span = driver.find(span_id)
 
-        title_match = assert_match(r"(?P<subject>\S+)\s+(?P<number>\S+)\s+(?P<title>.+)", span.text)
-        course_id = f"{title_match.group('subject')} {title_match.group('number')}"
+        title_match = assert_match(
+            SUBJECT_ID_REGEXP + r"\s+" + COURSE_ID_NUM_REGEXP + r"\s+" + COURSE_TITLE_REGEXP, span.text
+        )
+        course_id = f"{title_match.group('subject_id')} {title_match.group('course_number')}"
 
         log.debug("Scraping sections for course: %s.", course_id)
 
-        sections_table = driver.find("ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :])
+        sections_table = driver.find(
+            "ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :]
+        )
         assert sections_table
 
         log.debug("Scraping emails for course...")
@@ -65,7 +71,9 @@ def scrape_search_results(driver: SpireDriver, term: str):
 
         link_ids = [
             e.get_property("id")
-            for e in sections_table.find_elements(By.CSS_SELECTOR, "a[id^=DERIVED_CLSRCH_SSR_CLASSNAME_LONG\$]")
+            for e in sections_table.find_elements(
+                By.CSS_SELECTOR, "a[id^=DERIVED_CLSRCH_SSR_CLASSNAME_LONG\$]"
+            )
         ]
         for link_id in link_ids:
             link = driver.find(link_id)
@@ -78,11 +86,15 @@ def scrape_search_results(driver: SpireDriver, term: str):
             meeting_info_table = driver.find("SSR_CLSRCH_MTG$scroll$0")
 
             instructors = []
-            for raw_name in meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_INSTR]").text.split("\\n"):
+            for raw_name in meeting_info_table.find_element(
+                By.CSS_SELECTOR, "span[id^=MTG_INSTR]"
+            ).text.split("\\n"):
                 name = raw_name[:-1] if raw_name.endswith(",") else raw_name
 
                 instructors.append(
-                    SpireStaff(name=name, email=course_staff_emails[name] if name in course_staff_emails else None)
+                    SpireStaff(
+                        name=name, email=course_staff_emails[name] if name in course_staff_emails else None
+                    )
                 )
 
             section = SpireSection(
@@ -91,7 +103,9 @@ def scrape_search_results(driver: SpireDriver, term: str):
                 section_id=section_id,
                 details=table_results["Class Details"],
                 meeting_information=SpireMeetingInformation(
-                    days_and_times=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_SCHED]").text,
+                    days_and_times=meeting_info_table.find_element(
+                        By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
+                    ).text,
                     room=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
                     instructors=instructors,
                     meeting_dates=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_DATE]").text,
@@ -99,7 +113,9 @@ def scrape_search_results(driver: SpireDriver, term: str):
                 availability=table_results["Class Availability"],
                 description=table_results["Description"] if "Description" in table_results else None,
                 overview=table_results["Class Overview"] if "Class Overview" in table_results else None,
-                restrictions=table_results["RESTRICTIONS & NOTES"] if "RESTRICTIONS & NOTES" in table_results else None,
+                restrictions=table_results["RESTRICTIONS & NOTES"]
+                if "RESTRICTIONS & NOTES" in table_results
+                else None,
             )
             log.info("Scraped section: %s.", section)
             sections.append(section)
@@ -111,15 +127,14 @@ def scrape_search_results(driver: SpireDriver, term: str):
 
 
 def get_option_values(select):
-    return [e.text for e in select.find_elements(By.CSS_SELECTOR, "option") if len(e.get_property("value")) > 0]
+    return [
+        e.text for e in select.find_elements(By.CSS_SELECTOR, "option") if len(e.get_property("value")) > 0
+    ]
 
 
-def scrape_sections(driver: SpireDriver) -> Tuple[list[SpireSection], str]:
+def scrape_sections(driver: SpireDriver):
     log.info("Scraping sections...")
     driver.navigate_to("search")
-
-    sections = []
-    earliest_semester = ""
 
     subject_select = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT\$108\$")
     assert subject_select
@@ -163,12 +178,9 @@ def scrape_sections(driver: SpireDriver) -> Tuple[list[SpireSection], str]:
             if return_button:
                 course_sections = scrape_search_results(driver, term_values[term_offset])
 
-                sections.extend(course_sections)
-
                 log.debug("Returning...")
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
             else:
                 log.debug("No search results found, skipping...")
 
     log.info("Scraped sections.")
-    return (sections, earliest_semester)
