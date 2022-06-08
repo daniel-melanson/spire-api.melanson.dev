@@ -33,3 +33,7 @@ class StaffViewSet(ReadOnlyModelViewSet):
 class SectionViewSet(ReadOnlyModelViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
+
+class CoverageViewSet(ReadOnlyModelViewSet):
+    queryset = SectionCoverage.objects.all()
+    serializer_class = SectionCoverageSerializer
