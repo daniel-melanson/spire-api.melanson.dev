@@ -1,0 +1,243 @@
+openapi: 3.0.2
+info:
+  title: ''
+  version: ''
+paths:
+  /courses/:
+    get:
+      operationId: listCourses
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+          description: ''
+      tags:
+      - courses
+  /courses/{course_id}/:
+    get:
+      operationId: retrieveCourse
+      description: ''
+      parameters:
+      - name: course_id
+        in: path
+        required: true
+        description: A unique value identifying this course.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+          description: ''
+      tags:
+      - courses
+  /subjects/:
+    get:
+      operationId: listSubjects
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subject'
+          description: ''
+      tags:
+      - subjects
+  /subjects/{subject_id}/:
+    get:
+      operationId: retrieveSubject
+      description: ''
+      parameters:
+      - name: subject_id
+        in: path
+        required: true
+        description: A unique value identifying this subject.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+          description: ''
+      tags:
+      - subjects
+  /sections/:
+    get:
+      operationId: listSections
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Section'
+          description: ''
+      tags:
+      - sections
+  /sections/{section_id}/:
+    get:
+      operationId: retrieveSection
+      description: ''
+      parameters:
+      - name: section_id
+        in: path
+        required: true
+        description: A unique value identifying this section.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Section'
+          description: ''
+      tags:
+      - sections
+  /staff/:
+    get:
+      operationId: listStaffs
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Staff'
+          description: ''
+      tags:
+      - staff
+  /staff/{staff_id}/:
+    get:
+      operationId: retrieveStaff
+      description: ''
+      parameters:
+      - name: staff_id
+        in: path
+        required: true
+        description: A unique integer value identifying this staff.
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Staff'
+          description: ''
+      tags:
+      - staff
+components:
+  schemas:
+    Course:
+      type: object
+      properties:
+        course_id:
+          type: string
+          pattern: ^.+$
+          maxLength: 32
+        subject:
+          type: string
+        number:
+          type: string
+          pattern: ^.+$
+          maxLength: 8
+        title:
+          type: string
+          pattern: ^.+$
+          maxLength: 128
+        description:
+          type: string
+          nullable: true
+          maxLength: 1024
+      required:
+      - course_id
+      - subject
+      - number
+      - title
+    Subject:
+      type: object
+      properties:
+        name:
+          type: string
+          pattern: ^.+$
+          maxLength: 30
+        subject_id:
+          type: string
+          pattern: ^.+$
+          maxLength: 8
+      required:
+      - name
+      - subject_id
+    Section:
+      type: object
+      properties:
+        section_id:
+          type: string
+          maxLength: 10
+        course:
+          type: string
+        term:
+          type: string
+        details:
+          type: object
+        restrictions:
+          type: object
+          nullable: true
+        availability:
+          type: object
+        description:
+          type: string
+          nullable: true
+          maxLength: 1024
+        overview:
+          type: string
+          nullable: true
+          maxLength: 1024
+        meeting_info:
+          type: object
+        instructors:
+          type: array
+          items:
+            type: string
+      required:
+      - section_id
+      - course
+      - term
+      - details
+      - availability
+      - meeting_info
+      - instructors
+    Staff:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 64
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+      required:
+      - name

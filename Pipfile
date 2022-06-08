@@ -16,7 +16,7 @@ uritemplate = "*"
 python_version = "3.10"
 
 [scripts]
-genschema = "python manage.py generateschema --file ./root/static/openapi-schema.yml"
+genschema = "python manage.py generateschema --file openapi-schema.yml"
 dev = "python manage.py runserver"
 makemigrations = "python manage.py makemigrations"
 migrate = "python manage.py migrate"
