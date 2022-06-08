@@ -130,3 +130,33 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     # "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"]
 }
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "scrape_handler": {
+            "class": "logging.RotatingFileHandler",
+            "filename": "./logs/scrape-results.log",
+            "delay": True,
+            "backupCount": 5
+        }
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "propagate": True,
+        },
+        "spire.scraper": {
+            "handlers": ["scrape_handler"],
+            "level": "DEBUG" if os.environ["DEBUG_SCRAPER"].lower() == "true" else "INFO",
+            "propagate": False
+        }
+    },
+}

@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from logging import DEBUG
+from logging.handlers import RotatingFileHandler
 from typing import NamedTuple
 
 from scraper.spire_catalog import scrape_catalog
@@ -16,6 +17,11 @@ class ScrapeCoverage(NamedTuple):
 
 
 def scrape_data(coverage: ScrapeCoverage):
+    for handler in log.handlers:
+        if handler.baseFilename.endswith("scrape-results.log"):
+            handler.doRollover()
+            break
+
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
