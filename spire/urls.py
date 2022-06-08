@@ -1,10 +1,15 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from spire.views import CourseRetrieve, SectionRetrieve, SubjectCourseList, SubjectsView
+from spire.views import (CourseViewSet, SectionViewSet, StaffViewSet,
+                         SubjectsViewSet)
+
+router = DefaultRouter()
+router.register(r"courses", CourseViewSet, basename="courses")
+router.register(r"subjects", SubjectsViewSet, basename="subjects")
+router.register(r"sections", SectionViewSet, basename="sections")
+router.register(r"staff", StaffViewSet, basename="staff")
 
 urlpatterns = [
-    path("courses/<str:subject_id>/", SubjectCourseList.as_view()),
-    path("courses/<str:subject_id>/<str:number>/", CourseRetrieve.as_view()),
-    path("courses/<str:subject_id>/<str:number>/sections", SectionRetrieve.as_view()),
-    path("subjects/", SubjectsView.as_view()),
+    path("", include(router.urls)),
 ]

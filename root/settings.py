@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,8 +32,8 @@ ALLOWED_HOSTS = [] if DEBUG else ["spire-api.melanson.dev"]
 # Application definition
 
 INSTALLED_APPS = [
-    "spire.apps.SpireConfig",
     "rest_framework",
+    "spire.apps.SpireConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
