@@ -1,13 +1,16 @@
 from datetime import datetime
 
-from django.core.validators import (MaxValueValidator, MinValueValidator,
-                                    RegexValidator)
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from spire.regexp import (COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP,
-                          COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP,
-                          SUBJECT_TITLE_REGEXP)
+from spire.regexp import (
+    COURSE_ID_NUM_REGEXP,
+    COURSE_ID_REGEXP,
+    COURSE_TITLE_REGEXP,
+    SUBJECT_ID_REGEXP,
+    SUBJECT_TITLE_REGEXP,
+)
 
 
 def re_validator_factory(r: str, msg: str):

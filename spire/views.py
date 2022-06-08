@@ -3,9 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from spire.models import Course, Section, SectionCoverage, Staff, Subject
-from spire.serializers import (CourseSerializer, SectionCoverageSerializer,
-                               SectionSerializer, StaffSerializer,
-                               SubjectSerializer)
+from spire.serializers import (
+    CourseSerializer,
+    SectionCoverageSerializer,
+    SectionSerializer,
+    StaffSerializer,
+    SubjectSerializer,
+)
 
 
 def attempt_course_fetch(sub: str, num: str) -> Course:
