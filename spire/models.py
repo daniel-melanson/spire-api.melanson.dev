@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.validators import (MaxValueValidator, MinValueValidator,
                                     RegexValidator)
 from django.db import models
@@ -63,6 +65,7 @@ class Course(models.Model):
     number = models.CharField(max_length=8, validators=[_course_id_number_validator])
     title = models.CharField(max_length=128, validators=[_course_title_validator])
     description = models.CharField(max_length=1024, null=True)
+    _updated_at = models.DateTimeField(default=datetime.fromisoformat("2022-05-01T00:00:00.000+00:00"))
 
     class Meta:
         unique_together = [["subject", "number"]]
@@ -85,6 +88,7 @@ class Section(models.Model):
     overview = models.CharField(max_length=1024, null=True)
     meeting_info = models.JSONField()
     instructors = models.ManyToManyField(Staff)
+    _updated_at = models.DateTimeField(default=datetime.fromisoformat("2022-05-01T00:00:00.000+00:00"))
 
 
 class SectionCoverage(models.Model):
