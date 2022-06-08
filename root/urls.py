@@ -13,47 +13,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+
 from django.urls import include, path
 from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 
-from root.settings import DEBUG
-
-urlpatterns = [path("", include("spire.urls"))]
-
-if DEBUG:
-    urlpatterns += [
-        path(
-            "openapi",
-            get_schema_view(
-                title="Spire API",
-                description="An API for public information on <a href='https://spire.umass.edu'>UMass Spire</a>.",
-                version="1.0.0",
-                urlconf="spire.urls",
-            ),
-            name="openapi-schema",
+urlpatterns = [
+    path("", include("spire.urls")),
+    path(
+        "openapi",
+        get_schema_view(
+            title="Spire API",
+            description="An API for public information on <a href='https://spire.umass.edu'>UMass Spire</a>.",
+            version="1.0.0",
+            urlconf="spire.urls",
         ),
-        path(
-            "docs/",
-            TemplateView.as_view(
-                template_name="swagger-ui.html",
-                extra_context={"schema_url": "openapi-schema"},
-            ),
-            name="docs",
+        name="openapi-schema",
+    ),
+    path(
+        "docs/",
+        TemplateView.as_view(
+            template_name="swagger-ui.html",
+            extra_context={"schema_url": "openapi-schema"},
         ),
-    ]
-else:
-    # Django disables static file hosting in production
-    urlpatterns += [
-        path(
-            "docs/",
-            TemplateView.as_view(
-                template_name="swagger-ui.html",
-                extra_context={
-                    "schema_url": "https://raw.githubusercontent.com/daniel-melanson/spire-api.melanson.dev/master/openapi-schema.yml"
-                },
-            ),
-            name="docs",
-        ),
-    ]
+        name="docs",
+    ),
+]
