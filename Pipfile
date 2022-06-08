@@ -12,6 +12,9 @@ uritemplate = "*"
 selenium = "*"
 
 [dev-packages]
+pylint = "*"
+isort = "*"
+black = "*"
 
 [requires]
 python_version = "3.10"
