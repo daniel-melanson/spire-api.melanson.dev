@@ -10,7 +10,6 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-
 from shared import env
 
 log = logging.getLogger(__name__)
@@ -50,7 +49,10 @@ class SpireDriver:
             self._switch()
 
         self.click("pthnavbca_UM_COURSE_GUIDES", wait=False)
-        self.click("crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL", wait=False)
+        self.click(
+            "crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL",
+            wait=False,
+        )
         self._switch()
 
         self.wait_for_spire()

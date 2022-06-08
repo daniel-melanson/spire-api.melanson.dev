@@ -14,6 +14,7 @@ class SectionSerializer(HyperlinkedModelSerializer):
         model = Section
         fields = "__all__"
 
+
 class StaffSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Staff

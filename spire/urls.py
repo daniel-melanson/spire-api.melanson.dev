@@ -1,8 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from spire.views import (CourseViewSet, SectionViewSet, StaffViewSet,
-                         SubjectsViewSet, CoverageViewSet)
+from spire.views import (CourseViewSet, CoverageViewSet, SectionViewSet,
+                         StaffViewSet, SubjectsViewSet)
 
 router = DefaultRouter()
 router.register("courses", CourseViewSet, basename="courses")
