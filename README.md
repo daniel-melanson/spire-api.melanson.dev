@@ -27,27 +27,3 @@ Every section during or after the Spring 2018 term is scraped. But only sections
 ### Schedule
 
 TO-DO.
-
-## Notes
-
-Draft API:
-
-`/docs`
-
-- Documentation
-
-`/courses/<subject-id>/`
-
-- Returns a list of all courses in that subject
-
-`/courses/<subject-id>/<course-number>/`
-
-- Returns a single course
-
-`/courses/<subject-id>/<course-number>/sections`
-
-- Returns a list of all sections of a course
-
-`/subjects/`
-
-- Returns a list of all subjects
