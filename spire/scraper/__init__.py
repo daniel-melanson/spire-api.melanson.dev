@@ -1,20 +1,19 @@
+from enum import Enum
 import logging
 from datetime import datetime
-from logging import DEBUG
-from logging.handlers import RotatingFileHandler
-from typing import NamedTuple
+from typing import Union
 
-from scraper.spire_catalog import scrape_catalog
-from scraper.spire_search import scrape_sections
-from scraper.SpireDriver import SpireDriver
+from spire.scraper.spire_catalog import scrape_catalog
+from spire.scraper.spire_search import scrape_sections
+from spire.scraper.SpireDriver import SpireDriver
 
 log = logging.getLogger(__name__)
 
 
-class ScrapeCoverage(NamedTuple):
-    subjects_and_courses: bool
-    section_terms: tuple[str]
-
+class ScrapeCoverage(Enum):
+    Total = 0
+    SubjectsAndCourses = 1
+    Sections = 2
 
 def scrape_data(coverage: ScrapeCoverage):
     for handler in log.handlers:
@@ -29,7 +28,7 @@ def scrape_data(coverage: ScrapeCoverage):
 
     driver = SpireDriver()
 
-    if coverage.subjects_and_courses:
+    if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.SubjectsAndCourses:
         try:
             scrape_catalog(driver)
         except Exception as e:
@@ -37,7 +36,7 @@ def scrape_data(coverage: ScrapeCoverage):
             driver.close()
             raise e
 
-    if len(coverage.section_terms) > 0:
+    if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
         try:
             scrape_sections(driver, coverage.section_terms)
         except Exception as e:

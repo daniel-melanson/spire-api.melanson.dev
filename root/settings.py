@@ -171,3 +171,5 @@ LOGGING = {
         },
     },
 }
+
+HEADLESS = get_bool_env("HEADLESS_SCRAPER")

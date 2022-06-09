@@ -1,12 +1,12 @@
 import logging
 from typing import NamedTuple, Optional
 
-from scraper import SpireDriver
-from scraper.shared import assert_match, scrape_spire_tables
 from selenium.webdriver.common.by import By
 
 from spire.models import Course, Subject
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP
+from spire.scraper import SpireDriver
+from spire.scraper.shared import assert_match, scrape_spire_tables
 
 log = logging.getLogger(__name__)
 

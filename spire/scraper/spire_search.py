@@ -2,12 +2,12 @@ import logging
 from logging import DEBUG
 from typing import Optional, TypedDict
 
-from scraper.shared import assert_match, scrape_spire_tables
-from scraper.SpireDriver import SpireDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
+from spire.scraper.shared import assert_match, scrape_spire_tables
+from spire.scraper.SpireDriver import SpireDriver
 
 log = logging.getLogger(__name__)
 log.setLevel(DEBUG)

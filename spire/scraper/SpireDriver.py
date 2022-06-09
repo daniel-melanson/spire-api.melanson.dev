@@ -1,5 +1,4 @@
 import logging
-from logging import DEBUG
 from typing import Union
 
 from selenium.common.exceptions import NoSuchElementException
@@ -10,16 +9,16 @@ from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from shared import env
+
+from root.settings import HEADLESS
 
 log = logging.getLogger(__name__)
-log.setLevel(DEBUG)
 
 
 class SpireDriver:
     def __init__(self):
         options = Options()
-        options.headless = env("HEADLESS", "True").lower() in ("true", "yes", "1")
+        options.headless = HEADLESS
         self._driver = WebDriver(options=options)
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
