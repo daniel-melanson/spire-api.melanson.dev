@@ -5,34 +5,45 @@ from typing import NamedTuple, Optional
 from selenium.webdriver.common.by import By
 
 from spire.models import Course, Subject
-from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP
+from spire.regexp import (
+    COURSE_ID_NUM_REGEXP,
+    COURSE_ID_REGEXP,
+    COURSE_TITLE_REGEXP,
+    SUBJECT_ID_REGEXP,
+    SUBJECT_TITLE_REGEXP,
+)
 from spire.scraper import SpireDriver
-from spire.scraper.shared import assert_match, scrape_spire_tables
+from spire.scraper.shared import (
+    assert_match,
+    assert_dict_keys_subset,
+    key_normalizer_factory,
+    scrape_spire_tables,
+)
 
 log = logging.getLogger(__name__)
 
-SUBJECT_OVERRIDES = {
-    "BMED-ENG": ("BME", "Biomedical Engineering"),
-    "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
-    "CHEM-ENG": ("CHE", "Chemical Engineering"),
-    "EC-ENG": ("ECE", "Electrical & Computer Engineering"),
-    "HM&FN": ("HFA", "Humanities and Fine Arts"),
-    "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
-    "MI-ENG": ("MIE", "Mechanical & Industrial Engineering"),
-    "NEUROS&B": ("NSB", "Neuroscience & Behavior"),
-    "ORG&EVBI": ("OEB", "Organismic & Evolutionary Biology"),
-}
+
+SUBJECT_NORMALIZER = key_normalizer_factory(
+    {
+        "BMED-ENG": ("BME", "Biomedical Engineering"),
+        "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
+        "CHEM-ENG": ("CHE", "Chemical Engineering"),
+        ("EC-ENG", "E&C-ENG"): ("ECE", "Electrical & Computer Engineering"),
+        ("HM&FN", "HMFNART"): ("HFA", "Humanities and Fine Arts"),
+        "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
+        ("MI-ENG", "M&I-ENG"): ("MIE", "Mechanical & Industrial Engineering"),
+        ("NEUROS&B", "NEUROSB"): ("NSB", "Neuroscience & Behavior"),
+        ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
+    }
+)
 
 
 class SpireSubject:
     id: str
     title: str
 
-    def __init__(self, id=None, title=None) -> None:
-        assert id is not None and title is not None
-
-        if id in SUBJECT_OVERRIDES:
-            override = SUBJECT_OVERRIDES[id]
+    def __init__(self, id: str, title: str) -> None:
+        if (override := SUBJECT_NORMALIZER(id)) != id:
             self.id = override[0]
             self.title = override[1]
         else:
@@ -43,7 +54,38 @@ class SpireSubject:
         assert_match(SUBJECT_TITLE_REGEXP, self.title)
 
 
-class SpireCourse(NamedTuple):
+DETAIL_NORMALIZERS = {
+    "Academic Group": key_normalizer_factory(
+        {
+            "College of Humanities&Fine Art": "College of Humanities & Fine Art",
+            "Stockbridge School": "Stockbridge School of Agriculture",
+            "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
+        }
+    ),
+    "Academic Organization": key_normalizer_factory(
+        {
+            "Bldg &Construction Technology": "Building & Construction Technology",
+            "Civil & Environmental Engin.": "Civil & Environmental Engineering",
+            "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
+        }
+    ),
+    "Grading Basis": key_normalizer_factory(
+        {"Grad Ltr Grading, with options": "Graduate Letter Grading, with options"}
+    ),
+}
+
+
+DETAIL_KEYS = [
+    "Career",
+    "Units",
+    "Grading Basis",
+    "Course Components",
+    "Academic Group",
+    "Academic Organization",
+]
+
+
+class SpireCourse:
     id: str
     subject: str
     number: str
@@ -52,6 +94,51 @@ class SpireCourse(NamedTuple):
     enrollment_information: Optional[dict[str, str]]
     description: Optional[str]
 
+    def __init__(
+        self,
+        id: str,
+        subject: str,
+        number: str,
+        title: str,
+        details: dict[str, str],
+        enrollment_information: Optional[dict[str, str]],
+        description: Optional[str],
+    ):
+        if (override := SUBJECT_NORMALIZER(subject)) != subject:
+            subject = override[0]
+            id = f"{subject} {number}"
+
+        assert_match(COURSE_ID_REGEXP, id)
+        self.id = id
+
+        assert_match(SUBJECT_ID_REGEXP, subject)
+        self.subject = subject
+
+        assert_match(number, COURSE_ID_NUM_REGEXP)
+        self.number = number
+
+        assert_match(title, COURSE_TITLE_REGEXP)
+        self.title = title
+
+        assert_dict_keys_subset(
+            details,
+            DETAIL_KEYS,
+        )
+
+        for key in DETAIL_KEYS:
+            if key in details:
+                if key in DETAIL_NORMALIZERS:
+                    x = DETAIL_NORMALIZERS[key](details[key])
+                    details[key] = x
+                else:
+                    x = details[key]
+
+        self.details = details
+
+        self.enrollment_information = enrollment_information
+
+        self.description = description
+
 
 def scrape_course_page(driver: SpireDriver) -> SpireCourse:
     title_element = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
@@ -59,13 +146,14 @@ def scrape_course_page(driver: SpireDriver) -> SpireCourse:
     raw_title = title_element.text
 
     title_match = assert_match(
-        SUBJECT_ID_REGEXP + r"\s+" + COURSE_ID_NUM_REGEXP + r"\s+-\s+" + COURSE_TITLE_REGEXP,
+        r"(?P<subject>\S+)\s+(?P<number>\S+) - (?P<title>.+)",
         raw_title,
     )
 
     tables = scrape_spire_tables(driver, "table.PSGROUPBOXNBO")
 
     assert "Course Detail" in tables
+    assert_dict_keys_subset(tables, ["Course Detail", "Description", "Enrollment Information"])
 
     number = title_match.group("number").upper()
     subject = title_match.group("subject").upper()

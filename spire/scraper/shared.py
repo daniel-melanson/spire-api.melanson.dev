@@ -10,11 +10,30 @@ from spire.scraper.SpireDriver import SpireDriver
 log = logging.getLogger(__name__)
 
 
+def key_normalizer_factory(table):
+    for k in table.keys():
+        if isinstance(k, tuple):
+            value = table[k]
+            del table[k]
+
+            for sub_k in k:
+                table[sub_k] = value
+
+    def normalizer(x):
+        return table[x] if x in table else x
+
+    return normalizer
+
+
 def assert_match(r, s):
     log.debug("Full matching: %s against %s", s, r)
     str_match = re.fullmatch(r, s)
     assert str_match
     return str_match
+
+
+def assert_dict_keys_subset(d: dict, keys: list[str]):
+    assert set(d.keys()).issubset(set(keys))
 
 
 FIELD_VALUE_IDS = {
