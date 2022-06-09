@@ -1,4 +1,5 @@
 import logging
+from turtle import title
 from typing import NamedTuple, Optional
 
 from selenium.webdriver.common.by import By
@@ -10,10 +11,36 @@ from spire.scraper.shared import assert_match, scrape_spire_tables
 
 log = logging.getLogger(__name__)
 
+SUBJECT_OVERRIDES = {
+    "BMED-ENG": ("BME", "Biomedical Engineering"),
+    "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
+    "CHEM-ENG": ("CHE", "Chemical Engineering"),
+    "EC-ENG": ("ECE", "Electrical & Computer Engineering"),
+    "HM&FN": ("HFA", "Humanities and Fine Arts"),
+    "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
+    "MI-ENG": ("MIE", "Mechanical & Industrial Engineering"),
+    "NEUROS&B": ("NSB", "Neuroscience & Behavior"),
+    "ORG&EVBI": ("OEB", "Organismic & Evolutionary Biology"),
+}
 
-class SpireSubject(NamedTuple):
+
+class SpireSubject:
     id: str
     title: str
+
+    def __init__(self, id=None, title=None) -> None:
+        assert id is not None and title is not None
+
+        if id in SUBJECT_OVERRIDES:
+            override = SUBJECT_OVERRIDES[id]
+            self.id = override[0]
+            self.title = override[1]
+        else:
+            self.id = id
+            self.title = title
+
+        assert_match(SUBJECT_ID_REGEXP, self.id)
+        assert_match(SUBJECT_TITLE_REGEXP, self.title)
 
 
 class SpireCourse(NamedTuple):
@@ -77,15 +104,23 @@ def scrape_catalog(driver: SpireDriver):
 
             subject_title = subject_link.text
 
-            subject_match = assert_match(SUBJECT_ID_REGEXP + " - " + SUBJECT_TITLE_REGEXP, subject_title)
+            subject_match = assert_match(r"(?P<id>\S+) - (?P<title>.+)", subject_title)
 
-            subject = SpireSubject(
+            scraped_subject = SpireSubject(
                 id=subject_match.group("id").upper(),
                 title=subject_match.group("title"),
             )
 
-            log.debug("Initialized subject: %s.", subject)
-            log.debug("Scraping subject: %s...", subject["name"])
+            log.debug("Initialized scraped subject: %s.", scraped_subject)
+
+            subject, created = Subject.objects.update_or_create(
+                id=scraped_subject.id, title=scraped_subject.title
+            )
+
+            if created:
+                log.info("Created new subject: %s", subject)
+
+            log.debug("Scraping subject: %s...", subject.title)
 
             log.debug("Expanding subject list...")
             subject_link.click()

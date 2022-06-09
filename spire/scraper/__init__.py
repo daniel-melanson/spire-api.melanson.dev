@@ -1,6 +1,6 @@
-from enum import Enum
 import logging
 from datetime import datetime
+from enum import Enum
 from typing import Union
 
 from spire.scraper.spire_catalog import scrape_catalog
@@ -14,6 +14,7 @@ class ScrapeCoverage(Enum):
     Total = 0
     SubjectsAndCourses = 1
     Sections = 2
+
 
 def scrape_data(coverage: ScrapeCoverage):
     for handler in log.handlers:

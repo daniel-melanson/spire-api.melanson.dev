@@ -53,7 +53,7 @@ class Term(models.Model):
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=30, unique=True, validators=[_subject_title_validator])
+    title = models.CharField(max_length=30, unique=True, validators=[_subject_title_validator])
     subject_id = models.CharField(
         max_length=8,
         unique=True,
@@ -68,7 +68,7 @@ class Course(models.Model):
     number = models.CharField(max_length=8, validators=[_course_id_number_validator])
     title = models.CharField(max_length=128, validators=[_course_title_validator])
     description = models.CharField(max_length=1024, null=True)
-    _updated_at = models.DateTimeField(default=datetime.fromisoformat("2022-05-01T00:00:00.000+00:00"))
+    _updated_at = models.DateTimeField()
 
     class Meta:
         unique_together = [["subject", "number"]]
@@ -91,7 +91,7 @@ class Section(models.Model):
     overview = models.CharField(max_length=1024, null=True)
     meeting_info = models.JSONField()
     instructors = models.ManyToManyField(Staff)
-    _updated_at = models.DateTimeField(default=datetime.fromisoformat("2022-05-01T00:00:00.000+00:00"))
+    _updated_at = models.DateTimeField()
 
 
 class SectionCoverage(models.Model):
