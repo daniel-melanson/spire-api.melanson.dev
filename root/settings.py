@@ -13,6 +13,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from pathlib import Path
 
+
+def get_bool_env(key):
+    if key in os.environ:
+        return os.environ[key].lower() in ("true", "t", "yes", "on", "1")
+
+    return False
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,10 +29,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.environ["DEBUG"].lower() == "true" else False
+DEBUG = get_bool_env("DEBUG")
 
 ALLOWED_HOSTS = [] if DEBUG else ["spire-api.melanson.dev"]
 
@@ -142,21 +150,24 @@ LOGGING = {
     },
     "handlers": {
         "scrape_handler": {
-            "class": "logging.RotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "./logs/scrape-results.log",
             "delay": True,
-            "backupCount": 5
-        }
+            "backupCount": 5,
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
     },
     "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "propagate": True,
-        },
         "spire.scraper": {
             "handlers": ["scrape_handler"],
-            "level": "DEBUG" if os.environ["DEBUG_SCRAPER"].lower() == "true" else "INFO",
-            "propagate": False
-        }
+            "level": "DEBUG" if get_bool_env("DEBUG_SCRAPER") else "INFO",
+            "propagate": False,
+        },
     },
 }
