@@ -144,16 +144,16 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
-            "style": "{",
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d - %(message)s",
+            "style": "%",
         },
     },
     "handlers": {
         "scrape_handler": {
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "logging.FileHandler",
             "filename": "./logs/scrape-results.log",
-            "delay": True,
-            "backupCount": 5,
+            "mode": "w",
+            "formatter": "verbose",
         },
         "console": {
             "class": "logging.StreamHandler",
