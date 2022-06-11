@@ -14,8 +14,8 @@ from spire.regexp import (
 )
 from spire.scraper import SpireDriver
 from spire.scraper.shared import (
-    assert_match,
     assert_dict_keys_subset,
+    assert_match,
     key_normalizer_factory,
     scrape_spire_tables,
 )
@@ -39,18 +39,18 @@ SUBJECT_NORMALIZER = key_normalizer_factory(
 
 
 class SpireSubject:
-    id: str
+    subject_id: str
     title: str
 
-    def __init__(self, id: str, title: str) -> None:
-        if (override := SUBJECT_NORMALIZER(id)) != id:
-            self.id = override[0]
+    def __init__(self, subject_id: str, title: str) -> None:
+        if (override := SUBJECT_NORMALIZER(subject_id)) != subject_id:
+            self.subject_id = override[0]
             self.title = override[1]
         else:
-            self.id = id
+            self.subject_id = subject_id
             self.title = title
 
-        assert_match(SUBJECT_ID_REGEXP, self.id)
+        assert_match(SUBJECT_ID_REGEXP, self.subject_id)
         assert_match(SUBJECT_TITLE_REGEXP, self.title)
 
 
@@ -82,11 +82,12 @@ DETAIL_KEYS = [
     "Course Components",
     "Academic Group",
     "Academic Organization",
+    "Campus",
 ]
 
 
 class SpireCourse:
-    id: str
+    course_id: str
     subject: str
     number: str
     title: str
@@ -96,7 +97,7 @@ class SpireCourse:
 
     def __init__(
         self,
-        id: str,
+        course_id: str,
         subject: str,
         number: str,
         title: str,
@@ -106,18 +107,18 @@ class SpireCourse:
     ):
         if (override := SUBJECT_NORMALIZER(subject)) != subject:
             subject = override[0]
-            id = f"{subject} {number}"
+            course_id = f"{subject} {number}"
 
-        assert_match(COURSE_ID_REGEXP, id)
-        self.id = id
+        assert_match(COURSE_ID_REGEXP, course_id)
+        self.course_id = course_id
 
         assert_match(SUBJECT_ID_REGEXP, subject)
         self.subject = subject
 
-        assert_match(number, COURSE_ID_NUM_REGEXP)
+        assert_match(COURSE_ID_NUM_REGEXP, number)
         self.number = number
 
-        assert_match(title, COURSE_TITLE_REGEXP)
+        assert_match(COURSE_TITLE_REGEXP, title)
         self.title = title
 
         assert_dict_keys_subset(
@@ -139,6 +140,23 @@ class SpireCourse:
 
         self.description = description
 
+    def __str__(self):
+        return (
+            "SpireCourse("
+            + str(
+                {
+                    "course_id": self.course_id,
+                    "subject": self.subject,
+                    "number": self.number,
+                    "title": self.title,
+                    "details": str(self.details),
+                    "enrollment_information": str(self.enrollment_information),
+                    "description": str(self.description),
+                }
+            )
+            + ")"
+        )
+
 
 def scrape_course_page(driver: SpireDriver) -> SpireCourse:
     title_element = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
@@ -159,7 +177,7 @@ def scrape_course_page(driver: SpireDriver) -> SpireCourse:
     subject = title_match.group("subject").upper()
 
     return SpireCourse(
-        id=f"{subject} {number}",
+        course_id=f"{subject} {number}",
         subject=subject,
         number=number,
         title=title_match.group("title"),
@@ -195,7 +213,7 @@ def scrape_catalog(driver: SpireDriver):
             subject_match = assert_match(r"(?P<id>\S+) - (?P<title>.+)", subject_title)
 
             scraped_subject = SpireSubject(
-                id=subject_match.group("id").upper(),
+                subject_id=subject_match.group("id").upper(),
                 title=subject_match.group("title"),
             )
 
@@ -207,6 +225,8 @@ def scrape_catalog(driver: SpireDriver):
 
             if created:
                 log.info("Created new subject: %s", subject)
+            else:
+                log.info("Updated subject to: %s", subject)
 
             log.debug("Scraping subject: %s...", subject.title)
 
@@ -220,14 +240,29 @@ def scrape_catalog(driver: SpireDriver):
                 log.debug("Following next course link...")
                 driver.click(link_id)
 
-                course = scrape_course_page(driver)
+                scraped_course = scrape_course_page(driver)
+                assert scraped_course.subject == subject.subject_id
 
-                if course["subject"] != subject["id"]:
-                    log.warning("Mismatched course subjects: %s != %s.", course["subject"], subject["id"])
+                log.info("Scraped course: %s.", scraped_course)
 
-                log.info("Scraped course: %s.", course)
+                course, created = Course.objects.update_or_create(
+                    course_id=scraped_course.course_id,
+                    defaults={
+                        "subject": subject,
+                        "number": scraped_course.number,
+                        "title": scraped_course.title,
+                        "description": scraped_course.description,
+                        "details": scraped_course.details,
+                        "enrollment_information": scraped_course.enrollment_information,
+                        "_updated_at": timezone.now(),
+                    },
+                )
 
-                log.debug("Scraped course, returning...")
+                if created:
+                    log.info("Created course: %s", course)
+                else:
+                    log.info("Updated course: %s", course)
+
                 driver.click("DERIVED_SAA_CRS_RETURN_PB")
                 log.debug("Returned.")
 
