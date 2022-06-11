@@ -220,13 +220,10 @@ def scrape_catalog(driver: SpireDriver):
             log.debug("Initialized scraped subject: %s.", scraped_subject)
 
             subject, created = Subject.objects.update_or_create(
-                id=scraped_subject.id, title=scraped_subject.title
+                subject_id=scraped_subject.subject_id, defaults={"title": scraped_subject.title}
             )
 
-            if created:
-                log.info("Created new subject: %s", subject)
-            else:
-                log.info("Updated subject to: %s", subject)
+            log.info("%s new subject: %s", "Created" if created else "Updated", subject)
 
             log.debug("Scraping subject: %s...", subject.title)
 
@@ -258,10 +255,7 @@ def scrape_catalog(driver: SpireDriver):
                     },
                 )
 
-                if created:
-                    log.info("Created course: %s", course)
-                else:
-                    log.info("Updated course: %s", course)
+                log.info("%s course: %s", "Created" if created else "Updated", course)
 
                 driver.click("DERIVED_SAA_CRS_RETURN_PB")
                 log.debug("Returned.")
