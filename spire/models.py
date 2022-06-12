@@ -53,7 +53,7 @@ class Term(models.Model):
 
 
 class Subject(models.Model):
-    title = models.CharField(max_length=30, unique=True, validators=[_subject_title_validator])
+    title = models.CharField(max_length=64, unique=True, validators=[_subject_title_validator])
     subject_id = models.CharField(
         max_length=8,
         unique=True,

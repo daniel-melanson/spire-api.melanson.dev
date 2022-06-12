@@ -102,8 +102,8 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
         driver.click(f"DERIVED_SSS_BCC_SSR_ALPHANUM_{letter}")
 
         # Skip all subjects that were already successfully scraped
-        subject_link_ids = cache.skip_until(
-            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"), "subject_link_id"
+        subject_link_ids = skip_until(
+            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"), cache, "subject_link_id"
         )
 
         # For each subject in group

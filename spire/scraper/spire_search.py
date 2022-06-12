@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import Select
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
 from spire.scraper.shared import assert_match, scrape_spire_tables
 from spire.scraper.SpireDriver import SpireDriver
-from spire.scraper.VersionedCache import ScrapeMemento, VersionedCache
+from spire.scraper.VersionedCache import VersionedCache
 
 log = logging.getLogger(__name__)
 log.setLevel(DEBUG)
