@@ -154,7 +154,7 @@ LOGGING = {
             "filename": "./logs/scrape-results.log",
             "delay": True,
             "backupCount": 5,
-            "formatter": "verbose"
+            "formatter": "verbose",
         },
         "console": {
             "class": "logging.StreamHandler",
