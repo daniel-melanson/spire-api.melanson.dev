@@ -70,7 +70,7 @@ class Course(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=8, validators=[_course_id_number_validator])
     title = models.CharField(max_length=256, validators=[_course_title_validator])
-    description = models.CharField(max_length=2048, null=True)
+    description = models.CharField(max_length=4096, null=True)
     details = models.JSONField(default=dict)
     enrollment_information = models.JSONField(null=True)
     _updated_at = models.DateTimeField()

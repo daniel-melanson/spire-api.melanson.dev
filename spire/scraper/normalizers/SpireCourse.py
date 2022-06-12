@@ -71,7 +71,13 @@ class SpireCourse:
         self.enrollment_information = enrollment_information
 
         if description:
-            description = description.replace("\\n", " ")
+            description = (
+                description.replace("\\n", " ")
+                .replace("\n", " ")
+                .replace("\\\\\\n", " ")
+                .replace("  ", " ")
+                .replace("\n\n", "\n")
+            )
 
         self.description = description
 
@@ -82,7 +88,6 @@ class SpireCourse:
             "number": self.number,
             "title": self.title,
             "details": str(self.details),
-            "description": str(self.description),
         }
 
         if self.enrollment_information:
