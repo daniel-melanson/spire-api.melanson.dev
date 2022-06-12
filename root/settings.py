@@ -150,10 +150,11 @@ LOGGING = {
     },
     "handlers": {
         "scrape_handler": {
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": "./logs/scrape-results.log",
-            "mode": "w",
-            "formatter": "verbose",
+            "delay": True,
+            "backupCount": 5,
+            "formatter": "verbose"
         },
         "console": {
             "class": "logging.StreamHandler",
