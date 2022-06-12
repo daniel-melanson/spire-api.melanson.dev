@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 def key_normalizer_factory(table):
-    for k in table.keys():
+    for k in list(table.keys()):
         if isinstance(k, tuple):
             value = table[k]
             del table[k]

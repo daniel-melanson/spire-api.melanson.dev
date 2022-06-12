@@ -61,6 +61,9 @@ class Subject(models.Model):
         validators=[_subject_id_validator],
     )
 
+    def __str__(self):
+        return f"{self.subject_id}: {self.title}"
+
 
 class Course(models.Model):
     course_id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
