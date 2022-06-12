@@ -18,9 +18,9 @@ class ScrapeMemento:
         self._state = self._cache
         self._cache = {}
 
-    def get(self, key):
+    def get(self, key, default = None):
         if self.is_empty or key not in self._state:
-            return None
+            return default if default else None
 
         return self._state[key]
 
