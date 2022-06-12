@@ -19,14 +19,7 @@ class ScrapeCoverage(Enum):
     Sections = 2
 
 
-class ScrapeRequest(Enum):
-    Catalog = ("course catalog", scrape_catalog)
-    Sections = ("course sections", scrape_sections)
-
-
-def reattempt_scrape(request):
-    (s, func) = request
-
+def scrape(s, func):
     driver = SpireDriver()
     memento = ScrapeMemento()
 
@@ -52,16 +45,21 @@ def reattempt_scrape(request):
 
 
 def scrape_data(coverage: ScrapeCoverage):
+    for handler in log.handlers:
+        if handler.baseFilename.endswith("scrape-results.log"):
+            handler.doRollover()
+            break
+
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
     start = datetime.now()
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.SubjectsAndCourses:
-        reattempt_scrape(ScrapeRequest.Catalog)
+        scrape("course catalog", scrape_catalog)
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
-        reattempt_scrape(ScrapeRequest.Sections)
+        scrape("course sections", scrape_sections)
 
     diff = datetime.now() - start
 
