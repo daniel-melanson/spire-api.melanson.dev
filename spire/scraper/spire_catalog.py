@@ -5,158 +5,13 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 
 from spire.models import Course, Subject
-from spire.regexp import (
-    COURSE_ID_NUM_REGEXP,
-    COURSE_ID_REGEXP,
-    COURSE_TITLE_REGEXP,
-    SUBJECT_ID_REGEXP,
-    SUBJECT_TITLE_REGEXP,
-)
 from spire.scraper import SpireDriver
-from spire.scraper.ScrapeMemento import ScrapeMemento
-from spire.scraper.shared import (
-    assert_dict_keys_subset,
-    assert_match,
-    key_normalizer_factory,
-    scrape_spire_tables,
-)
+from spire.scraper.normalizers.SpireCourse import SpireCourse
+from spire.scraper.normalizers.SpireSubject import SpireSubject
+from spire.scraper.shared import assert_dict_keys_subset, assert_match, scrape_spire_tables, skip_until
+from spire.scraper.VersionedCache import VersionedCache
 
 log = logging.getLogger(__name__)
-
-
-SUBJECT_NORMALIZER = key_normalizer_factory(
-    {
-        "BMED-ENG": ("BME", "Biomedical Engineering"),
-        "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
-        "CHEM-ENG": ("CHE", "Chemical Engineering"),
-        ("EC-ENG", "E&C-ENG"): ("ECE", "Electrical & Computer Engineering"),
-        ("HM&FN", "HMFNART"): ("HFA", "Humanities and Fine Arts"),
-        "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
-        ("MI-ENG", "M&I-ENG"): ("MIE", "Mechanical & Industrial Engineering"),
-        ("NEUROS&B", "NEUROSB"): ("NSB", "Neuroscience & Behavior"),
-        ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
-    }
-)
-
-
-class SpireSubject:
-    subject_id: str
-    title: str
-
-    def __init__(self, subject_id: str, title: str) -> None:
-        if (override := SUBJECT_NORMALIZER(subject_id)) != subject_id:
-            self.subject_id = override[0]
-            self.title = override[1]
-        else:
-            self.subject_id = subject_id
-            self.title = title
-
-        assert_match(SUBJECT_ID_REGEXP, self.subject_id)
-        assert_match(SUBJECT_TITLE_REGEXP, self.title)
-
-
-DETAIL_NORMALIZERS = {
-    "Academic Group": key_normalizer_factory(
-        {
-            "College of Humanities&Fine Art": "College of Humanities & Fine Art",
-            "Stockbridge School": "Stockbridge School of Agriculture",
-            "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
-        }
-    ),
-    "Academic Organization": key_normalizer_factory(
-        {
-            "Bldg &Construction Technology": "Building & Construction Technology",
-            "Civil & Environmental Engin.": "Civil & Environmental Engineering",
-            "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
-        }
-    ),
-    "Grading Basis": key_normalizer_factory(
-        {"Grad Ltr Grading, with options": "Graduate Letter Grading, with options"}
-    ),
-}
-
-
-DETAIL_KEYS = [
-    "Career",
-    "Units",
-    "Grading Basis",
-    "Course Components",
-    "Academic Group",
-    "Academic Organization",
-    "Campus",
-]
-
-
-class SpireCourse:
-    course_id: str
-    subject: str
-    number: str
-    title: str
-    details: dict[str, str]
-    enrollment_information: Optional[dict[str, str]]
-    description: Optional[str]
-
-    def __init__(
-        self,
-        course_id: str,
-        subject: str,
-        number: str,
-        title: str,
-        details: dict[str, str],
-        enrollment_information: Optional[dict[str, str]],
-        description: Optional[str],
-    ):
-        if (override := SUBJECT_NORMALIZER(subject)) != subject:
-            subject = override[0]
-            course_id = f"{subject} {number}"
-
-        assert_match(COURSE_ID_REGEXP, course_id)
-        self.course_id = course_id
-
-        assert_match(SUBJECT_ID_REGEXP, subject)
-        self.subject = subject
-
-        assert_match(COURSE_ID_NUM_REGEXP, number)
-        self.number = number
-
-        assert_match(COURSE_TITLE_REGEXP, title)
-        self.title = title
-
-        assert_dict_keys_subset(
-            details,
-            DETAIL_KEYS,
-        )
-
-        for key in DETAIL_KEYS:
-            if key in details:
-                if key in DETAIL_NORMALIZERS:
-                    x = DETAIL_NORMALIZERS[key](details[key])
-                    details[key] = x
-                else:
-                    x = details[key]
-
-        self.details = details
-
-        self.enrollment_information = enrollment_information
-
-        self.description = description
-
-    def __str__(self):
-        return (
-            "SpireCourse("
-            + str(
-                {
-                    "course_id": self.course_id,
-                    "subject": self.subject,
-                    "number": self.number,
-                    "title": self.title,
-                    "details": str(self.details),
-                    "enrollment_information": str(self.enrollment_information),
-                    "description": str(self.description),
-                }
-            )
-            + ")"
-        )
 
 
 def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
@@ -190,8 +45,8 @@ def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
     )
 
 
-def _scrape_subject_list(driver: SpireDriver, memento: ScrapeMemento, subject: Subject):
-    course_link_ids = memento.skip_until(driver.find_all_ids("a[id^=CRSE_NBR]"), "course_link_id")
+def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Subject):
+    course_link_ids = skip_until(driver.find_all_ids("a[id^=CRSE_NBR]"), cache, "course_link_id")
 
     # For each course in the subject
     for link_id in course_link_ids:
@@ -219,34 +74,35 @@ def _scrape_subject_list(driver: SpireDriver, memento: ScrapeMemento, subject: S
 
         log.info("%s course: %s", "Created" if created else "Updated", course)
 
-        memento.push("course_link_id", link_id)
+        cache.push("course_link_id", link_id)
 
         log.debug("Returning to course catalog...")
         driver.click("DERIVED_SAA_CRS_RETURN_PB")
         log.debug("Returned.")
 
 
-def scrape_catalog(driver: SpireDriver, memento: ScrapeMemento):
+def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
     log.info("Scraping course catalog...")
 
     driver.navigate_to("catalog")
 
-    if not memento.is_empty:
-        log.info("Scraping course catalog with memento: %s", memento)
+    if not cache.is_empty:
+        log.info("Scraping course catalog with cache: %s", cache)
 
     # For each uppercase letter; start at 65 (A) or cached value
-    for ascii_code in range(memento.get("subject_group_ascii", 65), 90):
+    for ascii_code in range(cache.get("subject_group_ascii", 65), 90):
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
             continue
 
         log.info("Scraping subject letter group: %s", letter)
+        cache.push("subject_group_ascii", ascii_code)
 
         # Click letters grouping
         driver.click(f"DERIVED_SSS_BCC_SSR_ALPHANUM_{letter}")
 
         # Skip all subjects that were already successfully scraped
-        subject_link_ids = memento.skip_until(
+        subject_link_ids = cache.skip_until(
             driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"), "subject_link_id"
         )
 
@@ -276,10 +132,10 @@ def scrape_catalog(driver: SpireDriver, memento: ScrapeMemento):
             # Expand subject list
             driver.click(subject_link_id)
 
-            _scrape_subject_list(driver, memento, subject)
+            _scrape_subject_list(driver, cache, subject)
 
             # Cache the subject; as it successfully fully scraped
-            memento.push("subject_link_id", subject_link_id)
+            cache.push("subject_link_id", subject_link_id)
 
             # Collapse subject list
             driver.click(subject_link_id)

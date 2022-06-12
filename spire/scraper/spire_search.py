@@ -6,9 +6,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
-from spire.scraper.ScrapeMemento import ScrapeMemento
 from spire.scraper.shared import assert_match, scrape_spire_tables
 from spire.scraper.SpireDriver import SpireDriver
+from spire.scraper.VersionedCache import ScrapeMemento, VersionedCache
 
 log = logging.getLogger(__name__)
 log.setLevel(DEBUG)
@@ -38,7 +38,7 @@ class SpireSection(TypedDict):
     overview: Optional[str]
 
 
-def scrape_search_results(driver: SpireDriver, memento: ScrapeMemento):
+def scrape_search_results(driver: SpireDriver, cache: VersionedCache):
     log.debug("Scraping search results...")
     sections = []
 

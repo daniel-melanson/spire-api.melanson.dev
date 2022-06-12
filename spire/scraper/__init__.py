@@ -3,10 +3,10 @@ from datetime import datetime
 from enum import Enum
 from time import sleep
 
-from spire.scraper.ScrapeMemento import ScrapeMemento
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_search import scrape_sections
 from spire.scraper.SpireDriver import SpireDriver
+from spire.scraper.VersionedCache import VersionedCache
 
 log = logging.getLogger(__name__)
 
@@ -21,18 +21,19 @@ class ScrapeCoverage(Enum):
 
 def scrape(s, func):
     driver = SpireDriver()
-    memento = ScrapeMemento()
+    cache = VersionedCache()
 
     retries = 0
     while True:
         try:
-            func(driver, memento)
+            func(driver, cache)
             return
         except Exception as e:
+            retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
 
             if retries < MAX_RETRIES:
-                memento.commit()
+                cache.commit()
                 log.info("Closing driver and sleeping...")
                 driver = driver.close()
                 sleep(5 * 60)
