@@ -69,7 +69,7 @@ class Course(models.Model):
     course_id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=8, validators=[_course_id_number_validator])
-    title = models.CharField(max_length=128, validators=[_course_title_validator])
+    title = models.CharField(max_length=256, validators=[_course_title_validator])
     description = models.CharField(max_length=2048, null=True)
     details = models.JSONField(default=dict)
     enrollment_information = models.JSONField(null=True)
