@@ -16,6 +16,7 @@ def key_override_factory(table):
 SUBJECT_OVERRIDES = key_override_factory(
     {
         "BDIC": ("BDIC", "Bachelors Degree with Individualized Concentration"),
+        "BIOCHEM": ("BIOCHEM", "Biochemistry & Molecular Biology"),
         "BMED-ENG": ("BME", "Biomedical Engineering"),
         "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
         "CHEM-ENG": ("CHE", "Chemical Engineering"),

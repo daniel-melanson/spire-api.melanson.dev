@@ -12,6 +12,8 @@ log = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 
+LOG_HANDLER = [x for x in log.handlers if x.baseFilename.endswith("scrape-results.log")][0]
+
 
 class ScrapeCoverage(Enum):
     Total = 0
@@ -32,6 +34,7 @@ def scrape(s, func):
             retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
 
+            LOG_HANDLER.doRollover()
             if retries < MAX_RETRIES:
                 cache.commit()
                 log.info("Closing driver and sleeping...")
@@ -46,11 +49,6 @@ def scrape(s, func):
 
 
 def scrape_data(coverage: ScrapeCoverage):
-    for handler in log.handlers:
-        if handler.baseFilename.endswith("scrape-results.log"):
-            handler.doRollover()
-            break
-
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
