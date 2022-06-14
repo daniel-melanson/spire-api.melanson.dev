@@ -1,4 +1,5 @@
 import logging
+import numbers
 from typing import Optional
 
 from django.utils import timezone
@@ -20,7 +21,7 @@ def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
     raw_title = title_element.text
 
     title_match = assert_match(
-        r"(?P<subject>\S+)\s+(?P<number>\S+) - (?P<title>.+)",
+        r"(?P<subject>\S+)\s+(?P<number>\S+)\s+-\s+(?P<title>.+)",
         raw_title,
     )
 
@@ -29,13 +30,9 @@ def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
     assert "Course Detail" in tables
     assert_dict_keys_subset(tables, ["Course Detail", "Description", "Enrollment Information"])
 
-    number = title_match.group("number").upper()
-    subject = title_match.group("subject").upper()
-
     return SpireCourse(
-        course_id=f"{subject} {number}",
-        subject=subject,
-        number=number,
+        subject=title_match.group("subject"),
+        number=title_match.group("number"),
         title=title_match.group("title"),
         details=tables["Course Detail"],
         description=tables["Description"] if "Description" in tables else None,
@@ -55,21 +52,13 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
         log.debug("Arrived at course page.")
 
         scraped_course = _scrape_course_page(driver)
-        assert scraped_course.subject == subject.subject_id
+        assert scraped_course.subject == subject
 
         log.info("Scraped course: %s", scraped_course)
 
         course, created = Course.objects.update_or_create(
             course_id=scraped_course.course_id,
-            defaults={
-                "subject": subject,
-                "number": scraped_course.number,
-                "title": scraped_course.title,
-                "description": scraped_course.description,
-                "details": scraped_course.details,
-                "enrollment_information": scraped_course.enrollment_information,
-                "_updated_at": timezone.now(),
-            },
+            defaults=scraped_course.as_model_default(True),
         )
 
         log.info("%s course: %s", "Created" if created else "Updated", course)
@@ -90,7 +79,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
         log.info("Scraping course catalog with cache: %s", cache)
 
     # For each uppercase letter; start at 65 (A) or cached value
-    for ascii_code in range(cache.get("subject_group_ascii", 65), 90):
+    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
             continue
@@ -116,15 +105,23 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             subject_title = subject_link.text
             subject_match = assert_match(r"(?P<id>\S+) - (?P<title>.+)", subject_title)
             scraped_subject = SpireSubject(
-                subject_id=subject_match.group("id").upper(),
+                subject_id=subject_match.group("id"),
                 title=subject_match.group("title"),
             )
 
             log.debug("Initialized scraped subject: %s", scraped_subject)
 
+            if scraped_subject.subject_id in ("LLEIP"):
+                """
+                Spire Documents LLIEP and LLEIP, both with the same title "LL: Intensive English Program
+                At the time of writing, neither even had documented courses, so I kept LLIEP because it
+                was the correct acronym and I didn't want to drop the unique key constraint on Subject.title
+                """
+                continue
+
             # Push results to database
             subject, created = Subject.objects.update_or_create(
-                subject_id=scraped_subject.subject_id, defaults={"title": scraped_subject.title}
+                subject_id=scraped_subject.subject_id, defaults=scraped_subject.as_model_default()
             )
 
             log.info("%s new subject: %s", "Created" if created else "Updated", subject)

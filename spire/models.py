@@ -8,6 +8,8 @@ from spire.regexp import (
     COURSE_ID_NUM_REGEXP,
     COURSE_ID_REGEXP,
     COURSE_TITLE_REGEXP,
+    SECTION_ID_REGEXP,
+    SECTION_TERM_REGEXP,
     SUBJECT_ID_REGEXP,
     SUBJECT_TITLE_REGEXP,
 )
@@ -36,20 +38,12 @@ _course_title_validator = re_validator_factory(
 _subject_id_validator = re_validator_factory(SUBJECT_ID_REGEXP, "must be a  title (match subject id RegExp)")
 
 _subject_title_validator = re_validator_factory(
-    SUBJECT_TITLE_REGEXP, "must be a  title (match subject title RegExp)"
+    SUBJECT_TITLE_REGEXP, "must be a title (match subject title RegExp)"
 )
 
+_section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a section id (match the id RegExp")
 
-class Term(models.Model):
-    term_id = models.AutoField(primary_key=True)
-    year = models.SmallIntegerField(validators=[MinValueValidator(2010), MaxValueValidator(2050)])
-    season = models.CharField(
-        max_length=2,
-        choices=[("S", "Spring"), ("SU", "Summer"), ("F", "Fall"), ("W", "Winter")],
-    )
-
-    class Meta:
-        unique_together = [["year", "season"]]
+_section_term_validator = re_validator_factory(SECTION_TERM_REGEXP, "must be a term (match the term RegExp)")
 
 
 class Subject(models.Model):
@@ -86,9 +80,9 @@ class Staff(models.Model):
 
 
 class Section(models.Model):
-    section_id = models.CharField(max_length=10, primary_key=True)
+    section_id = models.CharField(max_length=10, primary_key=True, validators=[_section_id_validator])
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    term = models.ForeignKey(Term, on_delete=models.CASCADE)
+    term = models.CharField(max_length=16, validators=[_section_term_validator])
     details = models.JSONField()
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()

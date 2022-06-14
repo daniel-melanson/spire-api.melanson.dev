@@ -1,44 +1,23 @@
 import logging
 from logging import DEBUG
-from typing import Optional, TypedDict
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
+from spire.models import Section, SectionCoverage
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
-from spire.scraper.shared import assert_match, scrape_spire_tables
+from spire.scraper.normalizers.SpireCourse import SpireCourse
+from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
+from spire.scraper.normalizers.SpireSection import SpireSection
+from spire.scraper.normalizers.SpireStaff import SpireStaff
+from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
 from spire.scraper.SpireDriver import SpireDriver
 from spire.scraper.VersionedCache import VersionedCache
 
 log = logging.getLogger(__name__)
-log.setLevel(DEBUG)
 
 
-class SpireStaff(TypedDict):
-    name: str
-    email: Optional[str]
-
-
-class SpireMeetingInformation(TypedDict):
-    days_and_times: str
-    room: str
-    instructors: list[SpireStaff]
-    meeting_dates: str
-
-
-class SpireSection(TypedDict):
-    course_id: str
-    term: str
-    section_id: str
-    details: dict[str, str]
-    meeting_information: SpireMeetingInformation
-    restrictions: Optional[dict[str, str]]
-    availability: dict[str, str]
-    description: Optional[str]
-    overview: Optional[str]
-
-
-def scrape_search_results(driver: SpireDriver, cache: VersionedCache):
+def scrape_search_results(driver: SpireDriver, term: str):
     log.debug("Scraping search results...")
     sections = []
 
@@ -47,9 +26,12 @@ def scrape_search_results(driver: SpireDriver, cache: VersionedCache):
         span = driver.find(span_id)
 
         title_match = assert_match(
-            SUBJECT_ID_REGEXP + r"\s+" + COURSE_ID_NUM_REGEXP + r"\s+" + COURSE_TITLE_REGEXP, span.text
+            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>\S+)",
+            span.text,
         )
-        course_id = f"{title_match.group('subject_id')} {title_match.group('course_number')}"
+        course_id = SpireCourse.get_course_id(
+            title_match.group("subject_id"), title_match.group("course_number")
+        )
 
         log.debug("Scraping sections for course: %s.", course_id)
 
@@ -117,8 +99,13 @@ def scrape_search_results(driver: SpireDriver, cache: VersionedCache):
                 if "RESTRICTIONS & NOTES" in table_results
                 else None,
             )
-            log.info("Scraped section: %s.", section)
-            sections.append(section)
+            log.info("Scraped section: %s", section)
+
+            section, created = Section.objects.update_or_create(
+                section_id=section.section_id, defaults=section.as_model_default(True)
+            )
+
+            log.info("%s section: %s", "Created" if created else "Updated", section)
 
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK")
 
@@ -132,7 +119,7 @@ def get_option_values(select):
     ]
 
 
-def scrape_sections(driver: SpireDriver):
+def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     log.info("Scraping sections...")
     driver.navigate_to("search")
 
@@ -144,10 +131,15 @@ def scrape_sections(driver: SpireDriver):
     assert term_select
     term_values = get_option_values(term_select)
 
-    for term_offset in range(0, 4 * 5):
-        for subject in subject_values:
-            log.info("Searching for sections in subject: %s.", subject)
+    has_skipped = False
+    for term_offset in range(cache.get("term_offset", 0), 4 * 5):
+        cache.push("term_offset", term_offset)
 
+        for subject in subject_values if has_skipped else skip_until(subject_values, cache, "subject"):
+            has_skipped = True
+            cache.push("subject", subject)
+
+            log.info("Searching for sections in subject: %s.", subject)
             log.debug("Setting-up search query...")
             term_select = driver.wait_for_interaction(By.ID, "UM_DERIVED_SA_UM_TERM_DESCR")
             driver.scroll_to(term_select)
@@ -176,7 +168,7 @@ def scrape_sections(driver: SpireDriver):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                course_sections = scrape_search_results(driver, term_values[term_offset])
+                scrape_search_results(driver, term_values[term_offset])
 
                 log.debug("Returning...")
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")

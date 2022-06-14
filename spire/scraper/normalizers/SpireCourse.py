@@ -1,8 +1,15 @@
 from typing import Optional
 
+from spire.models import Subject
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
-from spire.scraper.normalizers.shared import DETAIL_OVERRIDES, SUBJECT_OVERRIDES
-from spire.scraper.shared import assert_dict_keys_subset, assert_match
+from spire.scraper.normalizers.shared import (
+    SUBJECT_OVERRIDES,
+    SpireField,
+    SpireObject,
+    clean_id,
+    detail_override_normalizer,
+)
+from spire.scraper.shared import assert_dict_keys_subset
 
 DETAIL_KEYS = [
     "Career",
@@ -15,7 +22,7 @@ DETAIL_KEYS = [
 ]
 
 
-class SpireCourse:
+class SpireCourse(SpireObject):
     course_id: str
     subject: str
     number: str
@@ -24,9 +31,16 @@ class SpireCourse:
     enrollment_information: Optional[dict[str, str]]
     description: Optional[str]
 
+    def get_course_id(subject: str, number: str) -> tuple[str, str, str]:
+        [subject, number] = clean_id(subject, number)
+
+        if (override := SUBJECT_OVERRIDES(subject)) != subject:
+            subject = override[0]
+
+        return (f"{subject} {number}", subject, number)
+
     def __init__(
         self,
-        course_id: str,
         subject: str,
         number: str,
         title: str,
@@ -34,65 +48,30 @@ class SpireCourse:
         enrollment_information: Optional[dict[str, str]],
         description: Optional[str],
     ):
-        if (override := SUBJECT_OVERRIDES(subject)) != subject:
-            subject = override[0]
-            course_id = f"{subject} {number}"
+        (course_id, subject, number) = SpireCourse.get_course_id(subject, number)
 
-        assert_match(COURSE_ID_REGEXP, course_id)
-        self.course_id = course_id
-
-        assert_match(SUBJECT_ID_REGEXP, subject)
         self.subject = subject
-
-        assert_match(COURSE_ID_NUM_REGEXP, number)
         self.number = number
-
-        assert_match(COURSE_TITLE_REGEXP, title)
+        self.course_id = course_id
         self.title = title
-
-        assert_dict_keys_subset(
-            details,
-            DETAIL_KEYS,
-        )
-
-        for key in DETAIL_KEYS:
-            if key not in details:
-                continue
-
-            if key in DETAIL_OVERRIDES:
-                x = DETAIL_OVERRIDES[key](details[key])
-            else:
-                x = details[key]
-
-            details[key] = x
-
         self.details = details
-
         self.enrollment_information = enrollment_information
-
-        if description:
-            description = (
-                description.replace("\\n", " ")
-                .replace("\n", " ")
-                .replace("\\\\\\n", " ")
-                .replace("  ", " ")
-                .replace("\n\n", "\n")
-            )
-
         self.description = description
 
-    def __str__(self):
-        details = {
-            "course_id": self.course_id,
-            "subject": self.subject,
-            "number": self.number,
-            "title": self.title,
-            "details": str(self.details),
-        }
+        super().__init__(
+            "SpireCourse",
+            "course_id",
+            SpireField(k="subject", re=SUBJECT_ID_REGEXP),
+            SpireField(k="number", re=COURSE_ID_NUM_REGEXP),
+            SpireField(k="course_id", re=COURSE_ID_REGEXP),
+            SpireField(k="title", re=COURSE_TITLE_REGEXP),
+            SpireField(
+                k="details",
+                normalizers=[detail_override_normalizer],
+                assertions=[lambda x: assert_dict_keys_subset(x, DETAIL_KEYS)],
+            ),
+            SpireField(k="enrollment_information"),
+            SpireField(k="description"),
+        )
 
-        if self.enrollment_information:
-            details["enrollment_information"] = self.enrollment_information
-        if self.description:
-            details["description"] = self.description
-
-        return "SpireCourse(" + str(details) + ")"
+        self.subject = Subject.objects.get(pk=self.subject)
