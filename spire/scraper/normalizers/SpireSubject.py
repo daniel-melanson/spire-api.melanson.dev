@@ -18,7 +18,7 @@ class SpireSubject(SpireObject):
             self.title = title
 
         super().__init__(
-            "SpireSubject"
+            "SpireSubject",
             "subject_id",
             SpireField(k="subject_id", re=SUBJECT_ID_REGEXP),
             SpireField(k="title", re=SUBJECT_TITLE_REGEXP),
