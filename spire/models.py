@@ -58,6 +58,9 @@ class Subject(models.Model):
     def __str__(self):
         return f"{self.subject_id}: {self.title}"
 
+    class Meta:
+        ordering = ["subject_id"]
+
 
 class Course(models.Model):
     course_id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
@@ -71,12 +74,16 @@ class Course(models.Model):
 
     class Meta:
         unique_together = [["subject", "number"]]
+        ordering = ["course_id"]
 
 
 class Staff(models.Model):
     staff_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
     email = models.EmailField(null=True)
+
+    class Meta:
+        ordering = ["email"]
 
 
 class Section(models.Model):
@@ -92,9 +99,15 @@ class Section(models.Model):
     instructors = models.ManyToManyField(Staff)
     _updated_at = models.DateTimeField()
 
+    class Meta:
+        ordering = ["term", "course", "section_id"]
+
 
 class SectionCoverage(models.Model):
     term = models.CharField(max_length=32, primary_key=True)
     completed = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["term"]
