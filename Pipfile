@@ -10,6 +10,7 @@ djangorestframework = "*"
 pyyaml = "*"
 uritemplate = "*"
 selenium = "*"
+django-filter = "*"
 
 [dev-packages]
 pylint = "*"

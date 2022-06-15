@@ -8,7 +8,7 @@ from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInform
 class SpireSection(SpireObject):
     course_id: str
     term: str
-    section_id: str
+    id: str
     details: dict[str, str]
     meeting_information: SpireMeetingInformation
     restrictions: Optional[dict[str, str]]
@@ -20,7 +20,7 @@ class SpireSection(SpireObject):
         self,
         course_id: str,
         term: str,
-        section_id: str,
+        id: str,
         details: dict[str, str],
         meeting_information: SpireMeetingInformation,
         restrictions: Optional[dict[str, str]],
@@ -30,7 +30,7 @@ class SpireSection(SpireObject):
     ):
         self.course_id = course_id
         self.term = term
-        self.section_id = section_id
+        self.id = id
         self.details = details
         self.meeting_information = meeting_information
         self.restrictions = restrictions
@@ -40,11 +40,10 @@ class SpireSection(SpireObject):
 
         super().__init__(
             "SpireSection",
-            "section_id",
             (
                 SpireField("course_id", re=COURSE_ID_REGEXP),
                 SpireField("term", re=SECTION_TERM_REGEXP),
-                SpireField("section_id", re=SECTION_ID_REGEXP),
+                SpireField("id", re=SECTION_ID_REGEXP),
                 SpireField("details"),
                 SpireField("meeting_information"),
                 SpireField("availability"),

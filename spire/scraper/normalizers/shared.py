@@ -109,9 +109,9 @@ def _reduce_assertions(a, f):
 
 
 class SpireObject:
-    def __init__(self, name: str, primary_key: str, *args: SpireField) -> None:
+    def __init__(self, name: str, *args: SpireField) -> None:
         self._name = name
-        self._primary_key = primary_key
+        self._primary_key = "id"
 
         for field in args:
             v = getattr(self, field.k, None)

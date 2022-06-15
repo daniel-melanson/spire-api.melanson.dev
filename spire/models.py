@@ -48,7 +48,7 @@ _section_term_validator = re_validator_factory(SECTION_TERM_REGEXP, "must be a t
 
 class Subject(models.Model):
     title = models.CharField(max_length=64, unique=True, validators=[_subject_title_validator])
-    subject_id = models.CharField(
+    id = models.CharField(
         max_length=8,
         unique=True,
         primary_key=True,
@@ -56,15 +56,12 @@ class Subject(models.Model):
     )
     courses = models.ManyToManyField("Course", related_name="+")
 
-    def __str__(self):
-        return f"{self.subject_id}: {self.title}"
-
     class Meta:
-        ordering = ["subject_id"]
+        ordering = ["id"]
 
 
 class Course(models.Model):
-    course_id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
+    id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=16, validators=[_course_id_number_validator])
     title = models.CharField(max_length=256, validators=[_course_title_validator])
@@ -76,11 +73,11 @@ class Course(models.Model):
 
     class Meta:
         unique_together = [["subject", "number"]]
-        ordering = ["course_id"]
+        ordering = ["id"]
 
 
 class Staff(models.Model):
-    staff_id = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
     email = models.EmailField(null=True)
 
@@ -89,7 +86,7 @@ class Staff(models.Model):
 
 
 class Section(models.Model):
-    section_id = models.CharField(max_length=10, primary_key=True, validators=[_section_id_validator])
+    id = models.CharField(max_length=10, primary_key=True, validators=[_section_id_validator])
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     term = models.CharField(max_length=16, validators=[_section_term_validator])
     details = models.JSONField()
@@ -102,7 +99,7 @@ class Section(models.Model):
     _updated_at = models.DateTimeField()
 
     class Meta:
-        ordering = ["term", "course", "section_id"]
+        ordering = ["term", "course", "id"]
 
 
 class SectionCoverage(models.Model):

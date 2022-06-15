@@ -57,12 +57,12 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
         log.info("Scraped course: %s", scraped_course)
 
         course, created = Course.objects.update_or_create(
-            course_id=scraped_course.course_id,
+            id=scraped_course.id,
             defaults=scraped_course.as_model_default(True),
         )
 
         log.info("%s course: %s", "Created" if created else "Updated", course)
-        
+
         subject.courses.add(course)
 
         cache.push("course_link_id", link_id)
@@ -107,13 +107,13 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             subject_title = subject_link.text
             subject_match = assert_match(r"(?P<id>\S+) - (?P<title>.+)", subject_title)
             scraped_subject = SpireSubject(
-                subject_id=subject_match.group("id"),
+                id=subject_match.group("id"),
                 title=subject_match.group("title"),
             )
 
             log.debug("Initialized scraped subject: %s", scraped_subject)
 
-            if scraped_subject.subject_id in ("LLEIP"):
+            if scraped_subject.id in ("LLEIP"):
                 """
                 Spire Documents LLIEP and LLEIP, both with the same title "LL: Intensive English Program
                 At the time of writing, neither even had documented courses, so I kept LLIEP because it
@@ -123,7 +123,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
             # Push results to database
             subject, created = Subject.objects.update_or_create(
-                subject_id=scraped_subject.subject_id, defaults=scraped_subject.as_model_default()
+                id=scraped_subject.id, defaults=scraped_subject.as_model_default()
             )
 
             log.info("%s new subject: %s", "Created" if created else "Updated", subject)

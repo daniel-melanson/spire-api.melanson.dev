@@ -82,7 +82,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
             section = SpireSection(
                 course_id=course_id,
                 term=term,
-                section_id=section_id,
+                id=section_id,
                 details=table_results["Class Details"],
                 meeting_information=SpireMeetingInformation(
                     days_and_times=meeting_info_table.find_element(
@@ -102,7 +102,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
             log.info("Scraped section: %s", section)
 
             section, created = Section.objects.update_or_create(
-                section_id=section.section_id, defaults=section.as_model_default(True)
+                id=section.id, defaults=section.as_model_default(True)
             )
 
             log.info("%s section: %s", "Created" if created else "Updated", section)

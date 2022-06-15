@@ -4,22 +4,21 @@ from spire.scraper.shared import assert_match
 
 
 class SpireSubject(SpireObject):
-    subject_id: str
+    id: str
     title: str
 
-    def __init__(self, subject_id: str, title: str) -> None:
-        subject_id = clean_id(subject_id)
+    def __init__(self, id: str, title: str) -> None:
+        id = clean_id(id)
 
-        if (override := SUBJECT_OVERRIDES(subject_id)) != subject_id:
-            self.subject_id = override[0]
+        if (override := SUBJECT_OVERRIDES(id)) != id:
+            self.id = override[0]
             self.title = override[1]
         else:
-            self.subject_id = subject_id
+            self.id = id
             self.title = title
 
         super().__init__(
             "SpireSubject",
-            "subject_id",
-            SpireField(k="subject_id", re=SUBJECT_ID_REGEXP),
+            SpireField(k="id", re=SUBJECT_ID_REGEXP),
             SpireField(k="title", re=SUBJECT_TITLE_REGEXP),
         )

@@ -41,6 +41,7 @@ ALLOWED_HOSTS = [] if DEBUG else ["spire-api.melanson.dev"]
 
 INSTALLED_APPS = [
     "rest_framework",
+    "django_filters",
     "spire",
     "django.contrib.admin",
     "django.contrib.auth",

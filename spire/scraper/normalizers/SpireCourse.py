@@ -23,7 +23,7 @@ DETAIL_KEYS = [
 
 
 class SpireCourse(SpireObject):
-    course_id: str
+    id: str
     subject: str
     number: str
     title: str
@@ -48,11 +48,11 @@ class SpireCourse(SpireObject):
         enrollment_information: Optional[dict[str, str]],
         description: Optional[str],
     ):
-        (course_id, subject, number) = SpireCourse.get_course_id(subject, number)
+        (id, subject, number) = SpireCourse.get_course_id(subject, number)
 
         self.subject = subject
         self.number = number
-        self.course_id = course_id
+        self.id = id
         self.title = title
         self.details = details
         self.enrollment_information = enrollment_information
@@ -60,10 +60,9 @@ class SpireCourse(SpireObject):
 
         super().__init__(
             "SpireCourse",
-            "course_id",
             SpireField(k="subject", re=SUBJECT_ID_REGEXP),
             SpireField(k="number", re=COURSE_ID_NUM_REGEXP),
-            SpireField(k="course_id", re=COURSE_ID_REGEXP),
+            SpireField(k="id", re=COURSE_ID_REGEXP),
             SpireField(k="title", re=COURSE_TITLE_REGEXP),
             SpireField(
                 k="details",
