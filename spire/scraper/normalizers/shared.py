@@ -28,12 +28,15 @@ SUBJECT_OVERRIDES = key_override_factory(
         "BMED-ENG": ("BME", "Biomedical Engineering"),
         "CE-ENGIN": ("CEE", "Civil and Environmental Engineering"),
         "CHEM-ENG": ("CHE", "Chemical Engineering"),
+        "CICS": ("CICS", "Manning College of Information & Computer Sciences"),
         ("EC-ENG", "E&C-ENG"): ("ECE", "Electrical & Computer Engineering"),
         ("HM&FN", "HMFNART"): ("HFA", "Humanities and Fine Arts"),
         "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
         ("MI-ENG", "M&I-ENG"): ("MIE", "Mechanical & Industrial Engineering"),
         ("NEUROS&B", "NEUROSB"): ("NSB", "Neuroscience & Behavior"),
         ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
+        "SPHH": ("SPHH", "School of Public Health & Health Sciences"),
+        "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
     }
 )
 
@@ -44,6 +47,7 @@ _DETAIL_OVERRIDES = {
             "College of Humanities&Fine Art": "College of Humanities & Fine Art",
             "Stockbridge School": "Stockbridge School of Agriculture",
             "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
+            "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
         }
     ),
     "Academic Organization": key_override_factory(
