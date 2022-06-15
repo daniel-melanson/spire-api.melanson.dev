@@ -62,6 +62,8 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
         )
 
         log.info("%s course: %s", "Created" if created else "Updated", course)
+        
+        subject.courses.add(course)
 
         cache.push("course_link_id", link_id)
 
