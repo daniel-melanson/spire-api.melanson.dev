@@ -6,17 +6,7 @@ from .models import Course, Section, SectionCoverage, Staff, Subject
 class CourseSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Course
-        fields = [
-            "course_id",
-            "subject",
-            "number",
-            "title",
-            "description",
-            "details",
-            "enrollment_information",
-            "_updated_at",
-            "url",
-        ]
+        fields = ["course_id", "subjects"]
 
 
 class SectionSerializer(HyperlinkedModelSerializer):
@@ -24,7 +14,7 @@ class SectionSerializer(HyperlinkedModelSerializer):
         model = Section
         fields = [
             "section_id",
-            "course",
+            #"course",
             "term",
             "details",
             "restrictions",

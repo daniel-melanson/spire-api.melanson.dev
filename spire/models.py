@@ -54,6 +54,7 @@ class Subject(models.Model):
         primary_key=True,
         validators=[_subject_id_validator],
     )
+    courses = models.ManyToManyField("Course", related_name="+")
 
     def __str__(self):
         return f"{self.subject_id}: {self.title}"
@@ -70,6 +71,7 @@ class Course(models.Model):
     description = models.CharField(max_length=4096, null=True)
     details = models.JSONField(default=dict)
     enrollment_information = models.JSONField(null=True)
+    sections = models.ManyToManyField("Section", related_name="+")
     _updated_at = models.DateTimeField()
 
     class Meta:
@@ -104,7 +106,7 @@ class Section(models.Model):
 
 
 class SectionCoverage(models.Model):
-    term = models.CharField(max_length=32, primary_key=True)
+    term = models.CharField(max_length=32, primary_key=True, validators=[_section_term_validator])
     completed = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
