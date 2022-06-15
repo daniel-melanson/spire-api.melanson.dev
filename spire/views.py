@@ -39,6 +39,8 @@ class StaffViewSet(ReadOnlyModelViewSet):
 class SectionViewSet(ReadOnlyModelViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["course_id"]
 
 
 class CoverageViewSet(ReadOnlyModelViewSet):
