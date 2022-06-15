@@ -25,7 +25,7 @@ class CourseViewSet(ReadOnlyModelViewSet):
 
 class SubjectsViewSet(ReadOnlyModelViewSet):
     queryset = Subject.objects.all()
-    serializer_class = SubjectSerializer
+    serializer_class = SubjectSerializer 
 
 
 class StaffViewSet(ReadOnlyModelViewSet):
@@ -41,3 +41,4 @@ class SectionViewSet(ReadOnlyModelViewSet):
 class CoverageViewSet(ReadOnlyModelViewSet):
     queryset = SectionCoverage.objects.all()
     serializer_class = SectionCoverageSerializer
+    pagination_class = None
