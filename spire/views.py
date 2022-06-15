@@ -1,5 +1,4 @@
 from django.http import Http404
-from rest_framework.decorators import action
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from spire.models import Course, Section, SectionCoverage, Staff, Subject

@@ -4,9 +4,9 @@ from rest_framework.routers import DefaultRouter
 from spire.views import CourseViewSet, CoverageViewSet, SectionViewSet, StaffViewSet, SubjectsViewSet
 
 router = DefaultRouter()
-router.register("courses", CourseViewSet, basename="courses")
-router.register("subjects", SubjectsViewSet, basename="subjects")
-router.register("sections", SectionViewSet, basename="sections")
+router.register("courses", CourseViewSet, basename="course")
+router.register("subjects", SubjectsViewSet, basename="subject")
+router.register("sections", SectionViewSet, basename="section")
 router.register("staff", StaffViewSet, basename="staff")
 router.register("coverage", CoverageViewSet, basename="coverage")
 

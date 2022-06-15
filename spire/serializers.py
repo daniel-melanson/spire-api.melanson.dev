@@ -6,13 +6,36 @@ from .models import Course, Section, SectionCoverage, Staff, Subject
 class CourseSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Course
-        fields = "__all__"
+        fields = [
+            "course_id",
+            "subject",
+            "number",
+            "title",
+            "description",
+            "details",
+            "enrollment_information",
+            "_updated_at",
+            "url",
+        ]
 
 
 class SectionSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Section
-        fields = "__all__"
+        fields = [
+            "section_id",
+            "course",
+            "term",
+            "details",
+            "restrictions",
+            "availability",
+            "description",
+            "overview",
+            "meeting_info",
+            "instructors",
+            "_updated_at",
+            "url",
+        ]
 
 
 class StaffSerializer(HyperlinkedModelSerializer):
@@ -24,7 +47,7 @@ class StaffSerializer(HyperlinkedModelSerializer):
 class SubjectSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Subject
-        fields = "__all__"
+        fields = ["title", "subject_id", "url"]
 
 
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
