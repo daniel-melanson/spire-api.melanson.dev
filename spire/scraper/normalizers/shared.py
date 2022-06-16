@@ -30,7 +30,7 @@ SUBJECT_OVERRIDES = key_override_factory(
         "CHEM-ENG": ("CHE", "Chemical Engineering"),
         "CICS": ("CICS", "Manning College of Information & Computer Sciences"),
         ("EC-ENG", "E&C-ENG"): ("ECE", "Electrical & Computer Engineering"),
-        ("HM&FN", "HMFNART"): ("HFA", "Humanities and Fine Arts"),
+        ("HM&FN", "HMFNART", "HM&FNART"): ("HFA", "Humanities and Fine Arts"),
         "HT-MGT": ("HTM", "Hospitality & Tourism Management"),
         ("MI-ENG", "M&I-ENG"): ("MIE", "Mechanical & Industrial Engineering"),
         ("NEUROS&B", "NEUROSB"): ("NSB", "Neuroscience & Behavior"),
