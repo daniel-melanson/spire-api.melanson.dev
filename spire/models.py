@@ -1,5 +1,3 @@
-
-
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -9,9 +7,9 @@ from spire.regexp import (
     COURSE_ID_REGEXP,
     COURSE_TITLE_REGEXP,
     SECTION_ID_REGEXP,
-    SECTION_TERM_REGEXP,
     SUBJECT_ID_REGEXP,
     SUBJECT_TITLE_REGEXP,
+    TERM_REGEXP,
 )
 
 
@@ -43,7 +41,7 @@ _subject_title_validator = re_validator_factory(
 
 _section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a section id (match the id RegExp")
 
-_section_term_validator = re_validator_factory(SECTION_TERM_REGEXP, "must be a term (match the term RegExp)")
+_section_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
 
 
 class Subject(models.Model):
