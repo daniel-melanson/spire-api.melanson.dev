@@ -1,10 +1,12 @@
 import logging
-from logging import DEBUG
+from datetime import datetime
 
+from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import Section
+from spire.models import Section, SectionCoverage
+from spire.regexp import TERM_REGEXP
 from spire.scraper.normalizers.SpireCourse import SpireCourse
 from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
 from spire.scraper.normalizers.SpireSection import SpireSection
@@ -131,8 +133,33 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     term_values = get_option_values(term_select)
 
     has_skipped = False
-    for term_offset in range(cache.get("term_offset", 0), 4 * 5):
+    for term_offset in range(cache.get("term_offset", 4 * 5), -1, -1):
         cache.push("term_offset", term_offset)
+
+        flipped_term = term_values[term_offset]
+        [year, season] = flipped_term.split(" ")
+        term = f"{season} {year}"
+        assert_match(TERM_REGEXP, term)
+
+        coverage, created = SectionCoverage.objects.get_or_create(
+            term=term, default={"completed": False, "start_time": timezone.now()}
+        )
+
+        if not created and coverage.completed:
+            year = int(year)
+            match season:
+                case "Fall":
+                    end_date = datetime(year=year + 1, month=1, day=1)
+                case "Winter":
+                    end_date = datetime(year=year + 1, month=3, day=1)
+                case "Spring":
+                    end_date = datetime(year=year, month=6, day=1)
+                case "Summer":
+                    end_date = datetime(year=year, month=9, day=1)
+
+            if end_date < datetime.now():
+                log.info("Skipping the %s semester, as information is static.", term)
+                continue
 
         for subject in subject_values if has_skipped else skip_until(subject_values, cache, "subject"):
             has_skipped = True
@@ -143,7 +170,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             term_select = driver.wait_for_interaction(By.ID, "UM_DERIVED_SA_UM_TERM_DESCR")
             driver.scroll_to(term_select)
             term_select = Select(term_select)
-            term_select.select_by_visible_text(term_values[term_offset])
+            term_select.select_by_visible_text(flipped_term)
 
             subject_select = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
             driver.scroll_to(subject_select)
@@ -161,7 +188,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             if open_input.is_selected():
                 open_input.click()
 
-            log.debug("Searching for %s courses in during the %s term...", subject, term_values[term_offset])
+            log.info("Searching for %s courses in during the %s term...", subject, term_values[term_offset])
             driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
 
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
@@ -173,5 +200,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
             else:
                 log.debug("No search results found, skipping...")
+
+        coverage.completed = True
+        coverage.end_time = timezone.now()
+        coverage.save()
 
     log.info("Scraped sections.")

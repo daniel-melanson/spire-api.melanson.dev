@@ -1,4 +1,3 @@
-
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, RelatedField
 
 from .models import Course, Section, SectionCoverage, Staff, Subject
@@ -77,4 +76,4 @@ class StaffSerializer(HyperlinkedModelSerializer):
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = SectionCoverage
-        fields = "__all__"
+        fields = ["url", "term", "completed", "start_time", "end_time"]

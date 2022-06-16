@@ -78,7 +78,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
         log.info("Scraping course catalog with cache: %s", cache)
 
     # For each uppercase letter; start at 65 (A) or cached value
-    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):
+    for ascii_code in range(cache.get("subject_group_ascii", ord("H")), ord("Z") + 1):
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
             continue
