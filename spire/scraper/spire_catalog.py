@@ -1,8 +1,5 @@
 import logging
-import numbers
-from typing import Optional
 
-from django.utils import timezone
 from selenium.webdriver.common.by import By
 
 from spire.models import Course, Subject

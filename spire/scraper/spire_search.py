@@ -4,8 +4,7 @@ from logging import DEBUG
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import Section, SectionCoverage
-from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_TITLE_REGEXP, SUBJECT_ID_REGEXP
+from spire.models import Section
 from spire.scraper.normalizers.SpireCourse import SpireCourse
 from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
 from spire.scraper.normalizers.SpireSection import SpireSection
