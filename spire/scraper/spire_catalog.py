@@ -102,7 +102,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
             # Match title
             subject_title = subject_link.text
-            subject_match = assert_match(r"(?P<id>\S+) - (?P<title>.+)", subject_title)
+            subject_match = assert_match(r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title)
             scraped_subject = SpireSubject(
                 id=subject_match.group("id"),
                 title=subject_match.group("title"),
