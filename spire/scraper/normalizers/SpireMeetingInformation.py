@@ -7,3 +7,6 @@ class SpireMeetingInformation:
     room: str
     instructors: list[SpireStaff]
     meeting_dates: str
+
+    def __init__(self, days_and_times: str, room: str, instructors: list[SpireStaff]):
+        pass

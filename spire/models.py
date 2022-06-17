@@ -80,7 +80,7 @@ class Staff(models.Model):
     email = models.EmailField(null=True)
 
     class Meta:
-        ordering = ["email"]
+        ordering = ["name", "email"]
 
 
 class Section(models.Model):

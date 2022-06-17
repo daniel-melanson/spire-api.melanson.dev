@@ -1,4 +1,3 @@
-from django.http import Http404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
@@ -10,13 +9,6 @@ from spire.serializers import (
     StaffSerializer,
     SubjectSerializer,
 )
-
-
-def attempt_course_fetch(sub: str, num: str) -> Course:
-    try:
-        return Course.objects.get(pk=f"{sub.upper()} {num.upper()}")
-    except Course.DoesNotExist:
-        raise Http404
 
 
 class CourseViewSet(ReadOnlyModelViewSet):

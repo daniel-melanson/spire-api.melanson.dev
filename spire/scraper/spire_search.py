@@ -5,7 +5,7 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import Section, SectionCoverage
+from spire.models import Section, SectionCoverage, Staff
 from spire.regexp import TERM_REGEXP
 from spire.scraper.normalizers.SpireCourse import SpireCourse
 from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
@@ -27,7 +27,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
         span = driver.find(span_id)
 
         title_match = assert_match(
-            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>\S+)",
+            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
             span.text,
         )
         course_id = SpireCourse.get_course_id(
@@ -74,11 +74,17 @@ def scrape_search_results(driver: SpireDriver, term: str):
             ).text.split("\\n"):
                 name = raw_name[:-1] if raw_name.endswith(",") else raw_name
 
-                instructors.append(
-                    SpireStaff(
-                        name=name, email=course_staff_emails[name] if name in course_staff_emails else None
-                    )
+                scraped_staff = SpireStaff(
+                    name=name, email=course_staff_emails[name] if name in course_staff_emails else None
                 )
+
+                log.info("Scraped staff: %s", staff)
+                if scraped_staff.email:
+                    staff, created = Staff.objects.update_or_create(
+                        email=scraped_staff.email, defaults={"name": scraped_staff.name}
+                    )
+
+                instructors.append(staff)
 
             section = SpireSection(
                 course_id=course_id,
@@ -89,8 +95,8 @@ def scrape_search_results(driver: SpireDriver, term: str):
                     days_and_times=meeting_info_table.find_element(
                         By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
                     ).text,
-                    room=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
                     instructors=instructors,
+                    room=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
                     meeting_dates=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_DATE]").text,
                 ),
                 availability=table_results["Class Availability"],
@@ -107,6 +113,10 @@ def scrape_search_results(driver: SpireDriver, term: str):
             )
 
             log.info("%s section: %s", "Created" if created else "Updated", section)
+
+            for instructor in instructors:
+                if isinstance(instructor, Staff):
+                    section.instructors.add(instructor)
 
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK")
 
@@ -141,11 +151,11 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
         term = f"{season} {year}"
         assert_match(TERM_REGEXP, term)
 
-        coverage, created = SectionCoverage.objects.get_or_create(
-            term=term, default={"completed": False, "start_time": timezone.now()}
+        coverage, _ = SectionCoverage.objects.get_or_create(
+            term=term, defaults={"completed": False, "start_time": timezone.now()}
         )
 
-        if not created and coverage.completed:
+        if coverage.completed:
             year = int(year)
             match season:
                 case "Fall":

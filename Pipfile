@@ -22,7 +22,7 @@ python_version = "3.10"
 
 [scripts]
 dev = "python manage.py runserver"
-seed = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.SubjectsAndCourses)'"
+seed = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.Sections)'"
 makemigrations = "python manage.py makemigrations"
 migrate = "python manage.py migrate"
 black = "black --quiet -t py310 -l 110 --exclude migrations ./"
