@@ -52,7 +52,7 @@ class Subject(models.Model):
         primary_key=True,
         validators=[_subject_id_validator],
     )
-    courses = models.ManyToManyField("Course", related_name="+")
+    courses = models.ManyToManyField("Course", related_name="subject")
 
     class Meta:
         ordering = ["id"]
@@ -88,7 +88,6 @@ class CourseEnrollmentInformation(models.Model):
 
 class Course(models.Model):
     id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=16, validators=[_course_id_number_validator])
     title = models.CharField(max_length=256, validators=[_course_title_validator])
     description = models.CharField(max_length=4096, null=True)
@@ -96,7 +95,6 @@ class Course(models.Model):
     _updated_at = models.DateTimeField()
 
     class Meta:
-        unique_together = [["subject", "number"]]
         ordering = ["id"]
 
 

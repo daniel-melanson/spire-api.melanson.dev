@@ -1,3 +1,4 @@
-from spire.models import Subject
-from spire.regexp import SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP
-from spire.scraper.classes.shared import SUBJECT_OVERRIDES, SpireField, SpireObject, clean_id
+from spire.scraper.classes.RawCourse import RawCourse
+from spire.scraper.classes.RawCourseDetail import RawCourseDetail
+from spire.scraper.classes.RawCourseEnrollmentInformation import RawCourseEnrollmentInformation
+from spire.scraper.classes.RawSubject import RawSubject

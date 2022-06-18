@@ -24,7 +24,8 @@ SUBJECT_OVERRIDES = key_override_factory(
         ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
         "SPHH": ("SPHH", "School of Public Health & Health Sciences"),
         "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
-    }
+    },
+    as_table=True,
 )
 
 
@@ -49,3 +50,6 @@ class RawSubject(RawObject):
             RawField(k="id", re=SUBJECT_ID_REGEXP),
             RawField(k="title", re=SUBJECT_TITLE_REGEXP),
         )
+
+    def push(self):
+        return Subject.objects.update_or_create(id=self.id, defaults=self.get_model_defaults())

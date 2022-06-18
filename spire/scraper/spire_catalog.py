@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 
 from spire.models import Subject
 from spire.scraper import SpireDriver
-from spire.scraper.classes import RawCourse, RawCourseDetail, RawSubject
+from spire.scraper.classes import RawCourse, RawCourseDetail, RawCourseEnrollmentInformation, RawSubject
 from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
 from spire.scraper.VersionedCache import VersionedCache
 
@@ -29,7 +29,7 @@ def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
         title=title_match.group("title"),
         details=RawCourseDetail(tables["Course Detail"]),
         description=tables["Description"] if "Description" in tables else None,
-        enrollment_information=RawCourseEnrollInfo(tables["Enrollment Information"])
+        enrollment_information=RawCourseEnrollmentInformation(tables["Enrollment Information"])
         if "Enrollment Information" in tables
         else None,
     )
@@ -48,7 +48,7 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 
         log.info("Scraped course: %s", scraped_course)
 
-        course = scraped_course.push()
+        scraped_course.push()
 
         cache.push("course_link_id", link_id)
 
@@ -91,7 +91,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             # Match title
             subject_title = subject_link.text
             subject_match = assert_match(r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title)
-            scraped_subject = ScrapedSubject(
+            scraped_subject = RawSubject(
                 id=subject_match.group("id"),
                 title=subject_match.group("title"),
             )

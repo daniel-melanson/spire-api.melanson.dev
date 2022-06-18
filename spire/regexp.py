@@ -11,3 +11,6 @@ COURSE_TITLE_REGEXP = r"(?P<course_title>.{3,256})".replace(".", _VALID_TEXT)
 SECTION_ID_REGEXP = r"(?P<section_id>.{3,10})".replace(".", _VALID_TEXT)
 
 TERM_REGEXP = r"(Spring|Summer|Winter|Fall) (20\d{2})"
+
+_COMPONENTS = r"(Lecture|Practicum|Discussion|Laboratory)"
+COURSE_DETAIL_COMPONENT_REGEXP = f"({_COMPONENTS}, )*{_COMPONENTS}"
