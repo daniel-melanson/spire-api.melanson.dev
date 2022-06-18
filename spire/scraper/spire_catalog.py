@@ -3,10 +3,11 @@ import logging
 from selenium.webdriver.common.by import By
 
 from spire.models import Subject
-from spire.scraper import SpireDriver
-from spire.scraper.classes import raw_course, raw_subject
-from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
-from spire.scraper.versioned_cache import VersionedCache
+
+from .classes import raw_course, raw_subject
+from .shared import assert_match, scrape_spire_tables, skip_until
+from .spire_driver import SpireDriver
+from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 

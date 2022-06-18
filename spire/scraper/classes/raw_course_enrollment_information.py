@@ -1,8 +1,9 @@
 from typing import Optional
 
 from spire.models import Course, CourseEnrollmentInformation
-from spire.scraper.classes.shared import RawField, RawObject, to_camel_case
 from spire.scraper.shared import assert_dict_keys_subset
+
+from .shared import RawField, RawObject, to_camel_case
 
 EI = [
     RawField(k="Enrollment Requirement", len=(1, 256)),

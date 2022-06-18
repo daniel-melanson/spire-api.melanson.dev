@@ -2,8 +2,10 @@ from typing import Optional
 
 from spire.models import Course, Subject
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
-from spire.scraper.classes import RawCourseDetail, RawCourseEnrollmentInformation
-from spire.scraper.classes.shared import RawField, RawObject, clean_id
+
+from .raw_course_detail import RawCourseDetail
+from .raw_course_enrollment_information import RawCourseEnrollmentInformation
+from .shared import RawField, RawObject, clean_id
 
 
 class RawCourse(RawObject):

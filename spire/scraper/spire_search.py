@@ -7,9 +7,10 @@ from selenium.webdriver.support.ui import Select
 
 from spire.models import Section, SectionCoverage, Staff
 from spire.regexp import TERM_REGEXP
-from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
-from spire.scraper.spire_driver import SpireDriver
-from spire.scraper.versioned_cache import VersionedCache
+
+from .shared import assert_match, scrape_spire_tables, skip_until
+from .spire_driver import SpireDriver
+from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 

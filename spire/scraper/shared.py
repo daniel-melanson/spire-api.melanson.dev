@@ -5,7 +5,7 @@ from typing import Tuple
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
-from spire.scraper.spire_driver import SpireDriver
+from .spire_driver import SpireDriver
 
 log = logging.getLogger(__name__)
 

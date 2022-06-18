@@ -2,8 +2,9 @@ from typing import Optional
 
 from spire.models import Course, CourseDetail
 from spire.regexp import COURSE_DETAIL_COMPONENT_REGEXP
-from spire.scraper.classes.shared import RawField, RawObject, key_override_factory, to_camel_case
 from spire.scraper.shared import assert_dict_keys_subset
+
+from .shared import RawField, RawObject, key_override_factory, to_camel_case
 
 DETAILS = [
     RawField(k="Career", len=(1, 16)),

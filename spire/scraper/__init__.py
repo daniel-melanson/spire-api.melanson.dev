@@ -3,10 +3,10 @@ from datetime import datetime
 from enum import Enum
 from time import sleep
 
-from spire.scraper.spire_catalog import scrape_catalog
-from spire.scraper.spire_driver import SpireDriver
-from spire.scraper.spire_search import scrape_sections
-from spire.scraper.versioned_cache import VersionedCache
+from .spire_catalog import scrape_catalog
+from .spire_driver import SpireDriver
+from .spire_search import scrape_sections
+from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
