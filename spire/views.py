@@ -1,8 +1,18 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from spire.models import Course, Section, SectionCoverage, Staff, Subject
+from spire.models import (
+    Course,
+    CourseDetail,
+    CourseEnrollmentInformation,
+    Section,
+    SectionCoverage,
+    Staff,
+    Subject,
+)
 from spire.serializers import (
+    CourseDetailSerializer,
+    CourseEnrollmentInformationSerializer,
     CourseSerializer,
     SectionCoverageSerializer,
     SectionSerializer,
@@ -16,6 +26,16 @@ class CourseViewSet(ReadOnlyModelViewSet):
     serializer_class = CourseSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["subject"]
+
+
+class CourseDetailsViewSet(ReadOnlyModelViewSet):
+    queryset = CourseDetail.objects.all()
+    serializer_class = CourseDetailSerializer
+
+
+class CourseEnrollmentInformationViewSet(ReadOnlyModelViewSet):
+    queryset = CourseEnrollmentInformation.objects.all()
+    serializer_class = CourseEnrollmentInformationSerializer
 
 
 class SubjectsViewSet(ReadOnlyModelViewSet):

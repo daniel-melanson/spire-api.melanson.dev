@@ -2,17 +2,16 @@ import logging
 
 from selenium.webdriver.common.by import By
 
-from spire.models import Course, Subject
+from spire.models import Subject
 from spire.scraper import SpireDriver
-from spire.scraper.normalizers.SpireCourse import SpireCourse
-from spire.scraper.normalizers.SpireSubject import SpireSubject
-from spire.scraper.shared import assert_dict_keys_subset, assert_match, scrape_spire_tables, skip_until
+from spire.scraper.classes import RawCourse, RawCourseDetail, RawSubject
+from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
 from spire.scraper.VersionedCache import VersionedCache
 
 log = logging.getLogger(__name__)
 
 
-def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
+def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
     title_element = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
 
     raw_title = title_element.text
@@ -24,16 +23,13 @@ def _scrape_course_page(driver: SpireDriver) -> SpireCourse:
 
     tables = scrape_spire_tables(driver, "table.PSGROUPBOXNBO")
 
-    assert "Course Detail" in tables
-    assert_dict_keys_subset(tables, ["Course Detail", "Description", "Enrollment Information"])
-
-    return SpireCourse(
-        subject=title_match.group("subject"),
+    return RawCourse(
+        subject=subject,
         number=title_match.group("number"),
         title=title_match.group("title"),
-        details=tables["Course Detail"],
+        details=RawCourseDetail(tables["Course Detail"]),
         description=tables["Description"] if "Description" in tables else None,
-        enrollment_information=tables["Enrollment Information"]
+        enrollment_information=RawCourseEnrollInfo(tables["Enrollment Information"])
         if "Enrollment Information" in tables
         else None,
     )
@@ -48,19 +44,11 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
         driver.click(link_id)
         log.debug("Arrived at course page.")
 
-        scraped_course = _scrape_course_page(driver)
-        assert scraped_course.subject == subject
+        scraped_course = _scrape_course_page(driver, subject)
 
         log.info("Scraped course: %s", scraped_course)
 
-        course, created = Course.objects.update_or_create(
-            id=scraped_course.id,
-            defaults=scraped_course.as_model_default(True),
-        )
-
-        log.info("%s course: %s", "Created" if created else "Updated", course)
-
-        subject.courses.add(course)
+        course = scraped_course.push()
 
         cache.push("course_link_id", link_id)
 
@@ -103,7 +91,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             # Match title
             subject_title = subject_link.text
             subject_match = assert_match(r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title)
-            scraped_subject = SpireSubject(
+            scraped_subject = ScrapedSubject(
                 id=subject_match.group("id"),
                 title=subject_match.group("title"),
             )
@@ -119,11 +107,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
                 continue
 
             # Push results to database
-            subject, created = Subject.objects.update_or_create(
-                id=scraped_subject.id, defaults=scraped_subject.as_model_default()
-            )
-
-            log.info("%s new subject: %s", "Created" if created else "Updated", subject)
+            subject = scraped_subject.push()
 
             # Expand subject list
             driver.click(subject_link_id)

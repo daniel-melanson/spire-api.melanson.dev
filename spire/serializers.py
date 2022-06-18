@@ -1,6 +1,14 @@
 from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, RelatedField
 
-from .models import Course, Section, SectionCoverage, Staff, Subject
+from spire.models import (
+    Course,
+    CourseDetail,
+    CourseEnrollmentInformation,
+    Section,
+    SectionCoverage,
+    Staff,
+    Subject,
+)
 
 
 class CourseFieldSerializer(ModelSerializer):
@@ -28,9 +36,32 @@ class SubjectFieldSerializer(RelatedField):
         return value.id
 
 
+class DetailsFieldSerializer(ModelSerializer):
+    class Meta:
+        model = CourseDetail
+        fields = [
+            "url",
+            "career",
+            "units",
+            "grading_basis",
+            "course_components",
+            "academic_group",
+            "academic_organization",
+            "campus",
+        ]
+
+
+class EnrollInfoFieldSerializer(ModelSerializer):
+    class Meta:
+        model = CourseEnrollmentInformation
+        fields = ["url", "add_consent", "enrollment_requirement", "course_attribute"]
+
+
 class CourseSerializer(HyperlinkedModelSerializer):
     sections = SectionFieldSerializer(many=True, read_only=True)
     subject = SubjectFieldSerializer(read_only=True)
+    details = DetailsFieldSerializer(read_only=True)
+    enrollment_information = EnrollInfoFieldSerializer(read_only=True)
 
     class Meta:
         model = Course
@@ -46,6 +77,18 @@ class CourseSerializer(HyperlinkedModelSerializer):
             "sections",
             "_updated_at",
         ]
+
+
+class CourseDetailSerializer(ModelSerializer):
+    class Meta:
+        model = CourseDetail
+        fields = "__all__"
+
+
+class CourseEnrollmentInformationSerializer(ModelSerializer):
+    class Meta:
+        model = CourseEnrollmentInformation
+        fields = "__all__"
 
 
 class SectionSerializer(HyperlinkedModelSerializer):

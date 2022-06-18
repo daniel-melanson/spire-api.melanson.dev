@@ -58,14 +58,40 @@ class Subject(models.Model):
         ordering = ["id"]
 
 
+class CourseDetail(models.Model):
+    course = models.OneToOneField(
+        "Course", on_delete=models.CASCADE, primary_key=True, related_name="details"
+    )
+    career = models.CharField(null=True, max_length=32)
+    units = models.CharField(null=True, max_length=16)
+    grading_basis = models.CharField(null=True, max_length=32)
+    course_components = models.JSONField(null=True, default=list)
+    academic_group = models.CharField(null=True, max_length=64)
+    academic_organization = models.CharField(null=True, max_length=64)
+    campus = models.CharField(null=True, max_length=32)
+
+    class Meta:
+        ordering = ["course"]
+
+
+class CourseEnrollmentInformation(models.Model):
+    course = models.OneToOneField(
+        "Course", on_delete=models.CASCADE, primary_key=True, related_name="enrollment_information"
+    )
+    add_consent = models.CharField(null=True, max_length=64)
+    enrollment_requirement = models.CharField(null=True, max_length=256)
+    course_attribute = models.CharField(null=True, max_length=64)
+
+    class Meta:
+        ordering = ["course"]
+
+
 class Course(models.Model):
     id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     number = models.CharField(max_length=16, validators=[_course_id_number_validator])
     title = models.CharField(max_length=256, validators=[_course_title_validator])
     description = models.CharField(max_length=4096, null=True)
-    details = models.JSONField(default=dict)
-    enrollment_information = models.JSONField(null=True)
     sections = models.ManyToManyField("Section", related_name="+")
     _updated_at = models.DateTimeField()
 

@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import Select
 
 from spire.models import Section, SectionCoverage, Staff
 from spire.regexp import TERM_REGEXP
-from spire.scraper.normalizers.SpireCourse import SpireCourse
+from spire.scraper.normalizers.ScrapedCourse import SpireCourse
 from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
 from spire.scraper.normalizers.SpireSection import SpireSection
 from spire.scraper.normalizers.SpireStaff import SpireStaff
