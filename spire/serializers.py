@@ -33,7 +33,7 @@ class SectionFieldSerializer(ModelSerializer):
 
 class SubjectFieldSerializer(RelatedField):
     def to_representation(self, value):
-        return value.id
+        return str(value)
 
 
 class DetailsFieldSerializer(ModelSerializer):

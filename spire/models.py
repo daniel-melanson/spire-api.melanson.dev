@@ -66,9 +66,9 @@ class CourseDetail(models.Model):
     units = models.CharField(null=True, max_length=16)
     grading_basis = models.CharField(null=True, max_length=32)
     course_components = models.JSONField(null=True, default=list)
-    academic_group = models.CharField(null=True, max_length=64)
-    academic_organization = models.CharField(null=True, max_length=64)
-    campus = models.CharField(null=True, max_length=32)
+    academic_group = models.CharField(null=True, max_length=128)
+    academic_organization = models.CharField(null=True, max_length=128)
+    campus = models.CharField(null=True, max_length=64)
 
     class Meta:
         ordering = ["course"]
@@ -78,9 +78,9 @@ class CourseEnrollmentInformation(models.Model):
     course = models.OneToOneField(
         "Course", on_delete=models.CASCADE, primary_key=True, related_name="enrollment_information"
     )
-    add_consent = models.CharField(null=True, max_length=64)
-    enrollment_requirement = models.CharField(null=True, max_length=256)
-    course_attribute = models.CharField(null=True, max_length=64)
+    add_consent = models.CharField(null=True, max_length=512)
+    enrollment_requirement = models.CharField(null=True, max_length=512)
+    course_attribute = models.JSONField(null=True, default=list)
 
     class Meta:
         ordering = ["course"]

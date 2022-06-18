@@ -64,10 +64,11 @@ class RawObject:
                 assert_match(field.re, v)
 
             if field.len:
-                assert field.len[0] < len(v) < field.len[1]
+                assert field.len[0] <= len(v) <= field.len[1]
 
             if field.assertions:
-                reduce(lambda a, f: f(a), field.assertions, v)
+                for f in field.assertions:
+                    assert f(v)
 
             setattr(self, k, v)
 
@@ -89,7 +90,7 @@ class RawObject:
 
         return f"{self._name}[{getattr(self, self._pk)}]({values})"
 
-    def get_model_default(self, time=False) -> dict:
+    def get_model_defaults(self, time=False) -> dict:
         default = {k: getattr(self, k) for k in self._model_keys if k != "id"}
 
         if time:

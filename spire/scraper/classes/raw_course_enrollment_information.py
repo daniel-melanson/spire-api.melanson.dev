@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import Optional
 
 from spire.models import Course, CourseEnrollmentInformation
@@ -8,7 +9,12 @@ from .shared import RawField, RawObject, to_camel_case
 EI = [
     RawField(k="Enrollment Requirement", len=(1, 256)),
     RawField(k="Add Consent", len=(1, 256)),
-    RawField(k="Course Attribute", len=(1, 256)),
+    RawField(
+        k="Course Attribute",
+        len=(1, 256),
+        normalizers=[lambda x: list(map(lambda x: x.strip(), x.split("\n")))],
+        assertions=[lambda x: reduce(lambda a, x: a and len(x) > 0, x, True)],
+    ),
 ]
 
 
@@ -30,6 +36,8 @@ class RawCourseEnrollmentInformation(RawObject):
         super().__init__(RawCourseEnrollmentInformation, *EI, pk="course_id")
 
     def push(self, course: Course):
-        return CourseEnrollmentInformation.objects.update_or_create(
-            course=course, defaults=self.get_model_default()
+        ei, created = CourseEnrollmentInformation.objects.update_or_create(
+            course=course, defaults=super().get_model_defaults()
         )
+
+        return ei

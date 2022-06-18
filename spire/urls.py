@@ -14,8 +14,12 @@ from spire.views import (
 router = DefaultRouter()
 router.register("subjects", SubjectsViewSet, basename="subject")
 router.register("courses", CourseViewSet, basename="course")
-router.register("course-details", CourseDetailsViewSet, basename="details")
-router.register("course-enroll-info", CourseEnrollmentInformationViewSet, basename="enroll-info")
+router.register("course-details", CourseDetailsViewSet, basename="coursedetail")
+router.register(
+    "course-enrollment-information",
+    CourseEnrollmentInformationViewSet,
+    basename="courseenrollmentinformation",
+)
 router.register("sections", SectionViewSet, basename="section")
 router.register("staff", StaffViewSet, basename="staff")
 router.register("coverage", CoverageViewSet, basename="coverage")

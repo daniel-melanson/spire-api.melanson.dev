@@ -1,4 +1,7 @@
+from re import sub
 from typing import Optional
+
+from django.utils import timezone
 
 from spire.models import Course, Subject
 from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
@@ -34,10 +37,12 @@ class RawCourse(RawObject):
         self.title = title
         self.description = description
 
-        self.details = raw_course_detail(self.id, details)
+        self.details = RawCourseDetail(self.id, details)
 
         if enrollment_information:
-            self.enrollment_information = raw_course_enrollment_information(self.id, enrollment_information)
+            self.enrollment_information = RawCourseEnrollmentInformation(self.id, enrollment_information)
+        else:
+            self.enrollment_information = None
 
         super().__init__(
             Course,
@@ -48,7 +53,15 @@ class RawCourse(RawObject):
         )
 
     def push(self):
-        course_model = Course.objects.update_or_create(id=self.id, defaults=self.get_model_defaults(True))
+        course_model, created = Course.objects.update_or_create(
+            id=self.id,
+            defaults={
+                "number": self.number,
+                "title": self.title,
+                "description": getattr(self, "description", None),
+                "_updated_at": timezone.now(),
+            },
+        )
 
         course_model.details = self.details.push(course_model)
 

@@ -1,7 +1,7 @@
+from functools import reduce
 from typing import Optional
 
 from spire.models import Course, CourseDetail
-from spire.regexp import COURSE_DETAIL_COMPONENT_REGEXP
 from spire.scraper.shared import assert_dict_keys_subset
 
 from .shared import RawField, RawObject, key_override_factory, to_camel_case
@@ -13,8 +13,8 @@ DETAILS = [
     RawField(
         k="Course Components",
         len=(1, 4),
-        normalizers=[lambda x: x.strip().replace("\n", ", ")],
-        re=COURSE_DETAIL_COMPONENT_REGEXP,
+        normalizers=[lambda x: list(map(lambda x: x.strip(), x.split("\n")))],
+        assertions=[lambda x: reduce(lambda a, x: a and len(x) > 0, x, True)],
     ),
     RawField(k="Campus", len=(1, 128)),
     RawField(
@@ -56,7 +56,7 @@ class RawCourseDetail(RawObject):
     campus: Optional[str]
 
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
-        course_id = course_id
+        self.course_id = course_id
         assert_dict_keys_subset(table, map(lambda d: d.k, DETAILS))
 
         for d in DETAILS:
@@ -68,4 +68,8 @@ class RawCourseDetail(RawObject):
         super().__init__(RawCourseDetail, *DETAILS, pk="course_id")
 
     def push(self, course: Course):
-        return CourseDetail.objects.update_or_create(course=course, defaults=self.get_model_default())
+        detail, created = CourseDetail.objects.update_or_create(
+            course=course, defaults=super().get_model_defaults()
+        )
+
+        return detail
