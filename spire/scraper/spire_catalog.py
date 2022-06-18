@@ -4,14 +4,14 @@ from selenium.webdriver.common.by import By
 
 from spire.models import Subject
 from spire.scraper import SpireDriver
-from spire.scraper.classes import RawCourse, RawCourseDetail, RawCourseEnrollmentInformation, RawSubject
+from spire.scraper.classes import raw_course, raw_subject
 from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
-from spire.scraper.VersionedCache import VersionedCache
+from spire.scraper.versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
 
-def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
+def _scrape_course_page(driver: SpireDriver, subject: Subject) -> raw_course:
     title_element = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
 
     raw_title = title_element.text
@@ -23,13 +23,13 @@ def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
 
     tables = scrape_spire_tables(driver, "table.PSGROUPBOXNBO")
 
-    return RawCourse(
+    return raw_course(
         subject=subject,
         number=title_match.group("number"),
         title=title_match.group("title"),
-        details=RawCourseDetail(tables["Course Detail"]),
+        details=tables["Course Detail"],
         description=tables["Description"] if "Description" in tables else None,
-        enrollment_information=RawCourseEnrollmentInformation(tables["Enrollment Information"])
+        enrollment_information=tables["Enrollment Information"]
         if "Enrollment Information" in tables
         else None,
     )
@@ -91,7 +91,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             # Match title
             subject_title = subject_link.text
             subject_match = assert_match(r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title)
-            scraped_subject = RawSubject(
+            scraped_subject = raw_subject(
                 id=subject_match.group("id"),
                 title=subject_match.group("title"),
             )

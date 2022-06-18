@@ -12,15 +12,17 @@ class RawCourse(RawObject):
     number: str
     title: str
     details: RawCourseDetail
-    enrollment_information: Optional[RawCourseEnrollmentInformation]
     description: Optional[str]
+    enrollment_information: Optional[RawCourseEnrollmentInformation]
 
     def __init__(
         self,
         subject: Subject,
         number: str,
         title: str,
+        details: dict[str, str],
         description: Optional[str],
+        enrollment_information: Optional[dict[str, str]],
     ):
         number = clean_id(number)
 
@@ -29,6 +31,11 @@ class RawCourse(RawObject):
         self.number = number
         self.title = title
         self.description = description
+
+        self.details = raw_course_detail(self.id, details)
+
+        if enrollment_information:
+            self.enrollment_information = raw_course_enrollment_information(self.id, enrollment_information)
 
         super().__init__(
             Course,

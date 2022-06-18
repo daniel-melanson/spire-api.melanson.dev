@@ -4,9 +4,9 @@ from enum import Enum
 from time import sleep
 
 from spire.scraper.spire_catalog import scrape_catalog
+from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.spire_search import scrape_sections
-from spire.scraper.SpireDriver import SpireDriver
-from spire.scraper.VersionedCache import VersionedCache
+from spire.scraper.versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 

@@ -7,18 +7,15 @@ from selenium.webdriver.support.ui import Select
 
 from spire.models import Section, SectionCoverage, Staff
 from spire.regexp import TERM_REGEXP
-from spire.scraper.normalizers.ScrapedCourse import SpireCourse
-from spire.scraper.normalizers.SpireMeetingInformation import SpireMeetingInformation
-from spire.scraper.normalizers.SpireSection import SpireSection
-from spire.scraper.normalizers.SpireStaff import SpireStaff
 from spire.scraper.shared import assert_match, scrape_spire_tables, skip_until
-from spire.scraper.SpireDriver import SpireDriver
-from spire.scraper.VersionedCache import VersionedCache
+from spire.scraper.spire_driver import SpireDriver
+from spire.scraper.versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
 
 def scrape_search_results(driver: SpireDriver, term: str):
+    """
     log.debug("Scraping search results...")
     sections = []
 
@@ -122,6 +119,8 @@ def scrape_search_results(driver: SpireDriver, term: str):
 
     log.debug("Scraped search results.")
     return sections
+    """
+    pass
 
 
 def get_option_values(select):
@@ -131,6 +130,8 @@ def get_option_values(select):
 
 
 def scrape_sections(driver: SpireDriver, cache: VersionedCache):
+    pass
+    """
     log.info("Scraping sections...")
     driver.navigate_to("search")
 
@@ -216,3 +217,4 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
         coverage.save()
 
     log.info("Scraped sections.")
+    """
