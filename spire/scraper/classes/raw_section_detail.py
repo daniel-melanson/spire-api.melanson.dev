@@ -14,8 +14,9 @@ DETAILS = [
     RawField(k="Class Components"),
     RawField(k="Career"),
     RawField(k="Grading"),
-    RawField(k="Gened"),
-    RawField(k="RAP/TAP/HLC"),
+    RawField(k="Topic"),
+    RawField(k="Gened", normalizers=[key_override_factory({ "None": None })]),
+    RawField(k="RAP/TAP/HLC", normalizers=[key_override_factory({ "(None)": None })]),
 ]
 
 
@@ -25,7 +26,7 @@ class RawSectionDetail(RawObject):
         assert_dict_keys_subset(table, map(lambda d: d.k, DETAILS))
 
         for d in DETAILS:
-            s_k = to_camel_case(d.k.replace("/", " "))
+            s_k = to_camel_case(d.k)
 
             if d.k in table:
                 setattr(self, s_k, table[d.k])

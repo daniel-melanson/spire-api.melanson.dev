@@ -131,9 +131,10 @@ class SectionDetail(models.Model):
     units = models.CharField(max_length=64)
     class_components = models.JSONField()
     career = models.CharField(max_length=64)
+    topic = models.CharField(null=True, max_length=64)
     grading = models.CharField(max_length=64)
-    gened = models.CharField(max_length=64)
-    rap_tap_hlc = models.CharField(max_length=64)
+    gened = models.CharField(null=True, max_length=64)
+    rap_tap_hlc = models.CharField(null=True, max_length=64)
 
     class Meta:
         ordering = ["section"]

@@ -1,5 +1,6 @@
 import logging
 from functools import reduce
+import re
 from typing import NamedTuple
 
 from django.db.models import Model
@@ -8,6 +9,7 @@ from django.utils import timezone
 from spire.scraper.shared import assert_match
 
 log = logging.getLogger(__name__)
+
 
 
 def key_override_factory(table, as_table=False):
@@ -35,7 +37,7 @@ def clean_id(*args: str) -> list[str]:
 
 
 def to_camel_case(s: str) -> str:
-    return s.lower().replace(" ", "_")
+    return s.lower().replace("/", "_").replace(" ", "_")
 
 
 class RawField(NamedTuple):
@@ -54,13 +56,16 @@ class RawObject:
 
         for field in args:
             k = to_camel_case(field.k)
+            log.debug("Normalizing and asserting field: %s.%s", Model.__name__, k)
             v = getattr(self, k, None)
             if v is None:
                 assert field.optional
+                log.debug("Field not present, skipping")
                 continue
 
             if field.normalizers:
                 v = reduce(lambda a, f: f(a), field.normalizers, v)
+
 
             if field.re:
                 assert_match(field.re, v)
@@ -72,6 +77,7 @@ class RawObject:
                 for f in field.assertions:
                     assert f(v)
 
+            log.debug("Normalized and asserted. %s.%s set to %s", Model.__name__, k, v)
             setattr(self, k, v)
 
         self._model_keys = set(
