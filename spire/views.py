@@ -31,6 +31,15 @@ class CourseViewSet(ReadOnlyModelViewSet):
 class CourseDetailsViewSet(ReadOnlyModelViewSet):
     queryset = CourseDetail.objects.all()
     serializer_class = CourseDetailSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = [
+        "career",
+        "units",
+        "grading_basis",
+        "academic_group",
+        "academic_organization",
+        "campus",
+    ]
 
 
 class CourseEnrollmentInformationViewSet(ReadOnlyModelViewSet):
