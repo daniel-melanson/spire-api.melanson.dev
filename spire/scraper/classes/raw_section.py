@@ -6,7 +6,6 @@ from spire.models import Section
 from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
 
-
 from .raw_course_enrollment_information import RawCourseEnrollmentInformation
 from .shared import RawField, RawObject, clean_id
 

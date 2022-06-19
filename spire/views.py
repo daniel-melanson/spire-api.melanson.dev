@@ -16,8 +16,8 @@ from spire.serializers import (
     CourseEnrollmentInformationSerializer,
     CourseSerializer,
     SectionCoverageSerializer,
-    SectionSerializer,
     SectionDetailSerializer,
+    SectionSerializer,
     StaffSerializer,
     SubjectSerializer,
 )

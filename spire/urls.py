@@ -6,8 +6,8 @@ from spire.views import (
     CourseEnrollmentInformationViewSet,
     CourseViewSet,
     CoverageViewSet,
-    SectionViewSet,
     SectionDetailsViewSet,
+    SectionViewSet,
     StaffViewSet,
     SubjectsViewSet,
 )

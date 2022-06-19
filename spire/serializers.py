@@ -40,22 +40,13 @@ class SubjectFieldSerializer(RelatedField):
 class DetailsFieldSerializer(ModelSerializer):
     class Meta:
         model = CourseDetail
-        fields = [
-            "url",
-            "career",
-            "units",
-            "grading_basis",
-            "course_components",
-            "academic_group",
-            "academic_organization",
-            "campus",
-        ]
+        exclude = ["course"]
 
 
 class EnrollInfoFieldSerializer(ModelSerializer):
     class Meta:
         model = CourseEnrollmentInformation
-        fields = ["url", "add_consent", "enrollment_requirement", "course_attribute"]
+        exclude = ["course"]
 
 
 class CourseSerializer(HyperlinkedModelSerializer):
@@ -92,20 +83,27 @@ class CourseEnrollmentInformationSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class SectionDetailFieldSerializer(ModelSerializer):
+    class Meta:
+        model = SectionDetail
+        exclude = ["section"]
+
+
 class SectionSerializer(HyperlinkedModelSerializer):
+    details = SectionDetailFieldSerializer(read_only=True)
+
     class Meta:
         model = Section
         fields = [
-            "url",
             "id",
             "course_id",
             "term",
             "details",
+            "meeting_information",
             "restrictions",
             "availability",
             "description",
             "overview",
-            "meeting_information",
             "instructors",
             "_updated_at",
         ]
@@ -126,4 +124,4 @@ class StaffSerializer(HyperlinkedModelSerializer):
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = SectionCoverage
-        fields = ["url", "term", "completed", "start_time", "end_time"]
+        fields = "__all__"

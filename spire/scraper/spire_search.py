@@ -1,6 +1,6 @@
 import logging
-from datetime import datetime
 import re
+from datetime import datetime
 
 from django.utils import timezone
 from selenium.webdriver.common.by import By
