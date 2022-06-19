@@ -1,10 +1,10 @@
-from re import sub
 from typing import Optional
 
 from django.utils import timezone
 
 from spire.models import Course, Subject
-from spire.regexp import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
+from spire.patterns import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
+from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
 
 from .raw_course_detail import RawCourseDetail
 from .raw_course_enrollment_information import RawCourseEnrollmentInformation
@@ -20,6 +20,14 @@ class RawCourse(RawObject):
     description: Optional[str]
     enrollment_information: Optional[RawCourseEnrollmentInformation]
 
+    def get_course_id(subject: str, number: str):
+        [subject, number] = clean_id(subject, number)
+
+        if subject in SUBJECT_OVERRIDES:
+            subject = SUBJECT_OVERRIDES[subject][0]
+
+        return f"{subject} {number}", subject, number
+
     def __init__(
         self,
         subject: Subject,
@@ -29,9 +37,9 @@ class RawCourse(RawObject):
         description: Optional[str],
         enrollment_information: Optional[dict[str, str]],
     ):
-        number = clean_id(number)
+        (id, _, number) = RawCourse.get_course_id(subject.id, number)
 
-        self.id = f"{subject.id} {number}"
+        self.id = id
         self.subject = subject
         self.number = number
         self.title = title

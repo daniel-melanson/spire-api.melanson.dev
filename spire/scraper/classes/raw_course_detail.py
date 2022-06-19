@@ -65,7 +65,7 @@ class RawCourseDetail(RawObject):
             if d.k in table:
                 setattr(self, s_k, table[d.k])
 
-        super().__init__(RawCourseDetail, *DETAILS, pk="course_id")
+        super().__init__(CourseDetail, *DETAILS, pk="course_id")
 
     def push(self, course: Course):
         detail, created = CourseDetail.objects.update_or_create(

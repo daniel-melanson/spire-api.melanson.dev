@@ -104,7 +104,7 @@ class SectionSerializer(HyperlinkedModelSerializer):
             "availability",
             "description",
             "overview",
-            "meeting_info",
+            "meeting_information",
             "instructors",
             "_updated_at",
         ]

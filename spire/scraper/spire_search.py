@@ -1,12 +1,15 @@
 import logging
 from datetime import datetime
+import re
 
 from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from spire.models import Section, SectionCoverage, Staff
-from spire.regexp import TERM_REGEXP
+from spire.patterns import TERM_REGEXP
+from spire.scraper.classes.raw_course import RawCourse
+from spire.scraper.classes.raw_section import RawMeetingInformation, RawSection, RawStaff
 
 from .shared import assert_match, scrape_spire_tables, skip_until
 from .spire_driver import SpireDriver
@@ -16,7 +19,6 @@ log = logging.getLogger(__name__)
 
 
 def scrape_search_results(driver: SpireDriver, term: str):
-    """
     log.debug("Scraping search results...")
     sections = []
 
@@ -28,7 +30,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
             r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
             span.text,
         )
-        course_id = SpireCourse.get_course_id(
+        course_id, _, _ = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")
         )
 
@@ -43,10 +45,14 @@ def scrape_search_results(driver: SpireDriver, term: str):
         course_staff_emails = {}
         for a in sections_table.find_elements(By.CSS_SELECTOR, "a[href^=mailto\:]"):
             href = a.get_property("href")
+            log.debug("Scraped href: %s", href)
 
             email = href[len("mailto:") :]
 
-            course_staff_emails[a.text] = email
+            if re.fullmatch(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)", email):
+                course_staff_emails[a.text] = email
+            else:
+                log.debug("Not an email, skipping: %s", email)
 
         log.debug("Scraped emails: %s.", course_staff_emails)
 
@@ -58,7 +64,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
         ]
         for link_id in link_ids:
             link = driver.find(link_id)
-            section_id = link.text
+            section_id = link.text.strip()
 
             driver.click(link_id)
 
@@ -72,24 +78,16 @@ def scrape_search_results(driver: SpireDriver, term: str):
             ).text.split("\\n"):
                 name = raw_name[:-1] if raw_name.endswith(",") else raw_name
 
-                scraped_staff = SpireStaff(
+                instructors.append(RawStaff(
                     name=name, email=course_staff_emails[name] if name in course_staff_emails else None
-                )
+                ))
 
-                log.info("Scraped staff: %s", staff)
-                if scraped_staff.email:
-                    staff, created = Staff.objects.update_or_create(
-                        email=scraped_staff.email, defaults={"name": scraped_staff.name}
-                    )
-
-                instructors.append(staff)
-
-            section = SpireSection(
+            section = RawSection(
                 course_id=course_id,
                 term=term,
                 id=section_id,
                 details=table_results["Class Details"],
-                meeting_information=SpireMeetingInformation(
+                meeting_information=RawMeetingInformation(
                     days_and_times=meeting_info_table.find_element(
                         By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
                     ).text,
@@ -97,20 +95,16 @@ def scrape_search_results(driver: SpireDriver, term: str):
                     room=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
                     meeting_dates=meeting_info_table.find_element(By.CSS_SELECTOR, "span[id^=MTG_DATE]").text,
                 ),
-                availability=table_results["Class Availability"],
-                description=table_results["Description"] if "Description" in table_results else None,
-                overview=table_results["Class Overview"] if "Class Overview" in table_results else None,
                 restrictions=table_results["RESTRICTIONS & NOTES"]
                 if "RESTRICTIONS & NOTES" in table_results
                 else None,
+                availability=table_results["Class Availability"],
+                description=table_results["Description"] if "Description" in table_results else None,
+                overview=table_results["Class Overview"] if "Class Overview" in table_results else None,
             )
             log.info("Scraped section: %s", section)
 
-            section, created = Section.objects.update_or_create(
-                id=section.id, defaults=section.as_model_default(True)
-            )
-
-            log.info("%s section: %s", "Created" if created else "Updated", section)
+            section.push()
 
             for instructor in instructors:
                 if isinstance(instructor, Staff):
@@ -120,8 +114,6 @@ def scrape_search_results(driver: SpireDriver, term: str):
 
     log.debug("Scraped search results.")
     return sections
-    """
-    pass
 
 
 def get_option_values(select):
@@ -131,8 +123,6 @@ def get_option_values(select):
 
 
 def scrape_sections(driver: SpireDriver, cache: VersionedCache):
-    pass
-    """
     log.info("Scraping sections...")
     driver.navigate_to("search")
 
@@ -145,7 +135,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     term_values = get_option_values(term_select)
 
     has_skipped = False
-    for term_offset in range(cache.get("term_offset", 4 * 5), -1, -1):
+    for term_offset in range(cache.get("term_offset", 4 * 5 - 1), -1, -1):
         cache.push("term_offset", term_offset)
 
         flipped_term = term_values[term_offset]
@@ -161,15 +151,15 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             year = int(year)
             match season:
                 case "Fall":
-                    end_date = datetime(year=year + 1, month=1, day=1)
+                    end_date = timezone(year=year + 1, month=1, day=1)
                 case "Winter":
-                    end_date = datetime(year=year + 1, month=3, day=1)
+                    end_date = timezone(year=year + 1, month=2, day=15)
                 case "Spring":
-                    end_date = datetime(year=year, month=6, day=1)
+                    end_date = timezone(year=year, month=6, day=1)
                 case "Summer":
-                    end_date = datetime(year=year, month=9, day=1)
+                    end_date = timezone(year=year, month=9, day=15)
 
-            if end_date < datetime.now():
+            if end_date < timezone.now():
                 log.info("Skipping the %s semester, as information is static.", term)
                 continue
 
@@ -206,7 +196,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                scrape_search_results(driver, term_values[term_offset])
+                scrape_search_results(driver, term)
 
                 log.debug("Returning...")
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
@@ -218,4 +208,3 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
         coverage.save()
 
     log.info("Scraped sections.")
-    """

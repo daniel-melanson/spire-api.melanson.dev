@@ -44,6 +44,7 @@ class RawField(NamedTuple):
     assertions: list = None
     re: str = None
     len: tuple[int, int] = None
+    optional = True
 
 
 class RawObject:
@@ -55,6 +56,7 @@ class RawObject:
             k = to_camel_case(field.k)
             v = getattr(self, k, None)
             if v is None:
+                assert field.optional
                 continue
 
             if field.normalizers:

@@ -2,7 +2,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from spire.regexp import (
+from spire.patterns import (
     COURSE_ID_NUM_REGEXP,
     COURSE_ID_REGEXP,
     COURSE_TITLE_REGEXP,
@@ -58,10 +58,20 @@ class Subject(models.Model):
         ordering = ["id"]
 
 
+class Course(models.Model):
+    id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
+    number = models.CharField(max_length=16, validators=[_course_id_number_validator])
+    title = models.CharField(max_length=256, validators=[_course_title_validator])
+    description = models.CharField(max_length=4096, null=True)
+    sections = models.ManyToManyField("Section", related_name="+")
+    _updated_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["id"]
+
+
 class CourseDetail(models.Model):
-    course = models.OneToOneField(
-        "Course", on_delete=models.CASCADE, primary_key=True, related_name="details"
-    )
+    course = models.OneToOneField(Course, on_delete=models.CASCADE, primary_key=True, related_name="details")
     career = models.CharField(null=True, max_length=32)
     units = models.CharField(null=True, max_length=16)
     grading_basis = models.CharField(null=True, max_length=32)
@@ -86,18 +96,6 @@ class CourseEnrollmentInformation(models.Model):
         ordering = ["course"]
 
 
-class Course(models.Model):
-    id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
-    number = models.CharField(max_length=16, validators=[_course_id_number_validator])
-    title = models.CharField(max_length=256, validators=[_course_title_validator])
-    description = models.CharField(max_length=4096, null=True)
-    sections = models.ManyToManyField("Section", related_name="+")
-    _updated_at = models.DateTimeField()
-
-    class Meta:
-        ordering = ["id"]
-
-
 class Staff(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
@@ -108,21 +106,34 @@ class Staff(models.Model):
 
 
 class Section(models.Model):
-    id = models.CharField(max_length=10, primary_key=True, validators=[_section_id_validator])
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    id = models.CharField(max_length=32, primary_key=True, validators=[_section_id_validator])
+    course_id = models.CharField(max_length=32, validators=[_course_id_validator])
     term = models.CharField(max_length=16, validators=[_section_term_validator])
-    details = models.JSONField()
+    meeting_information = models.JSONField()
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()
     description = models.CharField(max_length=1024, null=True)
     overview = models.CharField(max_length=1024, null=True)
-    meeting_info = models.JSONField()
     instructors = models.ManyToManyField(Staff)
     _updated_at = models.DateTimeField()
 
     class Meta:
-        ordering = ["term", "course", "id"]
+        ordering = ["term", "course_id", "id"]
 
+
+class SectionDetail(models.Model):
+    section = models.OneToOneField(
+        Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
+    )
+    status = models.CharField(max_length=64)
+    class_number = models.IntegerField()
+    session = models.CharField(null=True, max_length=64)
+    units = models.CharField(max_length=64)
+    class_components = models.JSONField()
+    career = models.CharField(max_length=64)
+    grading = models.CharField(max_length=64)
+    gened = models.CharField(max_length=64)
+    rap_tap_hlc = models.CharField(max_length=64)
 
 class SectionCoverage(models.Model):
     term = models.CharField(max_length=32, primary_key=True, validators=[_section_term_validator])
