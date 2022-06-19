@@ -7,6 +7,7 @@ from spire.views import (
     CourseViewSet,
     CoverageViewSet,
     SectionViewSet,
+    SectionDetailsViewSet,
     StaffViewSet,
     SubjectsViewSet,
 )
@@ -21,6 +22,7 @@ router.register(
     basename="courseenrollmentinformation",
 )
 router.register("sections", SectionViewSet, basename="section")
+router.register("section-details", SectionDetailsViewSet, basename="sectiondetail")
 router.register("staff", StaffViewSet, basename="staff")
 router.register("coverage", CoverageViewSet, basename="coverage")
 

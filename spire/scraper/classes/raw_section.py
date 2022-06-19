@@ -10,6 +10,7 @@ from spire.scraper.classes.raw_section_detail import RawSectionDetail
 from .raw_course_enrollment_information import RawCourseEnrollmentInformation
 from .shared import RawField, RawObject, clean_id
 
+
 class RawStaff(NamedTuple):
     name: str
     email: Optional[str]
@@ -70,14 +71,14 @@ class RawSection(RawObject):
                 "meeting_information": {
                     "days_and_times": self.meeting_information.days_and_times,
                     "room": self.meeting_information.room,
-                    "meeting_dates": self.meeting_information.meeting_dates
+                    "meeting_dates": self.meeting_information.meeting_dates,
                 },
                 "restrictions": self.restrictions,
                 "availability": self.availability,
                 "description": self.description,
                 "overview": self.overview,
                 "_updated_at": timezone.now(),
-            }
+            },
         )
 
         section.details = self.details.push(section)

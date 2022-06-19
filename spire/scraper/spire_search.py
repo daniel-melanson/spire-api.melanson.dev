@@ -78,9 +78,11 @@ def scrape_search_results(driver: SpireDriver, term: str):
             ).text.split("\\n"):
                 name = raw_name[:-1] if raw_name.endswith(",") else raw_name
 
-                instructors.append(RawStaff(
-                    name=name, email=course_staff_emails[name] if name in course_staff_emails else None
-                ))
+                instructors.append(
+                    RawStaff(
+                        name=name, email=course_staff_emails[name] if name in course_staff_emails else None
+                    )
+                )
 
             section = RawSection(
                 course_id=course_id,

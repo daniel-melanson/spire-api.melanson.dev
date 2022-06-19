@@ -7,6 +7,7 @@ from spire.models import (
     CourseEnrollmentInformation,
     Section,
     SectionCoverage,
+    SectionDetail,
     Staff,
     Subject,
 )
@@ -16,6 +17,7 @@ from spire.serializers import (
     CourseSerializer,
     SectionCoverageSerializer,
     SectionSerializer,
+    SectionDetailSerializer,
     StaffSerializer,
     SubjectSerializer,
 )
@@ -62,6 +64,11 @@ class SectionViewSet(ReadOnlyModelViewSet):
     serializer_class = SectionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["course_id"]
+
+
+class SectionDetailsViewSet(ReadOnlyModelViewSet):
+    queryset = SectionDetail.objects.all()
+    serializer_class = SectionDetailSerializer
 
 
 class CoverageViewSet(ReadOnlyModelViewSet):

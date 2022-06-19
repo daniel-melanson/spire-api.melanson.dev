@@ -6,6 +6,7 @@ from spire.models import (
     CourseEnrollmentInformation,
     Section,
     SectionCoverage,
+    SectionDetail,
     Staff,
     Subject,
 )
@@ -97,7 +98,7 @@ class SectionSerializer(HyperlinkedModelSerializer):
         fields = [
             "url",
             "id",
-            "course",
+            "course_id",
             "term",
             "details",
             "restrictions",
@@ -108,6 +109,12 @@ class SectionSerializer(HyperlinkedModelSerializer):
             "instructors",
             "_updated_at",
         ]
+
+
+class SectionDetailSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = SectionDetail
+        fields = "__all__"
 
 
 class StaffSerializer(HyperlinkedModelSerializer):

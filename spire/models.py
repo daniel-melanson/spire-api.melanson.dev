@@ -112,8 +112,8 @@ class Section(models.Model):
     meeting_information = models.JSONField()
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()
-    description = models.CharField(max_length=1024, null=True)
-    overview = models.CharField(max_length=1024, null=True)
+    description = models.CharField(max_length=4096, null=True)
+    overview = models.CharField(max_length=2048, null=True)
     instructors = models.ManyToManyField(Staff)
     _updated_at = models.DateTimeField()
 
@@ -134,6 +134,10 @@ class SectionDetail(models.Model):
     grading = models.CharField(max_length=64)
     gened = models.CharField(max_length=64)
     rap_tap_hlc = models.CharField(max_length=64)
+
+    class Meta:
+        ordering = ["section"]
+
 
 class SectionCoverage(models.Model):
     term = models.CharField(max_length=32, primary_key=True, validators=[_section_term_validator])

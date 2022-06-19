@@ -33,4 +33,6 @@ class RawSectionDetail(RawObject):
         super().__init__(SectionDetail, *DETAILS, pk="section_id")
 
     def push(self, section: Section):
-        detail, created = SectionDetail.objects.update_or_create(section=section, defaults=super().get_model_defaults())
+        detail, created = SectionDetail.objects.update_or_create(
+            section=section, defaults=super().get_model_defaults()
+        )
