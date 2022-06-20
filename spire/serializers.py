@@ -124,4 +124,10 @@ class StaffSerializer(HyperlinkedModelSerializer):
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = SectionCoverage
-        fields = "__all__"
+        fields = [
+            "url",
+            "term",
+            "completed",
+            "start_time",
+            "end_time"
+        ]

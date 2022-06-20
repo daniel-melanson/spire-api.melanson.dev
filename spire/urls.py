@@ -24,7 +24,7 @@ router.register(
 router.register("sections", SectionViewSet, basename="section")
 router.register("section-details", SectionDetailsViewSet, basename="sectiondetail")
 router.register("staff", StaffViewSet, basename="staff")
-router.register("coverage", CoverageViewSet, basename="coverage")
+router.register("coverage", CoverageViewSet, basename="sectioncoverage")
 
 urlpatterns = [
     path("", include(router.urls)),
