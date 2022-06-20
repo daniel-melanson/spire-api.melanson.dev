@@ -9,15 +9,12 @@ from spire.scraper.shared import assert_dict_keys_subset
 from .shared import RawField, RawObject, key_override_factory, re_override_factory, to_camel_case
 
 def class_component_norm(x: str) -> list[str]:
-    x = x.replace("\n", " ")
-
     l = []
-
-    for m in re.finditer(r"(Lecture|Laboratory|Individualized Study)( Required)?", x):
-        if m.group(2) is not None:
-            l.append(m.group(1) + " (Required)")
+    for s in x.split("\n"):
+        if s == "Required":
+            l[-1] = l[-1] + " (Required)"
         else:
-            l.append(m.group(1))
+            l.append(s)
 
     return l
 
