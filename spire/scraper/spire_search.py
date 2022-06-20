@@ -66,7 +66,9 @@ def scrape_search_results(driver: SpireDriver, term: str):
             link = driver.find(link_id)
             section_id = link.text.strip()
 
+            log.debug("Clicking link for section: %s", section_id)
             driver.click(link_id)
+            log.debug("Starting scrape routine: %s", section_id)
 
             table_results = scrape_spire_tables(driver, "table.PSGROUPBOXWBO")
 
@@ -112,6 +114,7 @@ def scrape_search_results(driver: SpireDriver, term: str):
                 if isinstance(instructor, Staff):
                     section.instructors.add(instructor)
 
+            log.debug("Ending scrape routine.")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK")
 
     log.debug("Scraped search results.")
@@ -135,6 +138,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     term_select = driver.wait_for_interaction(By.ID, "UM_DERIVED_SA_UM_TERM_DESCR")
     assert term_select
     term_values = get_option_values(term_select)
+
+    if not cache.is_empty:
+        log.info("Scraping course catalog with cache: %s", cache)
 
     has_skipped = False
     for term_offset in range(cache.get("term_offset", 4 * 5 - 1), -1, -1):
@@ -164,7 +170,8 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             if end_date < timezone.now():
                 log.info("Skipping the %s semester, as information is static.", term)
                 continue
-
+        
+        log.info("Searching for sections during the term: %s", term)
         for subject in subject_values if has_skipped else skip_until(subject_values, cache, "subject"):
             has_skipped = True
             cache.push("subject", subject)

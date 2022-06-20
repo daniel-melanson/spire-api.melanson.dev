@@ -10,7 +10,7 @@ from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
-MAX_RETRIES = 3
+MAX_RETRIES = 10
 
 LOG_HANDLER = [x for x in log.handlers if x.baseFilename.endswith("scrape-results.log")][0]
 
@@ -33,10 +33,10 @@ def scrape(s, func):
         except Exception as e:
             retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
-
             LOG_HANDLER.doRollover()
+            cache.commit()
+            log.debug("Cache updated to: %s", cache)
             if retries < MAX_RETRIES:
-                cache.commit()
                 log.info("Closing driver and sleeping...")
                 driver = driver.close()
                 sleep(5 * 60)

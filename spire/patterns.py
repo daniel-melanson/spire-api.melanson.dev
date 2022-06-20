@@ -15,4 +15,4 @@ TERM_REGEXP = r"(Spring|Summer|Winter|Fall) (20\d{2})"
 _COMPONENTS = r"(Lecture|Practicum|Discussion|Laboratory)"
 COURSE_DETAIL_COMPONENT_REGEXP = f"({_COMPONENTS}, )" + r"{0,4}" + _COMPONENTS
 
-UNITS_REGEXP = r"[0-9]\.00( - [0-9]{1,2}\.00)?"
+UNITS_REGEXP = r"\d\.\d\d( - \d{1,2}\.\d\d)?"
