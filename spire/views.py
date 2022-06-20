@@ -69,6 +69,14 @@ class SectionViewSet(ReadOnlyModelViewSet):
 class SectionDetailsViewSet(ReadOnlyModelViewSet):
     queryset = SectionDetail.objects.all()
     serializer_class = SectionDetailSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = [
+        "status",
+        "session",
+        "units",
+        "career",
+        "topic",
+    ]
 
 
 class CoverageViewSet(ReadOnlyModelViewSet):
