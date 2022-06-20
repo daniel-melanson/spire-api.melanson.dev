@@ -115,9 +115,12 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> li
 
             log.debug("Matched %s with %s.", field_id, value_id)
             element = detail_values[value_id]
-
-            log.debug("Adding detail: %s.", (field_title, element.text))
-            details[field_title] = element.text
+            text = element.text.strip()
+            if len(text) > 0:
+                log.debug("Adding detail: %s.", (field_title, element.text))
+                details[field_title] = text
+            else:
+                log.debug("Ignoring, empty value text.")
         else:
             log.warning("Unable to find a match for %s(%s).", field_id, field_title)
 

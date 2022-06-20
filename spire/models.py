@@ -125,14 +125,14 @@ class SectionDetail(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
     )
-    status = models.CharField(max_length=64)
+    status = models.CharField(null=True, max_length=64)
     class_number = models.IntegerField()
     session = models.CharField(null=True, max_length=64)
-    units = models.CharField(max_length=64)
-    class_components = models.JSONField()
-    career = models.CharField(max_length=64)
+    units = models.CharField(null=True, max_length=64)
+    class_components = models.JSONField(null=True)
+    career = models.CharField(null=True, max_length=64)
     topic = models.CharField(null=True, max_length=64)
-    grading = models.CharField(max_length=64)
+    grading = models.CharField(null=True, max_length=64)
     gened = models.CharField(null=True, max_length=64)
     rap_tap_hlc = models.CharField(null=True, max_length=64)
 
