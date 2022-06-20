@@ -133,7 +133,7 @@ class SectionDetail(models.Model):
     career = models.CharField(null=True, max_length=64)
     topic = models.CharField(null=True, max_length=64)
     grading = models.CharField(null=True, max_length=64)
-    gened = models.CharField(null=True, max_length=64)
+    gened = models.JSONField(null=True)
     rap_tap_hlc = models.CharField(null=True, max_length=64)
 
     class Meta:

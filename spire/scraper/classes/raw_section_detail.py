@@ -30,7 +30,7 @@ DETAILS = [
     RawField(k="Career"),
     RawField(k="Grading"),
     RawField(k="Topic"),
-    RawField(k="Gened", normalizers=[key_override_factory({"None": None})]),
+    RawField(k="Gened", normalizers=[key_override_factory({"None": None}), lambda x: x.split(" ") if x is not None else x]),
     RawField(k="RAP/TAP/HLC", normalizers=[key_override_factory({"(None)": None})]),
 ]
 
