@@ -52,7 +52,6 @@ class Subject(models.Model):
         primary_key=True,
         validators=[_subject_id_validator],
     )
-    courses = models.ManyToManyField("Course", related_name="subject")
 
     class Meta:
         ordering = ["id"]
@@ -60,6 +59,7 @@ class Subject(models.Model):
 
 class Course(models.Model):
     id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="courses")
     number = models.CharField(max_length=16, validators=[_course_id_number_validator])
     title = models.CharField(max_length=256, validators=[_course_title_validator])
     description = models.CharField(max_length=4096, null=True)
@@ -67,6 +67,7 @@ class Course(models.Model):
     _updated_at = models.DateTimeField()
 
     class Meta:
+        unique_together = ["subject", "number"]
         ordering = ["id"]
 
 
@@ -109,16 +110,26 @@ class Section(models.Model):
     id = models.CharField(max_length=32, primary_key=True, validators=[_section_id_validator])
     course_id = models.CharField(max_length=32, validators=[_course_id_validator])
     term = models.CharField(max_length=16, validators=[_section_term_validator])
-    meeting_information = models.JSONField()
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()
     description = models.CharField(max_length=4096, null=True)
     overview = models.CharField(max_length=2048, null=True)
-    instructors = models.ManyToManyField(Staff)
     _updated_at = models.DateTimeField()
 
     class Meta:
         ordering = ["term", "course_id", "id"]
+
+
+class MeetingInformation(models.Model):
+    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="meeting_information")
+    days_and_times = models.CharField(max_length=64)
+    room = models.CharField(max_length=64)
+    instructors = models.ManyToManyField(Staff, "sections")
+    meeting_dates = models.CharField(max_length=64)
+
+    class Meta:
+        unique_together = [["section", "days_and_times"]]
+        ordering = ["section", "days_and_times"]
 
 
 class SectionDetail(models.Model):
