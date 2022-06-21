@@ -2,7 +2,7 @@ from typing import NamedTuple, Optional
 
 from django.utils import timezone
 
-from spire.models import Section
+from spire.models import Section, Staff
 from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
 
@@ -17,7 +17,7 @@ class RawStaff(NamedTuple):
 
 class RawMeetingInformation(NamedTuple):
     days_and_times: str
-    instructors: list
+    instructors: list[RawStaff]
     room: str
     meeting_dates: str
 
@@ -29,7 +29,7 @@ class RawSection(RawObject):
         course_id: str,
         term: str,
         details: dict[str, str],
-        meeting_information: RawMeetingInformation,
+        meeting_information: list[RawMeetingInformation],
         restrictions: Optional[dict[str, str]],
         availability: dict[str, str],
         description: Optional[str],
@@ -67,11 +67,9 @@ class RawSection(RawObject):
             defaults={
                 "course_id": self.course_id,
                 "term": self.term,
-                "meeting_information": {
-                    "days_and_times": self.meeting_information.days_and_times,
-                    "room": self.meeting_information.room,
-                    "meeting_dates": self.meeting_information.meeting_dates,
-                },
+                "meeting_information": list(
+                    map(lambda x: {k: getattr(x, k) for k in x._fields if k != "instructors"})
+                ),
                 "restrictions": self.restrictions,
                 "availability": self.availability,
                 "description": self.description,
@@ -81,5 +79,23 @@ class RawSection(RawObject):
         )
 
         section.details = self.details.push(section)
+
+        new_instructors = []
+        for raw_instructor in self.meeting_information.instructors:
+            if raw_instructor.email:
+                instructor, _ = Staff.objects.get_or_create(
+                    email=raw_instructor.email, defaults={"name": raw_instructor.name}
+                )
+            elif raw_instructor.name.lower() == "Staff":
+                instructor = Staff.objects.get_or_create(name="Staff")
+            else:
+                possible_instructors = Staff.objects.filter(name=raw_instructor.name)
+
+                if len(possible_instructors) == 0:
+                    instructor = Staff.objects.create(name=raw_instructor.name)
+
+            new_instructors.append(instructor)
+
+        section.instructors.set(new_instructors)
 
         return section

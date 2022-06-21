@@ -3,6 +3,7 @@ import logging
 from selenium.webdriver.common.by import By
 
 from spire.models import Subject
+from spire.scraper.timer import Timer
 
 from .classes import RawCourse, RawSubject
 from .shared import assert_match, scrape_spire_tables, skip_until
@@ -29,19 +30,20 @@ def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
         number=title_match.group("number"),
         title=title_match.group("title"),
         details=tables["Course Detail"],
-        description=tables["Description"] if "Description" in tables else None,
-        enrollment_information=tables["Enrollment Information"]
-        if "Enrollment Information" in tables
-        else None,
+        description=tables.get("Description", None),
+        enrollment_information=tables.get("Enrollment Information", None),
     )
 
 
 def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Subject):
+    log.info("Scraping subject list for: %s", subject)
+    t = Timer()
+
     course_link_ids = skip_until(driver.find_all_ids("a[id^=CRSE_NBR]"), cache, "course_link_id")
 
-    # For each course in the subject
+    # For each course in the subject list
     for link_id in course_link_ids:
-        log.debug("Following next course link...")
+        log.debug("Clicking course page link: %s...", link_id)
         driver.click(link_id)
         log.debug("Arrived at course page.")
 
@@ -55,7 +57,9 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 
         log.debug("Returning to course catalog...")
         driver.click("DERIVED_SAA_CRS_RETURN_PB")
-        log.debug("Returned.")
+        log.debug("Returned to course catalog.")
+
+    log.info("Scraped subject list for %s in %s", subject, t)
 
 
 def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
@@ -63,10 +67,8 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
     driver.navigate_to("catalog")
 
-    if not cache.is_empty:
-        log.info("Scraping course catalog with cache: %s", cache)
-
     # For each uppercase letter; start at 65 (A) or cached value
+    total_timer = Timer()
     for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
@@ -74,6 +76,8 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
         log.info("Scraping subject letter group: %s", letter)
         cache.push("subject_group_ascii", ascii_code)
+
+        subject_group_timer = Timer()
 
         # Click letters grouping
         driver.click(f"DERIVED_SSS_BCC_SSR_ALPHANUM_{letter}")
@@ -121,4 +125,9 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             # Collapse subject list
             driver.click(subject_link_id)
 
-    log.info("Scraped course catalog.")
+        subject_group_timer.end()
+        log.info("Scraped subject letter group %s in %s", letter, subject_group_timer)
+
+    total_timer.end()
+
+    log.info("Scraped course catalog in %s", total_timer)

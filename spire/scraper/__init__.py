@@ -3,6 +3,8 @@ from datetime import datetime
 from enum import Enum
 from time import sleep
 
+from spire.scraper.timer import Timer
+
 from .spire_catalog import scrape_catalog
 from .spire_driver import SpireDriver
 from .spire_search import scrape_sections
@@ -12,7 +14,7 @@ log = logging.getLogger(__name__)
 
 MAX_RETRIES = 10
 
-LOG_HANDLER = [x for x in log.handlers if x.baseFilename.endswith("scrape-results.log")][0]
+LOG_HANDLERS = [x for x in log.handlers if x.baseFilename.startswith("scrape-")]
 
 
 class ScrapeCoverage(Enum):
@@ -28,12 +30,17 @@ def scrape(s, func):
     retries = 0
     while True:
         try:
+            if not cache.is_empty:
+                log.info("Scraping %s with cache: %s", s, cache)
+
             func(driver, cache)
             return
         except Exception as e:
             retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
-            LOG_HANDLER.doRollover()
+            for handler in LOG_HANDLERS:
+                handler.doRollover()
+
             cache.commit()
             log.debug("Cache updated to: %s", cache)
             if retries < MAX_RETRIES:
@@ -52,7 +59,7 @@ def scrape_data(coverage: ScrapeCoverage):
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
-    start = datetime.now()
+    scrape_timer = Timer()
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.SubjectsAndCourses:
         scrape("course catalog", scrape_catalog)
@@ -60,9 +67,5 @@ def scrape_data(coverage: ScrapeCoverage):
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
         scrape("course sections", scrape_sections)
 
-    diff = datetime.now() - start
-
-    hours = diff.total_seconds() // 60 // 60
-    minutes = (diff.total_seconds() - (hours * 60 * 60)) // 60
-
-    log.info("Scraped data from spire in %s hours and %s minutes.", hours, minutes)
+    scrape_timer.end()
+    log.info("Scraped data from spire in %s", scrape_timer)

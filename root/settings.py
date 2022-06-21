@@ -149,12 +149,20 @@ LOGGING = {
         },
     },
     "handlers": {
+        "scrape_debug_handler": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "./logs/scrape-debug-results.log",
+            "delay": True,
+            "backupCount": 10,
+            "formatter": "verbose",
+        },
         "scrape_handler": {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": "./logs/scrape-results.log",
             "delay": True,
-            "backupCount": 5,
+            "backupCount": 10,
             "formatter": "verbose",
+            "level": "INFO",
         },
         "console": {
             "class": "logging.StreamHandler",
