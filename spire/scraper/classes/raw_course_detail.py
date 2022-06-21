@@ -4,17 +4,19 @@ from typing import Optional
 from spire.models import Course, CourseDetail
 from spire.scraper.shared import assert_dict_keys_subset
 
+from .assertions import NO_EMPTY_STRS_ASSERTION
+from .normalizers import COURSE_CREDIT_NORMALIZER
 from .shared import RawField, RawObject, key_override_factory, to_camel_case
 
 DETAILS = [
     RawField(k="Career", len=(1, 16)),
-    RawField(k="Units", len=(1, 16)),
+    RawField(k="Units", len=(1, 16), normalizers=[COURSE_CREDIT_NORMALIZER]),
     RawField(k="Grading Basis", len=(1, 32)),
     RawField(
         k="Course Components",
         len=(1, 4),
         normalizers=[lambda x: list(map(lambda x: x.strip(), x.split("\n")))],
-        assertions=[lambda x: reduce(lambda a, x: a and len(x) > 0, x, True)],
+        assertions=[NO_EMPTY_STRS_ASSERTION],
     ),
     RawField(k="Campus", len=(1, 128)),
     RawField(

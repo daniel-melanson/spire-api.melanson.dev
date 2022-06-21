@@ -1,12 +1,16 @@
-import re
-from functools import reduce
-from typing import Optional
-
-from spire.models import Course, CourseDetail, Section, SectionDetail
+from spire.models import Section, SectionDetail
 from spire.patterns import UNITS_REGEXP
 from spire.scraper.shared import assert_dict_keys_subset
 
-from .shared import RawField, RawObject, key_override_factory, re_override_factory, to_camel_case
+from .assertions import NO_EMPTY_STRS_ASSERTION
+from .shared import (
+    COURSE_CREDIT_NORMALIZER,
+    NONE_STRING_TO_NONE_NORMALIZER,
+    RawField,
+    RawObject,
+    key_override_factory,
+    to_camel_case,
+)
 
 
 def class_component_norm(x: str) -> list[str]:
@@ -21,33 +25,29 @@ def class_component_norm(x: str) -> list[str]:
 
 
 DETAILS = [
-    RawField(k="Status", re=r"^(Open|Closed)$"),
-    RawField(k="Class Number", re=r"^\d{3,10}$"),
+    RawField(k="Status", choices=("Open", "Closed")),
+    RawField(k="Class Number", re=r"^\d{3,15}$"),
     RawField(
         k="Session",
         normalizers=[key_override_factory({"*University": "University", "UWW": "University Without Walls"})],
+        len=(1, 64),
     ),
     RawField(
         k="Units",
-        normalizers=[
-            re_override_factory(
-                (r"^\d+$", "$0.00"),
-                (r"^(\d+) - (\d+)$", "$1.00 - $2.00"),
-                (r"^(\d+\.\d) - (\d+\.\d)$", "$10 - $20"),
-                (r"^\d+\.\d$", "$00"),
-            )
-        ],
+        normalizers=[COURSE_CREDIT_NORMALIZER],
         re=UNITS_REGEXP,
     ),
-    RawField(k="Class Components", normalizers=[class_component_norm]),
-    RawField(k="Career"),
+    RawField(k="Class Components", normalizers=[class_component_norm], assertions=[NO_EMPTY_STRS_ASSERTION]),
+    RawField(k="Career", choices=("Undergraduate")),
     RawField(k="Grading"),
     RawField(k="Topic"),
     RawField(
         k="Gened",
-        normalizers=[key_override_factory({"None": None}), lambda x: x.split(" ") if x is not None else x],
+        normalizers=[
+            NONE_STRING_TO_NONE_NORMALIZER,
+        ],
     ),
-    RawField(k="RAP/TAP/HLC", normalizers=[key_override_factory({"(None)": None})]),
+    RawField(k="RAP/TAP/HLC", normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
 ]
 
 

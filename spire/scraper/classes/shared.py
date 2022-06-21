@@ -1,7 +1,7 @@
 import logging
 import re
 from functools import reduce
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from django.db.models import Model
 from django.utils import timezone
@@ -11,12 +11,13 @@ from spire.scraper.shared import assert_match
 log = logging.getLogger(__name__)
 
 
-def re_override_factory(*args: tuple[str, str]):
+def re_override_factory(*args: tuple[str, Any]):
     def f(x):
         for (pattern, replace) in args:
             if match := re.match(pattern, x):
-                if x is None:
-                    x = None
+                if not isinstance(replace, str):
+                    x = replace
+                    break
                 else:
                     offset = 0
                     for replace_match in re.finditer(r"\$(\d+)", replace):
@@ -68,6 +69,7 @@ class RawField(NamedTuple):
     normalizers: list = None
     assertions: list = None
     re: str = None
+    choices: tuple[str, ...] = None
     len: tuple[int, int] = None
     optional = True
 
@@ -87,7 +89,7 @@ class RawObject:
                 continue
 
             if field.normalizers:
-                v = reduce(lambda a, f: f(a), field.normalizers, v)
+                v = reduce(lambda a, f: f(a) if a is not None else None, field.normalizers, v)
 
             if field.re:
                 assert_match(field.re, v)
@@ -98,6 +100,9 @@ class RawObject:
             if field.assertions:
                 for f in field.assertions:
                     assert f(v)
+
+            if field.choices:
+                assert v in field.choices
 
             log.debug("Normalized and asserted. %s.%s set to %s", Model.__name__, k, v)
             setattr(self, k, v)
