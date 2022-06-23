@@ -37,7 +37,7 @@ def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
 
 def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Subject):
     log.info("Scraping subject list for: %s", subject)
-    t = Timer()
+    subject_timer = Timer()
 
     course_link_ids = skip_until(driver.find_all_ids("a[id^=CRSE_NBR]"), cache, "course_link_id")
 
@@ -51,15 +51,16 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 
         log.info("Scraped course: %s", scraped_course)
 
-        scraped_course.push()
-
         cache.push("course_link_id", link_id)
 
         log.debug("Returning to course catalog...")
-        driver.click("DERIVED_SAA_CRS_RETURN_PB")
+        driver.click("DERIVED_SAA_CRS_RETURN_PB", wait=False)
+        scraped_course.push()
+
+        driver.wait_for_spire()
         log.debug("Returned to course catalog.")
 
-    log.info("Scraped subject list for %s in %s", subject, t)
+    log.info("Scraped subject list for %s in %s", subject, subject_timer)
 
 
 def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
@@ -84,7 +85,9 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
         # Skip all subjects that were already successfully scraped
         subject_link_ids = skip_until(
-            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"), cache, "subject_link_id"
+            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"),
+            cache,
+            "subject_link_id",
         )
 
         # For each subject in group
@@ -104,11 +107,9 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             log.debug("Initialized scraped subject: %s", scraped_subject)
 
             if scraped_subject.id in ("LLEIP"):
-                """
-                Spire Documents LLIEP and LLEIP, both with the same title "LL: Intensive English Program
-                At the time of writing, neither even had documented courses, so I kept LLIEP because it
-                was the correct acronym and I didn't want to drop the unique key constraint on Subject.title
-                """
+                # Spire Documents LLIEP and LLEIP, both with the same title "LL: Intensive English Program
+                # At the time of writing, neither even had documented courses, so I kept LLIEP because it
+                # was the correct acronym and I didn't want to drop the unique key constraint on Subject.title
                 continue
 
             # Push results to database
