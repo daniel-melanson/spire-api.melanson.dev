@@ -67,5 +67,4 @@ def scrape_data(coverage: ScrapeCoverage):
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
         scrape("course sections", scrape_sections)
 
-    scrape_timer.end()
     log.info("Scraped data from spire in %s", scrape_timer)

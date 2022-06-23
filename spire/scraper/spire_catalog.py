@@ -126,9 +126,6 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             # Collapse subject list
             driver.click(subject_link_id)
 
-        subject_group_timer.end()
         log.info("Scraped subject letter group %s in %s", letter, subject_group_timer)
-
-    total_timer.end()
 
     log.info("Scraped course catalog in %s", total_timer)
