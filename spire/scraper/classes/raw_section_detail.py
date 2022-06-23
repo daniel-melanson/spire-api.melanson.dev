@@ -2,13 +2,8 @@ from spire.models import Section, SectionDetail
 from spire.patterns import UNITS_REGEXP
 
 from .assertions import NO_EMPTY_STRS_ASSERTION
-from .shared import (
-    COURSE_CREDIT_NORMALIZER,
-    NONE_STRING_TO_NONE_NORMALIZER,
-    RawDictionary,
-    RawField,
-    key_override_factory,
-)
+from .normalizers import COURSE_CREDIT_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER
+from .shared import RawDictionary, RawField, key_override_factory
 
 
 def class_component_norm(x: str) -> list[str]:

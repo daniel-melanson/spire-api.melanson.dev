@@ -44,8 +44,3 @@ class RawSubject(RawObject):
             RawField(k="id", re=SUBJECT_ID_REGEXP),
             RawField(k="title", re=SUBJECT_TITLE_REGEXP),
         )
-
-    def push(self):
-        subject, created = Subject.objects.update_or_create(id=self.id, defaults=super().get_model_defaults())
-
-        return subject

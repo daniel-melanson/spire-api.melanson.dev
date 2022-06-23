@@ -79,9 +79,11 @@ class RawField(NamedTuple):
 
 
 class RawObject:
-    def __init__(self, model: Model, *args: RawField, pk="id") -> None:
-        self._name = model.__name__
+    def __init__(self, model: Model, *args: RawField, pk="id", update_time=False) -> None:
+        self._name = "Raw" + model.__name__
+        self._model = model
         self._pk = pk
+        self._update_time = update_time
 
         for field in args:
             k = to_camel_case(field.k)
@@ -108,31 +110,22 @@ class RawObject:
             if field.choices:
                 assert v in field.choices
 
-            log.debug("Normalized and asserted. %s.%s set to %s", Model.__name__, k, v)
             setattr(self, k, v)
+            log.debug("%s.%s set to %s", self._name, k, v)
 
-        self._model_keys = set(
-            [
-                k
-                for k in dir(self)
-                if not k.startswith("_") and k != self._pk and not callable(getattr(self, k))
-            ]
-        )
+        self._model_keys = [to_camel_case(f.k) for f in args]
 
     def __str__(self) -> str:
         values = ""
         for k in self._model_keys:
-            if values != "":
-                values += ", "
+            values += f"{k}={getattr(self, k)},\n"
 
-            values += f"{k}={getattr(self, k)}"
+        return f"{self._name}[{getattr(self, self._pk)}](\n{values})"
 
-        return f"{self._name}[{getattr(self, self._pk)}]({values})"
+    def get_model_defaults(self) -> dict:
+        default = {k: getattr(self, k) for k in self._model_keys if k != self._pk}
 
-    def get_model_defaults(self, time=False) -> dict:
-        default = {k: getattr(self, k) for k in self._model_keys if k != "id"}
-
-        if time:
+        if self._update_time:
             default["_updated_at"] = timezone.now()
 
         return default
@@ -141,16 +134,25 @@ class RawObject:
         if defaults is None:
             defaults = self.get_model_defaults()
 
+        if len(kwargs) == 0:
+            kwargs["id"] = self.id
+
+        object, created = self._model.objects.update_or_create(**kwargs, defaults=defaults)
+
+        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name, object)
+
+        return object
+
 
 class RawDictionary(RawObject):
     def __init__(self, model: Model, table: dict[str, str], *args: RawField, pk="id") -> None:
         assert_dict_keys_subset(table, map(lambda d: d.k, args))
 
-        for d in args:
-            s_k = to_camel_case(d.k)
+        for f in args:
+            s_k = to_camel_case(f.k)
 
-            if d.k in table:
-                setattr(self, s_k, table[d.k])
+            if f.k in table:
+                setattr(self, s_k, table[f.k])
             else:
                 setattr(self, s_k, None)
 

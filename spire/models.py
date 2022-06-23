@@ -1,10 +1,15 @@
 from django.core.validators import RegexValidator
 from django.db import models
 
-from spire.patterns import (COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP,
-                            COURSE_TITLE_REGEXP, SECTION_ID_REGEXP,
-                            SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP,
-                            TERM_REGEXP)
+from spire.patterns import (
+    COURSE_ID_NUM_REGEXP,
+    COURSE_ID_REGEXP,
+    COURSE_TITLE_REGEXP,
+    SECTION_ID_REGEXP,
+    SUBJECT_ID_REGEXP,
+    SUBJECT_TITLE_REGEXP,
+    TERM_REGEXP,
+)
 
 
 def re_validator_factory(r: str, msg: str):
