@@ -123,10 +123,11 @@ class Section(models.Model):
 
 
 class MeetingInformation(models.Model):
+    id = models.AutoField(primary_key=True)
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="meeting_information")
     days_and_times = models.CharField(max_length=64)
     room = models.CharField(max_length=64)
-    instructors = models.ManyToManyField(Staff, "sections")
+    instructors = models.ManyToManyField(Staff, "+")
     meeting_dates = models.CharField(max_length=64)
 
     class Meta:

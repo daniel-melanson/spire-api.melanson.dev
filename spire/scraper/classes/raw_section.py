@@ -1,8 +1,9 @@
-from typing import NamedTuple, Optional
+from typing import Optional
 
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
-from spire.models import Section, Staff
+from spire.models import MeetingInformation, Section
 from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
@@ -48,18 +49,27 @@ class RawSection(RawObject):
         )
 
     def push(self):
-        section = super().push(
-            defaults={
-                "course_id": self.course_id,
-                "term": self.term,
-                "restrictions": self.restrictions,
-                "availability": self.availability,
-                "description": self.description,
-                "overview": self.overview,
-                "_updated_at": timezone.now(),
-            }
-        )
+        with transaction.atomic():
+            section = super().push(
+                defaults={
+                    "course_id": self.course_id,
+                    "term": self.term,
+                    "restrictions": self.restrictions,
+                    "availability": self.availability,
+                    "description": self.description,
+                    "overview": self.overview,
+                    "_updated_at": timezone.now(),
+                }
+            )
 
-        self.details.push(section)
+            self.details.push(section)
+
+            mi_ids = []
+            for r_mi in self.meeting_information:
+                mi = r_mi.push(section)
+
+                mi_ids.append(mi.id)
+
+            MeetingInformation.objects.filter(section=section).exclude(id__in=mi_ids).delete()
 
         return section
