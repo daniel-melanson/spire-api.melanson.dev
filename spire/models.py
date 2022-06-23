@@ -99,7 +99,7 @@ class CourseEnrollmentInformation(models.Model):
         ordering = ["course"]
 
 
-class Staff(models.Model):
+class Instructor(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=64)
     email = models.EmailField(null=True)
@@ -127,7 +127,7 @@ class MeetingInformation(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="meeting_information")
     days_and_times = models.CharField(max_length=64)
     room = models.CharField(max_length=64)
-    instructors = models.ManyToManyField(Staff, "+")
+    instructors = models.ManyToManyField(Instructor, "+")
     meeting_dates = models.CharField(max_length=64)
 
     class Meta:

@@ -6,10 +6,10 @@ from spire.views import (
     CourseEnrollmentInformationViewSet,
     CourseViewSet,
     CoverageViewSet,
+    InstructorViewSet,
     MeetingInformationViewSet,
     SectionDetailsViewSet,
     SectionViewSet,
-    StaffViewSet,
     SubjectsViewSet,
 )
 
@@ -25,7 +25,7 @@ router.register(
 router.register("sections", SectionViewSet, basename="section")
 router.register("section-details", SectionDetailsViewSet, basename="sectiondetail")
 router.register("meeting-information", MeetingInformationViewSet, basename="meetinginformation")
-router.register("staff", StaffViewSet, basename="staff")
+router.register("instructors", InstructorViewSet, basename="instructor")
 router.register("coverage", CoverageViewSet, basename="sectioncoverage")
 
 urlpatterns = [

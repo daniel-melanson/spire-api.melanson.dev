@@ -5,22 +5,22 @@ from spire.models import (
     Course,
     CourseDetail,
     CourseEnrollmentInformation,
+    Instructor,
     MeetingInformation,
     Section,
     SectionCoverage,
     SectionDetail,
-    Staff,
     Subject,
 )
 from spire.serializers import (
     CourseDetailSerializer,
     CourseEnrollmentInformationSerializer,
     CourseSerializer,
+    InstructorSerializer,
     MeetingInformationSerializer,
     SectionCoverageSerializer,
     SectionDetailSerializer,
     SectionSerializer,
-    StaffSerializer,
     SubjectSerializer,
 )
 
@@ -45,9 +45,9 @@ class SubjectsViewSet(ReadOnlyModelViewSet):
     serializer_class = SubjectSerializer
 
 
-class StaffViewSet(ReadOnlyModelViewSet):
-    queryset = Staff.objects.all()
-    serializer_class = StaffSerializer
+class InstructorViewSet(ReadOnlyModelViewSet):
+    queryset = Instructor.objects.all()
+    serializer_class = InstructorSerializer
 
 
 class SectionViewSet(ReadOnlyModelViewSet):

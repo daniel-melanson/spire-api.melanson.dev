@@ -8,7 +8,7 @@ from selenium.webdriver.support.ui import Select
 from spire.models import SectionCoverage
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.raw_course import RawCourse
-from spire.scraper.classes.raw_meeting_information import RawStaff
+from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
 from spire.scraper.timer import Timer
 
@@ -32,13 +32,13 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
 
         instructor_list = []
         if len(raw_instructor_text) == 0:
-            instructor_list.append(RawStaff(name="Staff"))
+            instructor_list.append(RawInstructor(name="Staff"))
         else:
             for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
                 href = email_link.get_property("href")
                 staff_name = email_link.text
                 staff_email = href[len("mailto:") :]
-                instructor_list.append(RawStaff(name=staff_name, email=staff_email))
+                instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
 
         meeting_instructor_list.append(instructor_list)
 

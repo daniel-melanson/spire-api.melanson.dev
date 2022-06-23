@@ -1,14 +1,14 @@
-from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, RelatedField
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
 from spire.models import (
     Course,
     CourseDetail,
     CourseEnrollmentInformation,
+    Instructor,
     MeetingInformation,
     Section,
     SectionCoverage,
     SectionDetail,
-    Staff,
     Subject,
 )
 
@@ -119,14 +119,14 @@ class SectionDetailSerializer(HyperlinkedModelSerializer):
         fields = "__all__"
 
 
-class StaffSerializer(HyperlinkedModelSerializer):
+class InstructorSerializer(HyperlinkedModelSerializer):
     class Meta:
-        model = Staff
+        model = Instructor
         fields = "__all__"
 
 
 class MeetingInformationSerializer(HyperlinkedModelSerializer):
-    staff = StaffSerializer()
+    instructors = InstructorSerializer()
 
     class Meta:
         model = MeetingInformation

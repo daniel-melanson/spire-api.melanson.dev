@@ -30,7 +30,7 @@ class RawSection(RawObject):
 
         self.details = RawSectionDetail(self.id, details)
 
-        self.meeting_information = [RawMeetingInformation(x) for x in meeting_information]
+        self.meeting_information = [RawMeetingInformation(self.id, x) for x in meeting_information]
 
         self.restrictions = restrictions
         self.availability = availability
