@@ -17,10 +17,6 @@ def assert_match(r, s):
     return str_match
 
 
-def assert_dict_keys_subset(d: dict, keys: list[str]):
-    assert set(d.keys()).issubset(set(keys))
-
-
 def skip_until(lst, cache, key):
     value = cache.get(key)
     if not value:
@@ -220,7 +216,11 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
 
             log.debug("Scraped table: %s(%s)", table_label.text, table_results[table_name])
         else:
-            log.error("No handler for table: %s(%s)", table_name, table_label.get_property("id"))
+            log.error(
+                "No handler for table: %s(%s)",
+                table_name,
+                table_label.get_property("id"),
+            )
 
     log.debug("Scraped tables.")
     return table_results

@@ -1,7 +1,7 @@
 import logging
 import re
 from functools import reduce
-from typing import Any, NamedTuple
+from typing import Any, Iterable, NamedTuple
 
 from django.db.models import Model
 from django.utils import timezone
@@ -9,6 +9,10 @@ from django.utils import timezone
 from spire.scraper.shared import assert_match
 
 log = logging.getLogger(__name__)
+
+
+def assert_dict_keys_subset(d: dict, keys: Iterable[str]):
+    assert set(d.keys()).issubset(set(keys))
 
 
 def re_override_factory(*args: tuple[str, Any]):
@@ -132,3 +136,22 @@ class RawObject:
             default["_updated_at"] = timezone.now()
 
         return default
+
+    def push(self, defaults=None, **kwargs):
+        if defaults is None:
+            defaults = self.get_model_defaults()
+
+
+class RawDictionary(RawObject):
+    def __init__(self, model: Model, table: dict[str, str], *args: RawField, pk="id") -> None:
+        assert_dict_keys_subset(table, map(lambda d: d.k, args))
+
+        for d in args:
+            s_k = to_camel_case(d.k)
+
+            if d.k in table:
+                setattr(self, s_k, table[d.k])
+            else:
+                setattr(self, s_k, None)
+
+        super().__init__(model, *args, pk=pk)
