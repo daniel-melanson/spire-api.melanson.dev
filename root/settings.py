@@ -174,7 +174,7 @@ LOGGING = {
     },
     "loggers": {
         "spire.scraper": {
-            "handlers": ["scrape_handler"],
+            "handlers": ["scrape_handler", "scrape_debug_handler"],
             "level": "DEBUG" if get_bool_env("DEBUG_SCRAPER") else "INFO",
             "propagate": False,
         },

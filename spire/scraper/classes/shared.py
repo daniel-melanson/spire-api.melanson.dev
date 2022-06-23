@@ -118,7 +118,7 @@ class RawObject:
     def __str__(self) -> str:
         values = ""
         for k in self._model_keys:
-            values += f"{k}={getattr(self, k)},\n"
+            values += f"\t{k}={getattr(self, k)},\n"
 
         return f"{self._name}[{getattr(self, self._pk)}](\n{values})"
 
@@ -139,7 +139,7 @@ class RawObject:
 
         object, created = self._model.objects.update_or_create(**kwargs, defaults=defaults)
 
-        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name, object)
+        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)
 
         return object
 

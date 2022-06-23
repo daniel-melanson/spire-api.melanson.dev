@@ -1,5 +1,5 @@
 from math import floor
-from time import time
+from time import sleep, time
 
 
 class Timer:
@@ -13,17 +13,19 @@ class Timer:
             self._do_count()
 
         s = ""
-        n = floor(self._count)
-        for i, unit in enumerate("hours", "minutes", "seconds"):
-            p = 3 - i
-            unit_count = n // (60**p)
-            n -= unit_count * (60**p)
+        n = self._count
+        for i, unit in enumerate(["hour", "minute", "second"]):
+            p = 60 ** (3 - i - 1)
+            unit_count = n // p if p > 1 else floor(n * 1000) / 1000
+            n -= unit_count * p
 
             if len(s) > 0 or unit_count > 0:
-                if len(s) > 06;
-                    s  += " "
+                if len(s) > 0:
+                    s += " "
 
                 s += f"{unit_count} {unit}"
+                if unit_count > 0:
+                    s += "s"
 
         return s
 
@@ -43,3 +45,9 @@ class Timer:
 
         self._running = True
         self._last = time()
+
+
+if __name__ == "__main__":
+    t = Timer()
+    sleep(5.5)
+    print(t)
