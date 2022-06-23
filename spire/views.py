@@ -5,6 +5,7 @@ from spire.models import (
     Course,
     CourseDetail,
     CourseEnrollmentInformation,
+    MeetingInformation,
     Section,
     SectionCoverage,
     SectionDetail,
@@ -15,6 +16,7 @@ from spire.serializers import (
     CourseDetailSerializer,
     CourseEnrollmentInformationSerializer,
     CourseSerializer,
+    MeetingInformationSerializer,
     SectionCoverageSerializer,
     SectionDetailSerializer,
     SectionSerializer,
@@ -26,22 +28,11 @@ from spire.serializers import (
 class CourseViewSet(ReadOnlyModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["subject"]
 
 
 class CourseDetailsViewSet(ReadOnlyModelViewSet):
     queryset = CourseDetail.objects.all()
     serializer_class = CourseDetailSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = [
-        "career",
-        "units",
-        "grading_basis",
-        "academic_group",
-        "academic_organization",
-        "campus",
-    ]
 
 
 class CourseEnrollmentInformationViewSet(ReadOnlyModelViewSet):
@@ -64,6 +55,11 @@ class SectionViewSet(ReadOnlyModelViewSet):
     serializer_class = SectionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["course_id"]
+
+
+class MeetingInformationViewSet(ReadOnlyModelViewSet):
+    queryset = MeetingInformation.objects.all()
+    serializer_class = MeetingInformationSerializer
 
 
 class SectionDetailsViewSet(ReadOnlyModelViewSet):
