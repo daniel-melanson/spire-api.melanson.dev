@@ -18,6 +18,32 @@ from .versioned_cache import VersionedCache
 log = logging.getLogger(__name__)
 
 
+def _scrape_meeting_instructor_list(sections_table, link_id):
+    link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
+    meeting_information_table = sections_table.find_element(By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number)
+
+    meeting_instructor_list = []
+
+    for meeting_row in meeting_information_table.find_elements(By.CSS_SELECTOR, "tr[id^=trSSR_CLSRCH_MTG]"):
+        instructor_column = meeting_row.find_element(By.CSS_SELECTOR, "div[id^=win0divUM_DERIVED_SR_UM_HTML1")
+
+        raw_instructor_text = instructor_column.text.strip()
+
+        instructor_list = []
+        if len(raw_instructor_text) == 0:
+            instructor_list.append(("Staff", None))
+        else:
+            for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
+                href = email_link.get_property("href")
+                staff_name = email_link.text
+                staff_email = href[len("mailto:") :]
+                instructor_list.append((staff_name, staff_email))
+
+        meeting_instructor_list.append(instructor_list)
+
+    return meeting_instructor_list
+
+
 def _scrape_search_results(driver: SpireDriver, term: str):
     section_count = 0
 
@@ -50,34 +76,9 @@ def _scrape_search_results(driver: SpireDriver, term: str):
             link = driver.find(link_id)
             section_id = link.text.strip()
 
-            log.debug("Scraping section %s", section_id)
+            log.debug("Scraping section %s...", section_id)
 
-            link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
-            meeting_information_table = sections_table.find_element(
-                By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number
-            )
-
-            meeting_instructor_list = []
-            for meeting_row in meeting_information_table.find_elements(
-                By.CSS_SELECTOR, "tr[id^=trSSR_CLSRCH_MTG]"
-            ):
-                instructor_column = meeting_row.find_element(
-                    By.CSS_SELECTOR, "div[id^=win0divUM_DERIVED_SR_UM_HTML1"
-                )
-
-                raw_instructor_text = instructor_column.text.strip()
-
-                instructor_list = []
-                if len(raw_instructor_text) == 0:
-                    instructor_list.append(("Staff", None))
-                else:
-                    for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
-                        href = email_link.get_property("href")
-                        staff_name = email_link.text
-                        staff_email = href[len("mailto:") :]
-                        instructor_list.append((staff_name, staff_email))
-
-                meeting_instructor_list.append(instructor_list)
+            meeting_instructor_list = _scrape_meeting_instructor_list(sections_table, link_id)
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             log.info("Navigating to section page for %s section %s...", course_id, section_id)
