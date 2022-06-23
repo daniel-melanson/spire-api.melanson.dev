@@ -12,11 +12,6 @@ uritemplate = "*"
 selenium = "*"
 django-filter = "*"
 
-[dev-packages]
-pylint = "*"
-isort = "*"
-black = "*"
-
 [requires]
 python_version = "3.10"
 
@@ -25,5 +20,3 @@ dev = "python manage.py runserver"
 seed = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.Sections)'"
 makemigrations = "python manage.py makemigrations"
 migrate = "python manage.py migrate"
-black = "black --quiet -t py310 -l 110 --exclude migrations ./"
-isort = "isort --quiet --py 310 -l 110 --profile black --skip-glob migrations/*.py ./"

@@ -1,16 +1,10 @@
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
-from spire.patterns import (
-    COURSE_ID_NUM_REGEXP,
-    COURSE_ID_REGEXP,
-    COURSE_TITLE_REGEXP,
-    SECTION_ID_REGEXP,
-    SUBJECT_ID_REGEXP,
-    SUBJECT_TITLE_REGEXP,
-    TERM_REGEXP,
-)
+from spire.patterns import (COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP,
+                            COURSE_TITLE_REGEXP, SECTION_ID_REGEXP,
+                            SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP,
+                            TERM_REGEXP)
 
 
 def re_validator_factory(r: str, msg: str):
@@ -87,7 +81,10 @@ class CourseDetail(models.Model):
 
 class CourseEnrollmentInformation(models.Model):
     course = models.OneToOneField(
-        "Course", on_delete=models.CASCADE, primary_key=True, related_name="enrollment_information"
+        "Course",
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="enrollment_information",
     )
     add_consent = models.CharField(null=True, max_length=512)
     enrollment_requirement = models.CharField(null=True, max_length=512)
