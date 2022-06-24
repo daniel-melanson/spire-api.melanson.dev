@@ -94,7 +94,9 @@ class RawSection(RawObject):
 
             self.details.push(section)
 
-            MeetingInformation.objects.filter(section=section).delete()
+            dropped, _ = MeetingInformation.objects.filter(section_id=section.id).delete()
+
+            log.debug("Dropped %s MeetingInformation records in preparation to push %s new ones.", dropped, len(self.meeting_information))
 
             for r_mi in self.meeting_information:
                 r_mi.push(section)

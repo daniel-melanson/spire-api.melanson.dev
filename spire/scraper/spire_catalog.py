@@ -68,6 +68,8 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
     driver.navigate_to("catalog")
 
+    scraped_subject_id_set = set()
+
     # For each uppercase letter; start at 65 (A) or cached value
     total_timer = Timer()
     for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):
@@ -112,11 +114,16 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
                 # was the correct acronym and I didn't want to drop the unique key constraint on Subject.title
                 continue
 
+            scraped_subject_id_set.add(scraped_subject.id)
+
+            # Expand subject list
+            driver.click(subject_link_id, wait=False)
+
             # Push results to database
             subject = scraped_subject.push()
 
-            # Expand subject list
-            driver.click(subject_link_id)
+            # Wait for spire to expand the list
+            driver.wait_for_spire()
 
             _scrape_subject_list(driver, cache, subject)
 
@@ -127,5 +134,8 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             driver.click(subject_link_id)
 
         log.info("Scraped subject letter group %s in %s", letter, subject_group_timer)
+
+    dropped, _ = Subject.objects.exclude(id__in=scraped_subject_id_set).delete()
+    log.info("Dropped %s subjects that are no longer listed on spire.", dropped)
 
     log.info("Scraped course catalog in %s", total_timer)

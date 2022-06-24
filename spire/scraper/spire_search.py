@@ -5,7 +5,7 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import SectionCoverage
+from spire.models import Section, SectionCoverage
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
@@ -61,6 +61,8 @@ def _scrape_search_results(driver: SpireDriver, term: str):
 
         log.debug("Scraping sections for course: %s", course_id)
 
+        scraped_section_ids_for_course = set()
+
         section_table_id = "ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :]
         sections_table = driver.find(section_table_id)
         assert sections_table
@@ -109,6 +111,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
             )
 
             log.info("Scraped section: %s", section)
+            scraped_section_ids_for_course.add(section.id)
 
             section_count += 1
 
@@ -119,6 +122,13 @@ def _scrape_search_results(driver: SpireDriver, term: str):
 
             driver.wait_for_spire()
             log.info("Returned to search results for %s durning %s.", subject, term)
+
+        dropped, _ = (
+            Section.objects.filter(course_id=course_id, term=term)
+            .exclude(id__in=scraped_section_ids_for_course)
+            .delete()
+        )
+        log.info("Dropped %s %s sections for course %s that are no longer listed.", dropped, term, course_id)
 
     return section_count
 
