@@ -87,8 +87,8 @@ class RawObject:
 
         for field in args:
             k = to_camel_case(field.k)
-            log.debug("Normalizing and asserting field: %s.%s", Model.__name__, k)
             v = getattr(self, k, None)
+            log.debug("Normalizing and asserting %s into field %s.%s", v, Model.__name__, k)
             if v is None:
                 assert field.optional
                 log.debug("Field not present, skipping")

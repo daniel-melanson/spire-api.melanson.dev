@@ -13,20 +13,17 @@ class RawInstructor(RawObject):
         self.name = name
         self.email = email
 
-        super().__init__(Instructor, RawField("name"), RawField("email"))
+        super().__init__(
+            Instructor,
+            RawField("name", len=(1, 64), normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
+            RawField("email"),
+        )
 
     def push(self):
         if self.email:
             staff = super().push(email=self.email)
-        elif self.name.lower() == "staff":
-            staff, _ = Instructor.objects.get_or_create(name="Staff")
         else:
-            possible_instructors = Instructor.objects.filter(name=self.name)
-
-            if len(possible_instructors) == 0:
-                staff = Instructor.objects.create(name=self.name)
-            else:
-                assert False  # TODO
+            staff, _ = Instructor.objects.get_or_create(name=self.name)
 
         return staff
 

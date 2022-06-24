@@ -101,7 +101,7 @@ class CourseEnrollmentInformation(models.Model):
 
 class Instructor(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64, unique=True)
     email = models.EmailField(null=True)
 
     class Meta:

@@ -35,7 +35,7 @@ DETAILS = [
         normalizers=[class_component_norm],
         assertions=[NO_EMPTY_STRS_ASSERTION],
     ),
-    RawField(k="Career", choices=("Undergraduate")),
+    RawField(k="Career", choices=("Undergraduate", "Graduate")),
     RawField(k="Grading"),
     RawField(k="Topic"),
     RawField(
