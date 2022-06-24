@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from spire.models import MeetingInformation, Section
 from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
+from spire.scraper.classes.normalizers import DICT_STRIP_STR, STRIP_STR
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
@@ -14,6 +15,7 @@ from spire.scraper.shared import assert_match
 from .shared import RawField, RawObject
 
 log = logging.getLogger(__name__)
+
 
 def COMBINED_SECTION_NORM(x):
     if "combined_sections" in x:
@@ -72,10 +74,10 @@ class RawSection(RawObject):
             RawField("id", re=SECTION_ID_REGEXP),
             RawField("course_id", re=COURSE_ID_REGEXP),
             RawField("term", re=TERM_REGEXP),
-            RawField("restrictions"),
-            RawField("availability", assertions=[COMBINED_SECTION_ASSERTION]),
-            RawField("description"),
-            RawField("overview"),
+            RawField("restrictions", normalizers=[DICT_STRIP_STR]),
+            RawField("availability", normalizers=[DICT_STRIP_STR], assertions=[COMBINED_SECTION_ASSERTION]),
+            RawField("description", normalizers=[STRIP_STR], len=(5, 4096)),
+            RawField("overview", len=(5, 4096)),
         )
 
     def push(self):
@@ -96,7 +98,11 @@ class RawSection(RawObject):
 
             dropped, _ = MeetingInformation.objects.filter(section_id=section.id).delete()
 
-            log.debug("Dropped %s MeetingInformation records in preparation to push %s new ones.", dropped, len(self.meeting_information))
+            log.debug(
+                "Dropped %s MeetingInformation records in preparation to push %s new ones.",
+                dropped,
+                len(self.meeting_information),
+            )
 
             for r_mi in self.meeting_information:
                 r_mi.push(section)
