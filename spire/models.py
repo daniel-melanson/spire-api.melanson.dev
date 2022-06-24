@@ -140,7 +140,7 @@ class SectionDetail(models.Model):
         Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
     )
     status = models.CharField(null=True, max_length=64)
-    class_number = models.IntegerField()
+    class_number = models.IntegerField(unique=True)
     session = models.CharField(null=True, max_length=64)
     units = models.CharField(null=True, max_length=64)
     class_components = models.JSONField(null=True)

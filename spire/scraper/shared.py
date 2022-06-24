@@ -137,7 +137,18 @@ def scrape_spire_class_availability(driver, table):
 
         combined_sections = []
         for section in combined_table.find_elements(By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\$0_row]"):
-            combined_sections.append(section.text)
+            raw_text = section.text
+
+            match = assert_match(
+                r"(?P<subject>\S+)\s+(?P<course_number>\S+)-(?P<section>\S+)\s+(?P<section_type>\S+)\s+(?P<section_number>\(\d+\)).+",
+                raw_text,
+            )
+
+            course_id = f"{match.group('subject')} {match.group('course_number')}"
+            section_id = (
+                f"{match.group('section')}-{match.group('section_type')}{match.group('section_number')}"
+            )
+            combined_sections.append({"course_id": course_id, "section_id": section_id})
 
         return {
             "combined_sections": combined_sections,

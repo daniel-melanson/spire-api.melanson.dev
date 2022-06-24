@@ -138,7 +138,7 @@ class RawObject:
 
         s = f"{self._name}[{getattr(self, self._pk, None)}]("
         if len(self._model_keys) > 2:
-            s += f"\n{values}\n)"
+            s += f"\n\t{values}\n)"
         else:
             s += f"{values})"
 
