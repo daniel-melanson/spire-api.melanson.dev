@@ -94,8 +94,44 @@ class CourseEnrollmentInformationSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class SectionDetailSerializer(HyperlinkedModelSerializer):
+    section = SectionFieldSerializer(read_only=True)
+
+    class Meta:
+        model = SectionDetail
+        fields = [
+            "section",
+            "status",
+            "class_number",
+            "session",
+            "units",
+            "class_components",
+            "career",
+            "topic",
+            "grading",
+            "gened",
+            "rap_tap_hlc",
+        ]
+
+
+class InstructorSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = Instructor
+        fields = "__all__"
+
+
+class MeetingInformationSerializer(HyperlinkedModelSerializer):
+    instructors = InstructorSerializer(read_only=True, many=True)
+    section = SectionFieldSerializer(read_only=True)
+
+    class Meta:
+        model = MeetingInformation
+        fields = "__all__"
+
+
 class SectionSerializer(HyperlinkedModelSerializer):
     details = SectionDetailFieldSerializer(read_only=True)
+    meeting_information = MeetingInformationSerializer(read_only=True, many=True)
 
     class Meta:
         model = Section
@@ -111,26 +147,6 @@ class SectionSerializer(HyperlinkedModelSerializer):
             "overview",
             "_updated_at",
         ]
-
-
-class SectionDetailSerializer(HyperlinkedModelSerializer):
-    class Meta:
-        model = SectionDetail
-        fields = "__all__"
-
-
-class InstructorSerializer(HyperlinkedModelSerializer):
-    class Meta:
-        model = Instructor
-        fields = "__all__"
-
-
-class MeetingInformationSerializer(HyperlinkedModelSerializer):
-    instructors = InstructorSerializer()
-
-    class Meta:
-        model = MeetingInformation
-        fields = "__all__"
 
 
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
