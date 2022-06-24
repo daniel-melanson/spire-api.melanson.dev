@@ -139,22 +139,27 @@ def _initialize_query(driver: SpireDriver, flipped_term: str, subject: str):
     driver.scroll_to(term_select)
     term_select = Select(term_select)
     term_select.select_by_visible_text(flipped_term)
+    driver.wait_for_spire()
 
     subject_select = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
     driver.scroll_to(subject_select)
     subject_select = Select(subject_select)
     subject_select.select_by_visible_text(subject)
+    driver.wait_for_spire()
 
     number_select = Select(driver.find("CLASS_SRCH_WRK2_SSR_EXACT_MATCH1"))
     number_select.select_by_visible_text("greater than or equal to")
+    driver.wait_for_spire()
 
     number_input = driver.find("CLASS_SRCH_WRK2_CATALOG_NBR$8$")
     number_input.clear()
     number_input.send_keys("0")
+    driver.wait_for_spire()
 
     open_input = driver.find("CLASS_SRCH_WRK2_SSR_OPEN_ONLY")
     if open_input.is_selected():
         open_input.click()
+        driver.wait_for_spire()
 
 
 def scrape_sections(driver: SpireDriver, cache: VersionedCache):
@@ -222,7 +227,6 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             subject_timer = Timer()
 
             has_skipped = True
-            cache.push("subject", subject)
 
             # Initialize and search for subject during term
             _initialize_query(driver, flipped_term, subject)
@@ -246,6 +250,14 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
             else:
                 log.info("No return button found. Assuming no results found.")
+
+                warning = driver.find("win0divDERIVED_CLSMSG_GROUP2")
+                if warning:
+                    log.warn("Warning found: %s", warning.text)
+                else:
+                    log.warn("No warning found.")
+
+            cache.push("subject", subject)
 
         coverage.completed = True
         coverage.end_time = timezone.now()
