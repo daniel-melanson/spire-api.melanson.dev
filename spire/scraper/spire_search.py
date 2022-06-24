@@ -31,7 +31,7 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
         raw_instructor_text = instructor_column.text.strip()
 
         instructor_list = []
-        if len(raw_instructor_text) == 0:
+        if len(raw_instructor_text) == 0 or raw_instructor_text == "Staff":
             instructor_list.append(RawInstructor(name="Staff"))
         else:
             for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
@@ -61,9 +61,8 @@ def _scrape_search_results(driver: SpireDriver, term: str):
 
         log.debug("Scraping sections for course: %s", course_id)
 
-        sections_table = driver.find(
-            "ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :]
-        )
+        section_table_id = "ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :]
+        sections_table = driver.find(section_table_id)
         assert sections_table
 
         link_ids = [
@@ -79,7 +78,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
 
             log.debug("Scraping section %s...", section_id)
 
-            meeting_instructor_list = _scrape_meeting_instructor_list(sections_table, link_id)
+            meeting_instructor_list = _scrape_meeting_instructor_list(driver.find(section_table_id), link_id)
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             log.info("Navigating to section page for %s section %s...", course_id, section_id)

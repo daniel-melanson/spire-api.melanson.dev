@@ -118,9 +118,31 @@ class RawObject:
     def __str__(self) -> str:
         values = ""
         for k in self._model_keys:
-            values += f"\t{k}={getattr(self, k)},\n"
+            v = getattr(self, k)
 
-        return f"{self._name}[{getattr(self, self._pk)}](\n{values})"
+            if isinstance(v, str):
+                v = f"'{v}'"
+            elif isinstance(v, list):
+                v = f"[{', '.join([str(x) for x in v])}]"
+
+            if len(self._model_keys) > 2:
+                if len(values) > 0:
+                    values += ",\n\t"
+
+                values += f"{k}={v}"
+            else:
+                if len(values) > 0:
+                    values += ", "
+
+                values += f"{k}={v}"
+
+        s = f"{self._name}[{getattr(self, self._pk, None)}]("
+        if len(self._model_keys) > 2:
+            s += f"\n{values}\n)"
+        else:
+            s += f"{values})"
+
+        return s
 
     def get_model_defaults(self) -> dict:
         default = {k: getattr(self, k) for k in self._model_keys if k != self._pk}

@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from django.db import DatabaseError, transaction
@@ -9,6 +10,8 @@ from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
 
 from .shared import RawField, RawObject
+
+log = logging.getLogger(__name__)
 
 
 class RawSection(RawObject):
@@ -29,8 +32,13 @@ class RawSection(RawObject):
         self.term = term
 
         self.details = RawSectionDetail(self.id, details)
+        log.info("Scraped section detail: %s", self.details)
 
         self.meeting_information = [RawMeetingInformation(self.id, x) for x in meeting_information]
+        log.info(
+            "Scraped section meeting information: [\n%s]",
+            "\n".join([str(x) for x in self.meeting_information]),
+        )
 
         self.restrictions = restrictions
         self.availability = availability
@@ -64,12 +72,9 @@ class RawSection(RawObject):
 
             self.details.push(section)
 
-            mi_ids = []
+            MeetingInformation.objects.filter(section=section).delete()
+
             for r_mi in self.meeting_information:
-                mi = r_mi.push(section)
-
-                mi_ids.append(mi.id)
-
-            MeetingInformation.objects.filter(section=section).exclude(id__in=mi_ids).delete()
+                r_mi.push(section)
 
         return section

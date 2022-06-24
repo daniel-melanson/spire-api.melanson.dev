@@ -131,7 +131,7 @@ class MeetingInformation(models.Model):
     meeting_dates = models.CharField(max_length=64)
 
     class Meta:
-        unique_together = [["section", "days_and_times"]]
+        unique_together = [["section", "room", "days_and_times"]]
         ordering = ["section", "days_and_times"]
 
 
