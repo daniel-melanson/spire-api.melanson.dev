@@ -48,7 +48,16 @@ FIELD_VALUE_IDS = {
 
 
 def scrape_description(_, table):
-    return "\n".join([e.text for e in table.find_elements(By.CSS_SELECTOR, "span")])
+    return "\n".join([e.text for e in table.find_elements(By.CSS_SELECTOR, "span")]).strip()
+
+
+def scrape_course_overview(driver, _):
+    text_area = driver.find("UM_DERIVED_SR_UM_CLASS_GOALS")
+
+    if text_area:
+        return text_area.text
+    else:
+        return None
 
 
 def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> list[Tuple[str, str]]:
@@ -179,7 +188,7 @@ TABLE_SCRAPERS = {
     "Description": scrape_description,
     "Class Details": scrape_spire_field_value_table,
     "RESTRICTIONS & NOTES": scrape_spire_field_value_table,
-    "Class Overview": scrape_description,
+    "Class Overview": scrape_course_overview,
     "Class Availability": scrape_spire_class_availability,
 }
 

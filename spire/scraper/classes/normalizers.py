@@ -10,3 +10,7 @@ COURSE_CREDIT_NORMALIZER = re_override_factory(
 NONE_STRING_TO_NONE_NORMALIZER = re_override_factory((r"^(None|\(None\))$", None))
 
 SPLIT_NEWLINE = lambda x: [s.strip() for s in x.split("\n")]
+
+STRIP_STR = lambda x: x.strip()
+
+EMPTY_TO_NONE = lambda x: None if len(x) == 0 else x

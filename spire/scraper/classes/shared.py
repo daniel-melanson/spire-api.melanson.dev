@@ -91,11 +91,15 @@ class RawObject:
             log.debug("Normalizing and asserting %s into field %s.%s", v, Model.__name__, k)
             if v is None:
                 assert field.optional
-                log.debug("Field not present, skipping")
+                log.debug("Field not present, skipping.")
                 continue
 
             if field.normalizers:
                 v = reduce(lambda a, f: f(a) if a is not None else None, field.normalizers, v)
+
+            if v is None:
+                log.debug("Field normalized to none, skipping.")
+                continue
 
             if field.re:
                 assert_match(field.re, v)

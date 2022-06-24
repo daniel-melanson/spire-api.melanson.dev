@@ -2,6 +2,7 @@ from typing import Optional
 
 from spire.models import Course, Subject
 from spire.patterns import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
+from spire.scraper.classes.normalizers import EMPTY_TO_NONE, STRIP_STR
 from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
 
 from .raw_course_detail import RawCourseDetail
@@ -48,7 +49,7 @@ class RawCourse(RawObject):
             RawField(k="subject"),
             RawField(k="number", re=COURSE_ID_NUM_REGEXP),
             RawField(k="title", re=COURSE_TITLE_REGEXP),
-            RawField(k="description", len=(5, 4096)),
+            RawField(k="description", normalizers=[STRIP_STR, EMPTY_TO_NONE], len=(5, 4096)),
             update_time=True,
         )
 
