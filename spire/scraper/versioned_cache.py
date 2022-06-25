@@ -1,6 +1,6 @@
 class VersionedCache:
-    def __init__(self):
-        self._head = None
+    def __init__(self, head = None):
+        self._head = head
 
         self._cache = {}
 

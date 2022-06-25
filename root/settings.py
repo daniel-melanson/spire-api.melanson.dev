@@ -139,6 +139,8 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 100,
 }
 
+DEBUG_SCRAPER = get_bool_env("DEBUG_SCRAPER")
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -175,7 +177,7 @@ LOGGING = {
     "loggers": {
         "spire.scraper": {
             "handlers": ["scrape_handler", "scrape_debug_handler"],
-            "level": "DEBUG" if get_bool_env("DEBUG_SCRAPER") else "INFO",
+            "level": "DEBUG" if DEBUG_SCRAPER else "INFO",
             "propagate": False,
         },
     },

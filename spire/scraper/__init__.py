@@ -1,14 +1,19 @@
 import logging
-from datetime import datetime
 from enum import Enum
 from time import sleep
 
+from root.settings import DEBUG_SCRAPER
 from spire.scraper.timer import Timer
 
 from .spire_catalog import scrape_catalog
 from .spire_driver import SpireDriver
 from .spire_search import scrape_sections
 from .versioned_cache import VersionedCache
+
+try:
+    from .debug_cache import debug_cache
+except ImportError:
+    debug_cache = None
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +30,7 @@ class ScrapeCoverage(Enum):
 
 def scrape(s, func):
     driver = SpireDriver()
-    cache = VersionedCache()
+    cache = VersionedCache() if DEBUG_SCRAPER and debug_cache is not None else debug_cache
 
     retries = 0
     while True:
