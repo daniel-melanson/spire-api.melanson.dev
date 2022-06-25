@@ -104,6 +104,9 @@ class Instructor(models.Model):
     name = models.CharField(max_length=2**6, unique=True)
     email = models.EmailField(null=True)
 
+    def __str__(self):
+        return f"Instructor(name={self.name}, email={self.email})"
+
     class Meta:
         ordering = ["name", "email"]
 

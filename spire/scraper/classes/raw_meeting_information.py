@@ -1,8 +1,11 @@
+import logging
 from typing import Any, Optional
 
 from spire.models import Instructor, MeetingInformation, Section
 
 from .shared import RawDictionary, RawField, RawObject
+
+log = logging.getLogger(__name__)
 
 
 class RawInstructor(RawObject):
@@ -20,10 +23,21 @@ class RawInstructor(RawObject):
         )
 
     def push(self):
+        created = False
         if self.email:
-            staff = super().push(email=self.email)
+            try:
+                staff = Instructor.objects.get(email=self.email)
+                if staff.name != self.name:
+                    staff.name = self.name
+                    staff.save()
+            except Instructor.DoesNotExist:
+                staff, created = Instructor.objects.get_or_create(
+                    name=self.name, defaults={"email": self.email}
+                )
         else:
-            staff, _ = Instructor.objects.get_or_create(name=self.name)
+            staff, created = Instructor.objects.get_or_create(name=self.name)
+
+        log.info("%s instructor %s from %s", "Created" if created else "Updated", staff, self)
 
         return staff
 

@@ -19,6 +19,7 @@ class VersionedCache:
     def commit(self):
         self._head = self._cache
         self._cache = {}
+        self._skipped_keys = set()
 
     def get(self, key, default=None):
         if self.is_empty or key not in self._head:

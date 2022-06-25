@@ -1,5 +1,7 @@
 import logging
+from curses.ascii import isspace
 from datetime import datetime
+from os import link
 
 from django.utils import timezone
 from selenium.webdriver.common.by import By
@@ -19,7 +21,17 @@ from .versioned_cache import VersionedCache
 log = logging.getLogger(__name__)
 
 
+def _count_name_characters(s: str):
+    count = 0
+    for c in s:
+        if not isspace(c) and c != ",":
+            count += 1
+
+    return count
+
+
 def _scrape_meeting_instructor_list(sections_table, link_id):
+    log.debug("Scraping meeting instructors...")
     link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
     meeting_information_table = sections_table.find_element(By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number)
 
@@ -29,19 +41,38 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
         instructor_column = meeting_row.find_element(By.CSS_SELECTOR, "div[id^=win0divUM_DERIVED_SR_UM_HTML1")
 
         raw_instructor_text = instructor_column.text.strip()
+        while "\n\n" in raw_instructor_text or "  " in raw_instructor_text:
+            raw_instructor_text = raw_instructor_text.replace("\n\n", "\n").replace("  ", " ")
+
+        log.debug("Scraping raw staff from %s", raw_instructor_text)
 
         instructor_list = []
-        if len(raw_instructor_text) == 0 or raw_instructor_text == "Staff":
+        if len(raw_instructor_text) == 0 or raw_instructor_text in ("Staff", "TBD"):
             instructor_list.append(RawInstructor(name="Staff"))
         else:
-            for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
-                href = email_link.get_property("href")
-                staff_name = email_link.text
-                staff_email = href[len("mailto:") :]
-                instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
+            links = instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']")
+            if len(links) > 0:
+                log.debug("Email links found, scraping those...")
+                for email_link in links:
+                    href = email_link.get_property("href")
+                    staff_name = email_link.text
+                    staff_email = href[len("mailto:") :]
+                    instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
+            else:
+                log.debug("No emails found. Scraping from raw text.")
+                for name in raw_instructor_text.split("\n"):
+                    instructor_list.append(RawInstructor(name=name, email=None))
+
+            scraped_names = ", ".join(map(lambda x: x.name, instructor_list))
+            log.debug("Comparing name characters between '%s' and '%s'", scraped_names, raw_instructor_text)
+
+            assert (
+                abs(_count_name_characters(scraped_names) - _count_name_characters(raw_instructor_text)) < 2
+            )
 
         meeting_instructor_list.append(instructor_list)
 
+    log.debug("Scraped meeting instructors: %s", meeting_instructor_list)
     return meeting_instructor_list
 
 
