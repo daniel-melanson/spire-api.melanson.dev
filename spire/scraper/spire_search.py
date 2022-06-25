@@ -12,7 +12,7 @@ from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
 from spire.scraper.timer import Timer
 
-from .shared import assert_match, scrape_spire_tables, skip_until
+from .shared import assert_match, scrape_spire_tables
 from .spire_driver import SpireDriver
 from .versioned_cache import VersionedCache
 
@@ -187,8 +187,6 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     assert term_select
     term_values = get_option_values(term_select)
 
-    has_skipped = False
-
     # For each term, 5 academic years from the most recently posted year
     for term_offset in range(cache.get("term_offset", 4 * 5 - 1), -1, -1):
         cache.push("term_offset", term_offset)
@@ -215,7 +213,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
                 case "Summer":
                     end_date = datetime(year=year, month=9, day=15)
 
-            if timezone.make_naive(end_date) < timezone.now():
+            if timezone.make_aware(end_date) < timezone.now():
                 log.info("Skipping the %s term, as information is static.", term)
                 continue
 
@@ -223,10 +221,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
         term_timer = Timer()
 
         # For each subject
-        for subject in subject_values if has_skipped else skip_until(subject_values, cache, "subject"):
+        for subject in cache.skip_once(subject_values, "subject"):
+            cache.push("subject", subject)
             subject_timer = Timer()
-
-            has_skipped = True
 
             # Initialize and search for subject during term
             _initialize_query(driver, flipped_term, subject)
@@ -256,8 +253,6 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
                     log.warn("Warning found: %s", warning.text)
                 else:
                     log.warn("No warning found.")
-
-            cache.push("subject", subject)
 
         coverage.completed = True
         coverage.end_time = timezone.now()

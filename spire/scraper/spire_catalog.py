@@ -6,7 +6,7 @@ from spire.models import Subject
 from spire.scraper.timer import Timer
 
 from .classes import RawCourse, RawSubject
-from .shared import assert_match, scrape_spire_tables, skip_until
+from .shared import assert_match, scrape_spire_tables
 from .spire_driver import SpireDriver
 from .versioned_cache import VersionedCache
 
@@ -39,10 +39,8 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
     log.info("Scraping subject list for: %s", subject)
     subject_timer = Timer()
 
-    course_link_ids = skip_until(driver.find_all_ids("a[id^=CRSE_NBR]"), cache, "course_link_id")
-
     # For each course in the subject list
-    for link_id in course_link_ids:
+    for link_id in cache.skip_once(driver.find_all_ids("a[id^=CRSE_NBR]"), "course_link_id"):
         log.debug("Clicking course page link: %s...", link_id)
         driver.click(link_id)
         log.debug("Arrived at course page.")
@@ -85,15 +83,11 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
         # Click letters grouping
         driver.click(f"DERIVED_SSS_BCC_SSR_ALPHANUM_{letter}")
 
-        # Skip all subjects that were already successfully scraped
-        subject_link_ids = skip_until(
-            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"),
-            cache,
-            "subject_link_id",
-        )
-
         # For each subject in group
-        for subject_link_id in subject_link_ids:
+        for subject_link_id in cache.skip_once(
+            driver.find_all_ids("a[id^=DERIVED_SSS_BCC_GROUP_BOX_]"),
+            "subject_link_id",
+        ):
             # Get link
             subject_link = driver.find(subject_link_id)
             assert subject_link

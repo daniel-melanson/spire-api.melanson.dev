@@ -17,20 +17,6 @@ def assert_match(r, s):
     return str_match
 
 
-def skip_until(lst, cache, key):
-    value = cache.get(key)
-    if not value:
-        return lst
-
-    itr = iter(lst)
-
-    try:
-        while next(itr) != value:
-            pass
-    finally:
-        return itr
-
-
 FIELD_VALUE_IDS = {
     "win0divSSR_CRSE_OFF_VW_ACAD_GROUPlbl$0": "win0divACAD_GROUP_TBL_DESCR$0",
     "win0divSSR_CRSE_OFF_VW_ACAD_ORGlbl$0": "win0divACAD_ORG_TBL_DESCR$0",
