@@ -30,7 +30,7 @@ class ScrapeCoverage(Enum):
 
 def scrape(s, func):
     driver = SpireDriver()
-    cache = VersionedCache() if DEBUG_SCRAPER and debug_cache is not None else debug_cache
+    cache = VersionedCache() if not DEBUG_SCRAPER or debug_cache is None else debug_cache
 
     retries = 0
     while True:
