@@ -115,7 +115,7 @@ class Section(models.Model):
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()
     description = models.CharField(max_length=4096, null=True)
-    overview = models.CharField(max_length=2048, null=True)
+    overview = models.CharField(max_length=8192, null=True)
     _updated_at = models.DateTimeField()
 
     class Meta:

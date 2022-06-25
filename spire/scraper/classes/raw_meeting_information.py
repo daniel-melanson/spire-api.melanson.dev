@@ -15,7 +15,7 @@ class RawInstructor(RawObject):
 
         super().__init__(
             Instructor,
-            RawField("name", len=(1, 64), normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
+            RawField("name", min_len=1, normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
             RawField("email"),
         )
 
@@ -40,10 +40,10 @@ class RawMeetingInformation(RawDictionary):
         super().__init__(
             MeetingInformation,
             table,
-            RawField("days_and_times", len=(1, 64)),
-            RawField("instructors", len=(1, 10)),
-            RawField("room", len=(1, 64)),
-            RawField("meeting_dates", len=(1, 64)),
+            RawField("days_and_times", min_len=1),
+            RawField("instructors", min_len=1),
+            RawField("room", min_len=1),
+            RawField("meeting_dates", min_len=1),
             pk="section_id",
         )
 

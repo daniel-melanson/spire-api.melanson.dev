@@ -7,11 +7,11 @@ from spire.scraper.classes.normalizers import SPLIT_NEWLINE
 from .shared import RawDictionary, RawField
 
 EI = [
-    RawField(k="Enrollment Requirement", len=(1, 256)),
-    RawField(k="Add Consent", len=(1, 256)),
+    RawField(k="Enrollment Requirement", min_len=1),
+    RawField(k="Add Consent", min_len=1),
     RawField(
         k="Course Attribute",
-        len=(1, 256),
+        min_len=1,
         normalizers=[SPLIT_NEWLINE],
         assertions=[NO_EMPTY_STRS_ASSERTION],
     ),

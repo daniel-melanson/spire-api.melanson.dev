@@ -23,7 +23,7 @@ DETAILS = [
     RawField(
         k="Session",
         normalizers=[key_override_factory({"*University": "University", "UWW": "University Without Walls"})],
-        len=(1, 64),
+        min_len=1,
     ),
     RawField(
         k="Units",
@@ -36,8 +36,8 @@ DETAILS = [
         assertions=[NO_EMPTY_STRS_ASSERTION],
     ),
     RawField(k="Career", choices=("Undergraduate", "Graduate")),
-    RawField(k="Grading", len=(1, 64)),
-    RawField(k="Topic", len=(1, 64)),
+    RawField(k="Grading", min_len=1),
+    RawField(k="Topic", min_len=1),
     RawField(
         k="Gened",
         normalizers=[

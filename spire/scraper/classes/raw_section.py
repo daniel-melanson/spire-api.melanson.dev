@@ -76,8 +76,8 @@ class RawSection(RawObject):
             RawField("term", re=TERM_REGEXP),
             RawField("restrictions", normalizers=[DICT_STRIP_STR]),
             RawField("availability", normalizers=[DICT_STRIP_STR], assertions=[COMBINED_SECTION_ASSERTION]),
-            RawField("description", normalizers=[STRIP_STR], len=(5, 4096)),
-            RawField("overview", len=(5, 4096)),
+            RawField("description", normalizers=[STRIP_STR], min_len=5),
+            RawField("overview", min_len=5),
         )
 
     def push(self):

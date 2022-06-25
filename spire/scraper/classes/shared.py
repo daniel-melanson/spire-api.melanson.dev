@@ -75,6 +75,7 @@ class RawField(NamedTuple):
     re: str = None
     choices: tuple[str, ...] = None
     len: tuple[int, int] = None
+    min_len = None
     optional = True
 
 
@@ -99,6 +100,7 @@ class RawObject:
 
             if v is None:
                 log.debug("Field normalized to none, skipping.")
+                assert field.optional
                 continue
 
             if field.re:
@@ -106,6 +108,9 @@ class RawObject:
 
             if field.len:
                 assert field.len[0] <= len(v) <= field.len[1]
+
+            if field.min_len:
+                assert field.min_len <= len(v)
 
             if field.assertions:
                 for f in field.assertions:

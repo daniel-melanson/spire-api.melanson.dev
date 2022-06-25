@@ -7,19 +7,19 @@ from .normalizers import COURSE_CREDIT_NORMALIZER, SPLIT_NEWLINE
 from .shared import RawDictionary, RawField, key_override_factory
 
 DETAILS = [
-    RawField(k="Career", len=(1, 16)),
-    RawField(k="Units", len=(1, 16), normalizers=[COURSE_CREDIT_NORMALIZER]),
-    RawField(k="Grading Basis", len=(1, 32)),
+    RawField(k="Career", min_len=1),
+    RawField(k="Units", min_len=1, normalizers=[COURSE_CREDIT_NORMALIZER]),
+    RawField(k="Grading Basis", min_len=1),
     RawField(
         k="Course Components",
         len=(1, 4),
         normalizers=[SPLIT_NEWLINE],
         assertions=[NO_EMPTY_STRS_ASSERTION],
     ),
-    RawField(k="Campus", len=(1, 128)),
+    RawField(k="Campus", min_len=3),
     RawField(
         k="Academic Group",
-        len=(1, 128),
+        min_len=1,
         normalizers=[
             key_override_factory(
                 {
@@ -33,7 +33,7 @@ DETAILS = [
     ),
     RawField(
         k="Academic Organization",
-        len=(1, 128),
+        min_len=1,
         normalizers=[
             key_override_factory(
                 {
