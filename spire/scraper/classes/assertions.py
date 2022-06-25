@@ -1,3 +1,1 @@
-from functools import reduce
-
-NO_EMPTY_STRS_ASSERTION = lambda x: reduce(lambda a, x: a and len(x) > 0, x, True)
+NO_EMPTY_STRS_ASSERTION = lambda lst: all(map(lambda x: len(x) > 0, lst))

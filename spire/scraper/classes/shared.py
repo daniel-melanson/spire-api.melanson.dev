@@ -70,13 +70,13 @@ def to_camel_case(s: str) -> str:
 
 class RawField(NamedTuple):
     k: str
-    normalizers: list = None
-    assertions: list = None
-    re: str = None
-    choices: tuple[str, ...] = None
-    len: tuple[int, int] = None
-    min_len = None
     optional = True
+    normalizers: list = None
+    re: str = None
+    min_len: int = 0
+    len: tuple[int, int] = None
+    assertions: list = None
+    choices: tuple[str, ...] = None
 
 
 class RawObject:
@@ -106,11 +106,10 @@ class RawObject:
             if field.re:
                 assert_match(field.re, v)
 
+            l = len(v)
+            assert field.min_len <= l
             if field.len:
-                assert field.len[0] <= len(v) <= field.len[1]
-
-            if field.min_len:
-                assert field.min_len <= len(v)
+                assert field.len[0] <= l <= field.len[1]
 
             if field.assertions:
                 for f in field.assertions:
