@@ -44,9 +44,9 @@ _section_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (mat
 
 
 class Subject(models.Model):
-    title = models.CharField(max_length=64, unique=True, validators=[_subject_title_validator])
+    title = models.CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
     id = models.CharField(
-        max_length=8,
+        max_length=2**3,
         unique=True,
         primary_key=True,
         validators=[_subject_id_validator],
@@ -57,11 +57,11 @@ class Subject(models.Model):
 
 
 class Course(models.Model):
-    id = models.CharField(max_length=32, primary_key=True, validators=[_course_id_validator])
+    id = models.CharField(max_length=2**5, primary_key=True, validators=[_course_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="courses")
-    number = models.CharField(max_length=16, validators=[_course_id_number_validator])
-    title = models.CharField(max_length=256, validators=[_course_title_validator])
-    description = models.CharField(max_length=4096, null=True)
+    number = models.CharField(max_length=2**4, validators=[_course_id_number_validator])
+    title = models.CharField(max_length=2**8, validators=[_course_title_validator])
+    description = models.CharField(max_length=2**12, null=True)
     sections = models.ManyToManyField("Section", related_name="+")
     _updated_at = models.DateTimeField()
 
@@ -72,13 +72,13 @@ class Course(models.Model):
 
 class CourseDetail(models.Model):
     course = models.OneToOneField(Course, on_delete=models.CASCADE, primary_key=True, related_name="details")
-    career = models.CharField(null=True, max_length=32)
-    units = models.CharField(null=True, max_length=16)
-    grading_basis = models.CharField(null=True, max_length=32)
+    career = models.CharField(null=True, max_length=2**5)
+    units = models.CharField(null=True, max_length=2**4)
+    grading_basis = models.CharField(null=True, max_length=2**5)
     course_components = models.JSONField(null=True, default=list)
-    academic_group = models.CharField(null=True, max_length=128)
-    academic_organization = models.CharField(null=True, max_length=128)
-    campus = models.CharField(null=True, max_length=64)
+    academic_group = models.CharField(null=True, max_length=2**7)
+    academic_organization = models.CharField(null=True, max_length=2**7)
+    campus = models.CharField(null=True, max_length=2**6)
 
     class Meta:
         ordering = ["course"]
@@ -91,8 +91,8 @@ class CourseEnrollmentInformation(models.Model):
         primary_key=True,
         related_name="enrollment_information",
     )
-    add_consent = models.CharField(null=True, max_length=512)
-    enrollment_requirement = models.CharField(null=True, max_length=512)
+    add_consent = models.CharField(null=True, max_length=2**9)
+    enrollment_requirement = models.CharField(null=True, max_length=2**9)
     course_attribute = models.JSONField(null=True, default=list)
 
     class Meta:
@@ -101,7 +101,7 @@ class CourseEnrollmentInformation(models.Model):
 
 class Instructor(models.Model):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=64, unique=True)
+    name = models.CharField(max_length=2**6, unique=True)
     email = models.EmailField(null=True)
 
     class Meta:
@@ -109,13 +109,13 @@ class Instructor(models.Model):
 
 
 class Section(models.Model):
-    id = models.CharField(max_length=32, primary_key=True, validators=[_section_id_validator])
-    course_id = models.CharField(max_length=32, validators=[_course_id_validator])
-    term = models.CharField(max_length=16, validators=[_section_term_validator])
+    id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    course_id = models.CharField(max_length=2**5, validators=[_course_id_validator])
+    term = models.CharField(max_length=2**4, validators=[_section_term_validator])
     restrictions = models.JSONField(null=True)
     availability = models.JSONField()
-    description = models.CharField(max_length=4096, null=True)
-    overview = models.CharField(max_length=8192, null=True)
+    description = models.CharField(max_length=2**12, null=True)
+    overview = models.CharField(max_length=2**15, null=True)
     _updated_at = models.DateTimeField()
 
     class Meta:
@@ -125,10 +125,10 @@ class Section(models.Model):
 class MeetingInformation(models.Model):
     id = models.AutoField(primary_key=True)
     section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="meeting_information")
-    days_and_times = models.CharField(max_length=64)
-    room = models.CharField(max_length=64)
+    days_and_times = models.CharField(max_length=2**6)
+    room = models.CharField(max_length=2**6)
     instructors = models.ManyToManyField(Instructor, "+")
-    meeting_dates = models.CharField(max_length=64)
+    meeting_dates = models.CharField(max_length=2**6)
 
     class Meta:
         unique_together = [["section", "room", "days_and_times"]]
@@ -139,23 +139,23 @@ class SectionDetail(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
     )
-    status = models.CharField(null=True, max_length=64)
+    status = models.CharField(null=True, max_length=2**6)
     class_number = models.IntegerField(unique=True)
-    session = models.CharField(null=True, max_length=64)
-    units = models.CharField(null=True, max_length=64)
+    session = models.CharField(null=True, max_length=2**6)
+    units = models.CharField(null=True, max_length=2**6)
     class_components = models.JSONField(null=True)
-    career = models.CharField(null=True, max_length=64)
-    topic = models.CharField(null=True, max_length=64)
-    grading = models.CharField(null=True, max_length=64)
+    career = models.CharField(null=True, max_length=2**6)
+    topic = models.CharField(null=True, max_length=2**6)
+    grading = models.CharField(null=True, max_length=2**6)
     gened = models.JSONField(null=True)
-    rap_tap_hlc = models.CharField(null=True, max_length=64)
+    rap_tap_hlc = models.CharField(null=True, max_length=2**6)
 
     class Meta:
         ordering = ["section"]
 
 
 class SectionCoverage(models.Model):
-    term = models.CharField(max_length=32, primary_key=True, validators=[_section_term_validator])
+    term = models.CharField(max_length=2**5, primary_key=True, validators=[_section_term_validator])
     completed = models.BooleanField(default=False)
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True)
