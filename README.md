@@ -24,8 +24,10 @@ Requests to endpoints do not immediately query Spire and get the most up-to-date
 
 Every course (and subject) in the course catalog (`Main Menu > Course Guides > Browse Course Catalog`) is scraped.
 
-Every section during or after the Spring 2018 term is scraped. But only sections that will reasonably be updated are scraped routinely. Meaning, once posted, terms are scraped routinely until they are considered over (Spring ends in June 1st, Summer ends in September 15th, Fall ends in January 1st, Winter ends in February 15th).
+Every section during or after the Fall 2018 term is scraped. But only sections that will reasonably be updated are scraped routinely. Meaning, once posted, terms are scraped routinely until they are considered over (Spring ends in June 1st, Summer ends in September 15th, Fall ends in January 1st, Winter ends in February 15th).
 
 ### Schedule
 
-TO-DO.
+The course catalog is scraped once a week. The routine usually finishes within 6 hours.
+
+Sections (retrieved from the search page) are scraped every two days. The routine usually takes around 8 hours
