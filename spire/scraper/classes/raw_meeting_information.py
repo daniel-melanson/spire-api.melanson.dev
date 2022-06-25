@@ -23,16 +23,18 @@ class RawInstructor(RawObject):
         )
 
     def push(self):
-        created = False
         if self.email:
             try:
-                staff = Instructor.objects.get(email=self.email)
-                if staff.name != self.name:
-                    staff.name = self.name
+                staff = Instructor.objects.get(name=self.name)
+
+                if staff.email is None:
+                    staff.email = self.email
                     staff.save()
+
+                created = False
             except Instructor.DoesNotExist:
-                staff, created = Instructor.objects.get_or_create(
-                    name=self.name, defaults={"email": self.email}
+                staff, created = Instructor.objects.update_or_create(
+                    email=self.email, defaults={"name": self.name}
                 )
         else:
             staff, created = Instructor.objects.get_or_create(name=self.name)
