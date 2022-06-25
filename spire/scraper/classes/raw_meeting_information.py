@@ -33,7 +33,7 @@ class RawInstructor(RawObject):
 
                 created = False
             except Instructor.DoesNotExist:
-                staff, created = Instructor.objects.update_or_create(
+                staff, created = Instructor.objects.get_or_create(
                     email=self.email, defaults={"name": self.name}
                 )
         else:

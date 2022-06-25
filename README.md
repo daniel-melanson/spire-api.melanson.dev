@@ -31,3 +31,7 @@ Every section during or after the Fall 2018 term is scraped. But only sections t
 The course catalog is scraped once a week. The routine usually finishes within 6 hours.
 
 Sections (retrieved from the search page) are scraped every two days. The routine usually takes around 8 hours
+
+## Inconsistencies
+
+Instructor names are assumed to be unique. This makes handling cases where staff names are documented without emails nicer to handle. This does come with the drawback that some staff might be merged together (considered the same person despite having different emails). However, I do not think that this will happen frequently and the benefit of matching sections labeled without an email is outweighs this.
