@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import re
 from enum import Enum
 from time import sleep
 
@@ -21,8 +22,7 @@ log = logging.getLogger(__name__)
 
 MAX_RETRIES = 10
 
-LOG_HANDLERS = [x for x in log.handlers if x.baseFilename.startswith("scrape-")]
-
+LOG_HANDLERS = [x for x in log.handlers if x.get_name().startswith("scrape")]
 
 class ScrapeCoverage(Enum):
     Total = 0
@@ -50,7 +50,7 @@ def scrape(s, func):
                 os.mkdir("./dump")
 
             html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_time}.html")
-            with open(html_dump_path, "w") as f:
+            with open(html_dump_path, "wb") as f:
                 f.write(sel_driver.page_source.encode("utf-8"))
 
             retries += 1

@@ -1,6 +1,7 @@
 import logging
 from curses.ascii import isspace
 from datetime import datetime
+from distutils.log import warn
 from os import link
 
 from django.utils import timezone
@@ -269,18 +270,27 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
 
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
-            assert return_button
 
-            count = _scrape_search_results(driver, term)
+            if return_button:
+                count = _scrape_search_results(driver, term)
 
-            log.info(
-                "Scraped %s %s sections during %s in %s. Returning...",
-                count,
-                subject,
-                term,
-                subject_timer,
-            )
-            driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
+                log.info(
+                    "Scraped %s %s sections during %s in %s. Returning...",
+                    count,
+                    subject,
+                    term,
+                    subject_timer,
+                )
+                driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
+            else:
+                error_message_span = driver.find("DERIVED_CLSMSG_ERROR_TEXT")
+                assert error_message_span
+                warning = error_message_span.text
+                if warning == "The search returns no results that match the criteria specified.":
+                    log.info("There are no %s section during %s. Skipping.", subject, term)
+                else:
+                    log.warning("Failed while searching: %s", error_message_span.text)
+                    raise Exception(f"Unexpected search error: {warning}")
 
         coverage.completed = True
         coverage.end_time = timezone.now()

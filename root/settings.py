@@ -164,7 +164,7 @@ LOGGING = {
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
-            "level": "INFO",
+            "level": "INFO"
         },
         "console": {
             "class": "logging.StreamHandler",
