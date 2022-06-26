@@ -29,6 +29,10 @@ class SpireDriver:
 
         self._state = "default"
 
+    @property
+    def root_driver(self) -> WebDriver:
+        return self._driver
+
     def _switch(self):
         log.debug("Switching focus...")
         if self._state == "default":

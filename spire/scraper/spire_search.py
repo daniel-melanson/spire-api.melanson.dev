@@ -50,24 +50,28 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
         if len(raw_instructor_text) == 0 or raw_instructor_text in ("Staff", "TBD"):
             instructor_list.append(RawInstructor(name="Staff"))
         else:
-            links = instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']")
-            if len(links) > 0:
-                log.debug("Email links found, scraping those...")
-                for email_link in links:
-                    href = email_link.get_property("href")
-                    staff_name = email_link.text
-                    staff_email = href[len("mailto:") :]
-                    instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
-            else:
-                log.debug("No emails found. Scraping from raw text.")
-                for name in raw_instructor_text.split("\n"):
+            found_names = set()
+
+            for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
+                href = email_link.get_property("href")
+                staff_name = email_link.text.strip()
+                if staff_name.endswith(","):
+                    staff_name = staff_name[:-1]
+
+                staff_email = href[len("mailto:") :]
+                instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
+                found_names.add(staff_name)
+
+            log.debug("Scraping raw text...")
+            for name in raw_instructor_text.split(", "):
+                if name not in found_names:
                     instructor_list.append(RawInstructor(name=name, email=None))
 
             scraped_names = ", ".join(map(lambda x: x.name, instructor_list))
             log.debug("Comparing name characters between '%s' and '%s'", scraped_names, raw_instructor_text)
 
             assert (
-                abs(_count_name_characters(scraped_names) - _count_name_characters(raw_instructor_text)) < 2
+                abs(_count_name_characters(scraped_names) - _count_name_characters(raw_instructor_text)) == 0
             )
 
         meeting_instructor_list.append(instructor_list)
@@ -262,28 +266,21 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             log.info("Searching for sections in subject %s during %s...", subject, term)
             driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
 
+            assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
+
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
+            assert return_button
 
-            # return button -> search results
-            if return_button:
-                count = _scrape_search_results(driver, term)
+            count = _scrape_search_results(driver, term)
 
-                log.info(
-                    "Scraped %s %s sections during %s in %s. Returning...",
-                    count,
-                    subject,
-                    term,
-                    subject_timer,
-                )
-                driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
-            else:
-                log.info("No return button found. Assuming no results found.")
-
-                warning = driver.find("win0divDERIVED_CLSMSG_GROUP2")
-                if warning:
-                    log.warn("Warning found: %s", warning.text)
-                else:
-                    log.warn("No warning found.")
+            log.info(
+                "Scraped %s %s sections during %s in %s. Returning...",
+                count,
+                subject,
+                term,
+                subject_timer,
+            )
+            driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
         coverage.completed = True
         coverage.end_time = timezone.now()
