@@ -101,22 +101,21 @@ class RawObject:
             if v is None:
                 log.debug("Field normalized to none, skipping.")
                 assert field.optional
-                continue
+            else:
+                if field.re:
+                    assert_match(field.re, v)
 
-            if field.re:
-                assert_match(field.re, v)
+                l = len(v)
+                assert field.min_len <= l
+                if field.len:
+                    assert field.len[0] <= l <= field.len[1]
 
-            l = len(v)
-            assert field.min_len <= l
-            if field.len:
-                assert field.len[0] <= l <= field.len[1]
+                if field.assertions:
+                    for f in field.assertions:
+                        assert f(v)
 
-            if field.assertions:
-                for f in field.assertions:
-                    assert f(v)
-
-            if field.choices:
-                assert v in field.choices
+                if field.choices:
+                    assert v in field.choices
 
             setattr(self, k, v)
             log.debug("%s.%s set to %s", self._name, k, v)

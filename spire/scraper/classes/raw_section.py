@@ -75,7 +75,11 @@ class RawSection(RawObject):
             RawField("course_id", re=COURSE_ID_REGEXP),
             RawField("term", re=TERM_REGEXP),
             RawField("restrictions", normalizers=[DICT_STRIP_STR]),
-            RawField("availability", normalizers=[DICT_STRIP_STR], assertions=[COMBINED_SECTION_ASSERTION]),
+            RawField(
+                "availability",
+                normalizers=[DICT_STRIP_STR, COMBINED_SECTION_NORM],
+                assertions=[COMBINED_SECTION_ASSERTION],
+            ),
             RawField("description", normalizers=[STRIP_STR], min_len=5),
             RawField("overview", min_len=5),
         )

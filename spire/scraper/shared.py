@@ -201,11 +201,7 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
         assert table_name not in scraped_table_names
         scraped_table_names.add(table_name)
 
-        table_content_selector = (
-            TABLE_CONTENT_SELECTORS[table_name]
-            if table_name in TABLE_CONTENT_SELECTORS
-            else "table.PSGROUPBOX"
-        )
+        table_content_selector = TABLE_CONTENT_SELECTORS.get(table_name, "table.PSGROUPBOX")
         if table_name in TABLE_SCRAPERS:
             for table_content in table.find_elements(By.CSS_SELECTOR, table_content_selector):
                 if table_name not in table_results:
@@ -217,8 +213,8 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
                         for k, v in additional_content.items():
                             assert k not in table_results[table_name]
                             table_results[table_name][k] = v
-                    else:
-                        table_results[table_name] += "\\n" + additional_content
+                    elif additional_content is not None:
+                        table_results[table_name] += "\n" + additional_content
 
             log.debug("Scraped table: %s(%s)", table_label.text, table_results[table_name])
         else:
@@ -228,5 +224,5 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
                 table_label.get_property("id"),
             )
 
-    log.debug("Scraped tables.")
+    log.debug("Scraped tables: %s", table_results)
     return table_results
