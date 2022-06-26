@@ -1,4 +1,6 @@
+import datetime
 import logging
+import os
 from enum import Enum
 from time import sleep
 
@@ -29,6 +31,7 @@ class ScrapeCoverage(Enum):
 
 
 def scrape(s, func):
+    start_time = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
     cache = VersionedCache() if not DEBUG_SCRAPER or debug_cache is None else debug_cache
 
@@ -41,6 +44,15 @@ def scrape(s, func):
             func(driver, cache)
             return
         except Exception as e:
+            sel_driver = driver.root_driver
+
+            if not os.path.isdir("./dump"):
+                os.mkdir("./dump")
+
+            html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_time}.html")
+            with open(html_dump_path, "w") as f:
+                f.write(sel_driver.page_source.encode("utf-8"))
+
             retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
             for handler in LOG_HANDLERS:
