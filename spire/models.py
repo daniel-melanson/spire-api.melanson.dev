@@ -127,7 +127,7 @@ class Section(models.Model):
         ordering = ["term", "course_id", "id"]
 
 
-class SectionAvailability(model.Models):
+class SectionAvailability(models.Models):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="availability"
     )
