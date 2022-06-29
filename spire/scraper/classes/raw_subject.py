@@ -16,6 +16,7 @@ SUBJECT_OVERRIDES = key_override_factory(
         ("MI-ENG", "M&I-ENG"): ("MIE", "Mechanical & Industrial Engineering"),
         ("NEUROS&B", "NEUROSB"): ("NSB", "Neuroscience & Behavior"),
         ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
+        "PUBP&ADM": ("SPP", "School of Public Policy"),
         "SPHH": ("SPHH", "School of Public Health & Health Sciences"),
         "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
     },

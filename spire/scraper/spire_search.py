@@ -88,7 +88,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
         span = driver.find(span_id)
 
         title_match = assert_match(
-            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
+            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)(?P<course_title>.+)?",
             span.text,
         )
         course_id, subject, _ = RawCourse.get_course_id(

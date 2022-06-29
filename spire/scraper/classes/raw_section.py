@@ -17,23 +17,10 @@ from .shared import RawField, RawObject
 log = logging.getLogger(__name__)
 
 
-def COMBINED_SECTION_NORM(x):
-    if "combined_sections" in x:
-        for obj in x["combined_sections"]:
-            [subject, number] = obj["course_id"].split(" ")
-            course_id, _, _ = RawCourse.get_course_id(subject, number)
-            obj["course_id"] = course_id
-
-    return x
-
-
 def COMBINED_SECTION_ASSERTION(x):
     if "combined_sections" in x:
-        for obj in x["combined_sections"]:
-            assert "course_id" in obj
-            assert_match(COURSE_ID_REGEXP, obj["course_id"])
-            assert "section_id" in obj
-            assert_match(SECTION_ID_REGEXP, obj["section_id"])
+        for s_id in x["combined_sections"]:
+            assert_match(r"\d{3,15}", s_id)
 
     return True
 
@@ -77,7 +64,6 @@ class RawSection(RawObject):
             RawField("restrictions", normalizers=[DICT_STRIP_STR]),
             RawField(
                 "availability",
-                normalizers=[DICT_STRIP_STR, COMBINED_SECTION_NORM],
                 assertions=[COMBINED_SECTION_ASSERTION],
             ),
             RawField("description", normalizers=[STRIP_STR], min_len=5),

@@ -24,6 +24,7 @@ MAX_RETRIES = 10
 
 LOG_HANDLERS = [x for x in log.handlers if x.get_name().startswith("scrape")]
 
+
 class ScrapeCoverage(Enum):
     Total = 0
     SubjectsAndCourses = 1
@@ -55,8 +56,6 @@ def scrape(s, func):
 
             retries += 1
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
-            for handler in LOG_HANDLERS:
-                handler.doRollover()
 
             cache.commit()
             log.debug("Cache updated to: %s", cache)
@@ -66,10 +65,12 @@ def scrape(s, func):
                 sleep(5 * 60)
 
                 driver = SpireDriver()
-                continue
             else:
                 driver.close()
                 raise e
+
+            for handler in LOG_HANDLERS:
+                handler.doRollover()
 
 
 def scrape_data(coverage: ScrapeCoverage):

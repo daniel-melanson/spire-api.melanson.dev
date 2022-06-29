@@ -10,9 +10,9 @@ from .spire_driver import SpireDriver
 log = logging.getLogger(__name__)
 
 
-def assert_match(r, s):
-    log.debug("Full matching: %s against %s", s, r)
-    str_match = re.fullmatch(r, s)
+def assert_match(r, s, search=False):
+    log.debug("%s: %s against %s", "Searching" if search else "Full matching", s, r)
+    str_match = re.fullmatch(r, s) if not search else re.search(r, s)
     assert str_match
     return str_match
 
@@ -135,15 +135,12 @@ def scrape_spire_class_availability(driver, table):
             raw_text = section.text
 
             match = assert_match(
-                r"(?P<subject>\S+)\s+(?P<course_number>\S+)-(?P<section>\S+)\s+(?P<section_type>\S+)\s+(?P<section_number>\(\d+\)).+",
+                r"\((?P<section_number>\d{3,10})\)",
                 raw_text,
+                search=True,
             )
 
-            course_id = f"{match.group('subject')} {match.group('course_number')}"
-            section_id = (
-                f"{match.group('section')}-{match.group('section_type')}{match.group('section_number')}"
-            )
-            combined_sections.append({"course_id": course_id, "section_id": section_id})
+            combined_sections.append(match.group("section_number"))
 
         return {
             "combined_sections": combined_sections,

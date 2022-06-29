@@ -113,16 +113,38 @@ class Instructor(models.Model):
 
 class Section(models.Model):
     id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="sections")
     course_id = models.CharField(max_length=2**5, validators=[_course_id_validator])
     term = models.CharField(max_length=2**4, validators=[_section_term_validator])
-    restrictions = models.JSONField(null=True)
-    availability = models.JSONField()
     description = models.CharField(max_length=2**12, null=True)
     overview = models.CharField(max_length=2**15, null=True)
     _updated_at = models.DateTimeField()
 
+    def __str__(self):
+        return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
+
     class Meta:
         ordering = ["term", "course_id", "id"]
+
+
+class SectionAvailability(model.Models):
+    section = models.OneToOneField(
+        Section, on_delete=models.CASCADE, primary_key=True, related_name="availability"
+    )
+    capacity = models.IntegerField()
+    enrollment_total = models.IntegerField()
+    available_seats = models.IntegerField()
+    wait_list_capacity = models.IntegerField()
+    wait_list_total = models.IntegerField()
+
+
+class SectionRestrictions(models.Model):
+    section = models.OneToOneField(
+        Section, on_delete=models.CASCADE, primary_key=True, related_name="restrictions"
+    )
+    drop_consent = models.CharField(null=True)
+    enrollment_requirements = models.CharField(null=True)
+    add_consent = models.CharField(null=True)
 
 
 class MeetingInformation(models.Model):
