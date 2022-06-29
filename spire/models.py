@@ -141,7 +141,7 @@ class SectionAvailability(models.Model):
 
 class CombinedSectionAvailability(models.Model):
     individual_availability = models.OneToOneField(
-        SectionAvailability, on_delete=models.CASCADE, primary_key=True
+        SectionAvailability, on_delete=models.CASCADE, primary_key=True, related_name="combined_availability"
     )
     enrollment_total = models.IntegerField()
     available_seats = models.IntegerField()
@@ -149,7 +149,7 @@ class CombinedSectionAvailability(models.Model):
     wait_list_total = models.IntegerField()
 
 
-class SectionRestrictions(models.Model):
+class SectionRestriction(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="restrictions"
     )
