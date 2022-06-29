@@ -45,11 +45,13 @@ class RawCourse(RawObject):
 
         super().__init__(
             Course,
-            RawField(k="id", re=COURSE_ID_REGEXP),
-            RawField(k="subject"),
-            RawField(k="number", re=COURSE_ID_NUM_REGEXP),
-            RawField(k="title", re=COURSE_TITLE_REGEXP),
-            RawField(k="description", normalizers=[STRIP_STR, EMPTY_TO_NONE], min_len=5),
+            fields=[
+                RawField(k="id", re=COURSE_ID_REGEXP),
+                RawField(k="subject"),
+                RawField(k="number", re=COURSE_ID_NUM_REGEXP),
+                RawField(k="title", re=COURSE_TITLE_REGEXP),
+                RawField(k="description", normalizers=[STRIP_STR, EMPTY_TO_NONE], min_len=5),
+            ],
             update_time=True,
         )
 

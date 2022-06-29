@@ -9,7 +9,9 @@ from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
 from spire.scraper.classes.normalizers import DICT_STRIP_STR, STRIP_STR
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
+from spire.scraper.classes.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
+from spire.scraper.classes.raw_section_restriction import RawSectionRestriction
 from spire.scraper.shared import assert_match
 
 from .shared import RawField, RawObject
@@ -51,23 +53,25 @@ class RawSection(RawObject):
             "\n".join([str(x) for x in self.meeting_information]),
         )
 
-        self.restrictions = restrictions
-        self.availability = availability
+        self.restrictions = RawSectionRestriction(restrictions)
+        self.availability = RawSectionAvailability(availability)
         self.description = description
         self.overview = overview
 
         super().__init__(
             Section,
-            RawField("id", re=SECTION_ID_REGEXP),
-            RawField("course_id", re=COURSE_ID_REGEXP),
-            RawField("term", re=TERM_REGEXP),
-            RawField("restrictions", normalizers=[DICT_STRIP_STR]),
-            RawField(
-                "availability",
-                assertions=[COMBINED_SECTION_ASSERTION],
-            ),
-            RawField("description", normalizers=[STRIP_STR], min_len=5),
-            RawField("overview", min_len=5),
+            fields=[
+                RawField("id", re=SECTION_ID_REGEXP),
+                RawField("course_id", re=COURSE_ID_REGEXP),
+                RawField("term", re=TERM_REGEXP),
+                RawField("restrictions", normalizers=[DICT_STRIP_STR]),
+                RawField(
+                    "availability",
+                    assertions=[COMBINED_SECTION_ASSERTION],
+                ),
+                RawField("description", normalizers=[STRIP_STR], min_len=5),
+                RawField("overview", min_len=5),
+            ],
         )
 
     def push(self):

@@ -42,6 +42,8 @@ class RawSubject(RawObject):
 
         super().__init__(
             Subject,
-            RawField(k="id", re=SUBJECT_ID_REGEXP),
-            RawField(k="title", re=SUBJECT_TITLE_REGEXP),
+            fields=[
+                RawField(k="id", re=SUBJECT_ID_REGEXP),
+                RawField(k="title", re=SUBJECT_TITLE_REGEXP),
+            ],
         )

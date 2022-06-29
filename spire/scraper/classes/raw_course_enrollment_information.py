@@ -6,17 +6,6 @@ from spire.scraper.classes.normalizers import SPLIT_NEWLINE
 
 from .shared import RawDictionary, RawField
 
-EI = [
-    RawField(k="Enrollment Requirement", min_len=1),
-    RawField(k="Add Consent", min_len=1),
-    RawField(
-        k="Course Attribute",
-        min_len=1,
-        normalizers=[SPLIT_NEWLINE],
-        assertions=[NO_EMPTY_STRS_ASSERTION],
-    ),
-]
-
 
 class RawCourseEnrollmentInformation(RawDictionary):
     add_consent: Optional[str]
@@ -26,7 +15,21 @@ class RawCourseEnrollmentInformation(RawDictionary):
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
         self.course_id = course_id
 
-        super().__init__(CourseEnrollmentInformation, table, *EI, pk="course_id")
+        super().__init__(
+            CourseEnrollmentInformation,
+            table,
+            pk="course_id",
+            fields=[
+                RawField(k="Enrollment Requirement", min_len=1),
+                RawField(k="Add Consent", min_len=1),
+                RawField(
+                    k="Course Attribute",
+                    min_len=1,
+                    normalizers=[SPLIT_NEWLINE],
+                    assertions=[NO_EMPTY_STRS_ASSERTION],
+                ),
+            ],
+        )
 
     def push(self, course: Course):
         return super().push(course=course)

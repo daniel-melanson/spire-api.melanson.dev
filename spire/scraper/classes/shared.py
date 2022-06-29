@@ -80,13 +80,13 @@ class RawField(NamedTuple):
 
 
 class RawObject:
-    def __init__(self, model: Model, *args: RawField, pk="id", update_time=False) -> None:
+    def __init__(self, model: Model, fields: list[RawField], pk="id", update_time=False) -> None:
         self._name = "Raw" + model.__name__
         self._model = model
         self._pk = pk
         self._update_time = update_time
 
-        for field in args:
+        for field in fields:
             k = to_camel_case(field.k)
             v = getattr(self, k, None)
             log.debug("Normalizing and asserting %s into field %s.%s", v, Model.__name__, k)
@@ -174,10 +174,10 @@ class RawObject:
 
 
 class RawDictionary(RawObject):
-    def __init__(self, model: Model, table: dict[str, str], *args: RawField, pk="id") -> None:
-        assert_dict_keys_subset(table, map(lambda d: d.k, args))
+    def __init__(self, model: Model, table: dict[str, str], fields: list[RawField], pk="id") -> None:
+        assert_dict_keys_subset(table, map(lambda d: d.k, fields))
 
-        for f in args:
+        for f in fields:
             s_k = to_camel_case(f.k)
 
             if f.k in table:
@@ -185,4 +185,4 @@ class RawDictionary(RawObject):
             else:
                 setattr(self, s_k, None)
 
-        super().__init__(model, *args, pk=pk)
+        super().__init__(model, fields=fields, pk=pk)
