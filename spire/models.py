@@ -115,6 +115,7 @@ class Section(models.Model):
     id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="sections")
     course_id = models.CharField(max_length=2**5, validators=[_course_id_validator])
+    course_title = models.CharField(max_length=2**8, null=True)
     term = models.CharField(max_length=2**4, validators=[_section_term_validator])
     description = models.CharField(max_length=2**12, null=True)
     overview = models.CharField(max_length=2**15, null=True)
