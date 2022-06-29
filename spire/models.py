@@ -128,7 +128,7 @@ class Section(models.Model):
         ordering = ["term", "course_id", "id"]
 
 
-class SectionAvailability(models.Models):
+class SectionAvailability(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="availability"
     )
@@ -139,13 +139,23 @@ class SectionAvailability(models.Models):
     wait_list_total = models.IntegerField()
 
 
+class CombinedSectionAvailability(models.Model):
+    individual_availability = models.OneToOneField(
+        SectionAvailability, on_delete=models.CASCADE, primary_key=True
+    )
+    enrollment_total = models.IntegerField()
+    available_seats = models.IntegerField()
+    wait_list_capacity = models.IntegerField()
+    wait_list_total = models.IntegerField()
+
+
 class SectionRestrictions(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="restrictions"
     )
-    drop_consent = models.CharField(null=True)
-    enrollment_requirements = models.CharField(null=True)
-    add_consent = models.CharField(null=True)
+    drop_consent = models.CharField(null=True, max_length=2**9)
+    enrollment_requirements = models.CharField(null=True, max_length=2**9)
+    add_consent = models.CharField(null=True, max_length=2**9)
 
 
 class MeetingInformation(models.Model):
