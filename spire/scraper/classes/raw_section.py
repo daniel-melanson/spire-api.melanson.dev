@@ -1,13 +1,12 @@
 import logging
 from typing import Optional
 
-from django.db import DatabaseError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from spire.models import MeetingInformation, Section
-from spire.patterns import COURSE_ID_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
-from spire.scraper.classes.normalizers import DICT_STRIP_STR, STRIP_STR
-from spire.scraper.classes.raw_course import RawCourse
+from spire.patterns import COURSE_ID_REGEXP, COURSE_TITLE_REGEXP, SECTION_ID_REGEXP, TERM_REGEXP
+from spire.scraper.classes.normalizers import STRIP_STR
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
@@ -32,6 +31,7 @@ class RawSection(RawObject):
         self,
         id: str,
         course_id: str,
+        course_title: str,
         term: str,
         details: dict[str, str],
         meeting_information: list,
@@ -42,6 +42,7 @@ class RawSection(RawObject):
     ):
         self.id = id
         self.course_id = course_id
+        self.course_title = course_title
         self.term = term
 
         self.details = RawSectionDetail(self.id, details)
@@ -53,8 +54,12 @@ class RawSection(RawObject):
             "\n".join([str(x) for x in self.meeting_information]),
         )
 
-        self.restrictions = RawSectionRestriction(restrictions)
-        self.availability = RawSectionAvailability(availability)
+        self.restrictions = RawSectionRestriction(self.id, restrictions)
+        log.info("Scraped section restrictions: %s", self.restrictions)
+
+        self.availability = RawSectionAvailability(self.id, availability)
+        log.info("Scraped section availability: %s", self.availability)
+
         self.description = description
         self.overview = overview
 
@@ -63,25 +68,21 @@ class RawSection(RawObject):
             fields=[
                 RawField("id", re=SECTION_ID_REGEXP),
                 RawField("course_id", re=COURSE_ID_REGEXP),
+                RawField("course_title", re=COURSE_TITLE_REGEXP),
                 RawField("term", re=TERM_REGEXP),
-                RawField("restrictions", normalizers=[DICT_STRIP_STR]),
-                RawField(
-                    "availability",
-                    assertions=[COMBINED_SECTION_ASSERTION],
-                ),
                 RawField("description", normalizers=[STRIP_STR], min_len=5),
                 RawField("overview", min_len=5),
             ],
         )
 
-    def push(self):
+    def push(self, subject):
         with transaction.atomic():
             section = super().push(
                 defaults={
+                    "subject": subject,
                     "course_id": self.course_id,
+                    "course_title": self.course_title,
                     "term": self.term,
-                    "restrictions": self.restrictions,
-                    "availability": self.availability,
                     "description": self.description,
                     "overview": self.overview,
                     "_updated_at": timezone.now(),
@@ -89,6 +90,8 @@ class RawSection(RawObject):
             )
 
             self.details.push(section)
+            self.restrictions.push(section)
+            self.availability.push(section)
 
             dropped, _ = MeetingInformation.objects.filter(section_id=section.id).delete()
 

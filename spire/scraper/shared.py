@@ -143,22 +143,20 @@ def scrape_spire_class_availability(driver, table):
             combined_sections.append(match.group("section_number"))
 
         return {
-            "combined_sections": combined_sections,
-            "availability": {
-                "individual": {
-                    "capacity": get("UM_DERIVED_SR_ENRL_CAP"),
-                    "enrollment_total": get("UM_DERIVED_SR_ENRL_TOT"),
-                    "available_seats": get("UM_DERIVED_SR_AVAILABLE_SEATS"),
-                    "wait_list_capacity": get("UM_DERIVED_SR_WAIT_CAP"),
-                    "wait_list_total": get("UM_DERIVED_SR_WAIT_TOT"),
-                },
-                "combined": {
-                    "capacity": get("SSR_CLS_DTL_WRK_ENRL_CAP"),
-                    "enrollment_total": get("SSR_CLS_DTL_WRK_ENRL_TOT"),
-                    "available_seats": get("SSR_CLS_DTL_WRK_AVAILABLE_SEATS"),
-                    "wait_list_capacity": get("SSR_CLS_DTL_WRK_WAIT_CAP"),
-                    "wait_list_total": get("SSR_CLS_DTL_WRK_WAIT_TOT"),
-                },
+            "Individual Availability": {
+                "Capacity": get("UM_DERIVED_SR_ENRL_CAP"),
+                "Enrollment Total": get("UM_DERIVED_SR_ENRL_TOT"),
+                "Available Seats": get("UM_DERIVED_SR_AVAILABLE_SEATS"),
+                "Wait List Capacity": get("UM_DERIVED_SR_WAIT_CAP"),
+                "Wait List Total": get("UM_DERIVED_SR_WAIT_TOT"),
+            },
+            "Combined Availability": {
+                "Sections": combined_sections,
+                "Capacity": get("SSR_CLS_DTL_WRK_ENRL_CAP"),
+                "Enrollment Total": get("SSR_CLS_DTL_WRK_ENRL_TOT"),
+                "Available Seats": get("SSR_CLS_DTL_WRK_AVAILABLE_SEATS"),
+                "Wait List Capacity": get("SSR_CLS_DTL_WRK_WAIT_CAP"),
+                "Wait List Total": get("SSR_CLS_DTL_WRK_WAIT_TOT"),
             },
         }
     else:

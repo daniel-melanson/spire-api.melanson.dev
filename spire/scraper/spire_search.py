@@ -8,11 +8,12 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import Section, SectionCoverage
+from spire.models import Section, SectionCoverage, Subject
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
+from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
 from spire.scraper.timer import Timer
 
 from .shared import assert_match, scrape_spire_tables
@@ -77,11 +78,11 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
 
         meeting_instructor_list.append(instructor_list)
 
-    log.debug("Scraped meeting instructors: %s", meeting_instructor_list)
+    log.debug("Scraped meeting instructors: %s", [[str(r) for r in l] for l in meeting_instructor_list])
     return meeting_instructor_list
 
 
-def _scrape_search_results(driver: SpireDriver, term: str):
+def _scrape_search_results(driver: SpireDriver, term: str, subject: Subject):
     section_count = 0
 
     for span_id in driver.find_all_ids("span[id^=DERIVED_CLSRCH_DESCR200]"):
@@ -91,7 +92,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
             r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)(?P<course_title>.+)?",
             span.text,
         )
-        course_id, subject, _ = RawCourse.get_course_id(
+        course_id, _, _ = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")
         )
 
@@ -136,6 +137,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
 
             section = RawSection(
                 course_id=course_id,
+                course_title=title_match.group("course_title").strip(),
                 term=term,
                 id=section_id,
                 details=table_results["Class Details"],
@@ -154,7 +156,7 @@ def _scrape_search_results(driver: SpireDriver, term: str):
             log.info("Clicking return then pushing...")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
 
-            section.push()
+            section.push(subject)
 
             driver.wait_for_spire()
             log.info("Returned to search results for %s durning %s.", subject, term)
@@ -169,18 +171,17 @@ def _scrape_search_results(driver: SpireDriver, term: str):
     return section_count
 
 
-def _initialize_query(driver: SpireDriver, flipped_term: str, subject: str):
-    log.debug("Setting-up a search query for %s during %s...", subject, flipped_term)
+def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
     term_select = driver.wait_for_interaction(By.ID, "UM_DERIVED_SA_UM_TERM_DESCR")
     driver.scroll_to(term_select)
     term_select = Select(term_select)
-    term_select.select_by_visible_text(flipped_term)
+    term_select.select_by_value(term_id)
     driver.wait_for_spire()
 
     subject_select = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
     driver.scroll_to(subject_select)
     subject_select = Select(subject_select)
-    subject_select.select_by_visible_text(subject)
+    subject_select.select_by_value(subject_id)
     driver.wait_for_spire()
 
     number_select = Select(driver.find("CLASS_SRCH_WRK2_SSR_EXACT_MATCH1"))
@@ -208,7 +209,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
 
     def get_option_values(select):
         return [
-            e.text
+            (e.get_property("value"), e.text)
             for e in select.find_elements(By.CSS_SELECTOR, "option")
             if len(e.get_property("value")) > 0
         ]
@@ -227,7 +228,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
     for term_offset in range(cache.get("term_offset", 4 * 5 - 1), -1, -1):
         cache.push("term_offset", term_offset)
 
-        flipped_term = term_values[term_offset]
+        (term_id, flipped_term) = term_values[term_offset]
         [year, season] = flipped_term.split(" ")
         term = f"{season} {year}"
         assert_match(TERM_REGEXP, term)
@@ -257,14 +258,20 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
         term_timer = Timer()
 
         # For each subject
-        for subject in cache.skip_once(subject_values, "subject"):
-            cache.push("subject", subject)
+        for (subject_id, subject_title) in cache.skip_once(subject_values, "subject"):
+            cache.push("subject", (subject_id, subject_title))
             subject_timer = Timer()
 
             # Initialize and search for subject during term
-            _initialize_query(driver, flipped_term, subject)
+            _initialize_query(driver, term_id, subject_id)
 
-            log.info("Searching for sections in subject %s during %s...", subject, term)
+            subject, created = Subject.objects.get_or_create(
+                id=SUBJECT_OVERRIDES.get(subject_id, subject_id), defaults={"title": subject_title.strip()}
+            )
+
+            log.info("%s subject: %s", "Created" if created else "Found", subject)
+
+            log.info("Searching for sections in subject %s during %s...", subject.id, term)
             driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
 
             assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
@@ -272,7 +279,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                count = _scrape_search_results(driver, term)
+                count = _scrape_search_results(driver, term, subject)
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",

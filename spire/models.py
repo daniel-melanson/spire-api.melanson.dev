@@ -52,6 +52,9 @@ class Subject(models.Model):
         validators=[_subject_id_validator],
     )
 
+    def __str__(self):
+        return f"Subject(id={self.id}, title={self.title})"
+
     class Meta:
         ordering = ["id"]
 
@@ -143,6 +146,8 @@ class CombinedSectionAvailability(models.Model):
     individual_availability = models.OneToOneField(
         SectionAvailability, on_delete=models.CASCADE, primary_key=True, related_name="combined_availability"
     )
+    sections = models.JSONField()
+    capacity = models.IntegerField()
     enrollment_total = models.IntegerField()
     available_seats = models.IntegerField()
     wait_list_capacity = models.IntegerField()

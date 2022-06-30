@@ -12,7 +12,11 @@ log = logging.getLogger(__name__)
 
 
 def assert_dict_keys_subset(d: dict, keys: Iterable[str]):
-    assert set(d.keys()).issubset(set(keys))
+    a = set(d.keys())
+    b = set(keys)
+
+    log.debug("Asserting %s is subset of %s", a, b)
+    assert a.issubset(b)
 
 
 def re_override_factory(*args: tuple[str, Any]):
@@ -120,7 +124,7 @@ class RawObject:
             setattr(self, k, v)
             log.debug("%s.%s set to %s", self._name, k, v)
 
-        self._model_keys = [to_camel_case(f.k) for f in args]
+        self._model_keys = [to_camel_case(f.k) for f in fields]
 
     def __str__(self) -> str:
         values = ""
