@@ -54,8 +54,9 @@ class RawSection(RawObject):
             "\n".join([str(x) for x in self.meeting_information]),
         )
 
-        self.restrictions = RawSectionRestriction(self.id, restrictions)
-        log.info("Scraped section restrictions: %s", self.restrictions)
+        if restrictions:
+            self.restrictions = RawSectionRestriction(self.id, restrictions)
+            log.info("Scraped section restrictions: %s", self.restrictions)
 
         self.availability = RawSectionAvailability(self.id, availability)
         log.info("Scraped section availability: %s", self.availability)
@@ -90,7 +91,8 @@ class RawSection(RawObject):
             )
 
             self.details.push(section)
-            self.restrictions.push(section)
+            if hasattr(self, "restrictions"):
+                self.restrictions.push(section)
             self.availability.push(section)
 
             dropped, _ = MeetingInformation.objects.filter(section_id=section.id).delete()

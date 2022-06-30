@@ -132,15 +132,7 @@ def scrape_spire_class_availability(driver, table):
 
         combined_sections = []
         for section in combined_table.find_elements(By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\$0_row]"):
-            raw_text = section.text
-
-            match = assert_match(
-                r"\((?P<section_number>\d{3,10})\)",
-                raw_text,
-                search=True,
-            )
-
-            combined_sections.append(match.group("section_number"))
+            combined_sections.append(section.text.strip())
 
         return {
             "Individual Availability": {

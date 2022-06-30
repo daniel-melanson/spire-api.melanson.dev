@@ -82,14 +82,31 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
     return meeting_instructor_list
 
 
-def _scrape_search_results(driver: SpireDriver, term: str, subject: Subject):
+# Extremely rare cases
+COURSE_GROUP_OVERRIDES = {"FILM-ST  391SF": "FILM-ST  391SF   S-International SciFi Cinema"}
+
+SECTION_ID_OVERRIDES = {
+    "-(62798)": "01-DIS(62798)",
+    "-(62799)": "01AA-DIS(62799)",
+    "-(62800)": "01AB-DIS(62800)",
+    "-(62801)": "01AC-DIS(62801)",
+}
+
+
+def _scrape_search_results(driver: SpireDriver, cache: VersionedCache, term: str, subject: Subject):
     section_count = 0
 
-    for span_id in driver.find_all_ids("span[id^=DERIVED_CLSRCH_DESCR200]"):
+    for span_id in cache.skip_once(
+        driver.find_all_ids("span[id^=DERIVED_CLSRCH_DESCR200]"), "course_span_id"
+    ):
+        cache.push("course_span_id", span_id)
+
         span = driver.find(span_id)
 
+        COURSE_GROUP_OVERRIDES.get(span.text, span.text)
+
         title_match = assert_match(
-            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)(?P<course_title>.+)?",
+            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
             span.text,
         )
         course_id, _, _ = RawCourse.get_course_id(
@@ -113,7 +130,8 @@ def _scrape_search_results(driver: SpireDriver, term: str, subject: Subject):
 
         for link_id in link_ids:
             link = driver.find(link_id)
-            section_id = link.text.strip()
+            t = link.text.strip()
+            section_id = SECTION_ID_OVERRIDES.get(t, t)
 
             log.debug("Scraping section %s...", section_id)
 
@@ -280,6 +298,8 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
 
             if return_button:
                 count = _scrape_search_results(driver, term, subject)
+
+                assert count > 0
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",
