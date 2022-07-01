@@ -47,7 +47,7 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 
         scraped_course = _scrape_course_page(driver, subject)
 
-        log.info("Scraped course: %s", scraped_course)
+        log.info("Scraped course:\n%s", scraped_course)
 
         cache.push("course_link_id", link_id)
 

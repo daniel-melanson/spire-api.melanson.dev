@@ -166,7 +166,7 @@ def _scrape_search_results(driver: SpireDriver, cache: VersionedCache, term: str
                 overview=table_results.get("Class Overview", None),
             )
 
-            log.info("Scraped section: %s", section)
+            log.info("Scraped section:\n%s", section)
             scraped_section_ids_for_course.add(section.id)
 
             section_count += 1

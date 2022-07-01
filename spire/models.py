@@ -53,7 +53,7 @@ class Subject(models.Model):
     )
 
     def __str__(self):
-        return f"Subject(id={self.id}, title={self.title})"
+        return f"Subject[{self.id}](title=`{self.title}`)"
 
     class Meta:
         ordering = ["id"]
@@ -67,6 +67,9 @@ class Course(models.Model):
     description = models.CharField(max_length=2**12, null=True)
     sections = models.ManyToManyField("Section", related_name="+")
     _updated_at = models.DateTimeField()
+
+    def __str__(self) -> str:
+        return f"Course[{self.id}](subject={self.subject}, title=`{self.title}`)"
 
     class Meta:
         unique_together = ["subject", "number"]
@@ -82,6 +85,9 @@ class CourseDetail(models.Model):
     academic_group = models.CharField(null=True, max_length=2**7)
     academic_organization = models.CharField(null=True, max_length=2**7)
     campus = models.CharField(null=True, max_length=2**6)
+
+    def __str__(self) -> str:
+        return f"CourseDetail[{self.course}]"
 
     class Meta:
         ordering = ["course"]
