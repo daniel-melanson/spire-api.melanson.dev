@@ -77,7 +77,7 @@ class RawField(NamedTuple):
     optional = True
     normalizers: list = None
     re: str = None
-    min_len: int = 0
+    min_len: int = None
     len: tuple[int, int] = None
     assertions: list = None
     choices: tuple[str, ...] = None
@@ -109,10 +109,11 @@ class RawObject:
                 if field.re:
                     assert_match(field.re, v)
 
-                l = len(v)
-                assert field.min_len <= l
+                if field.min_len:
+                    assert field.min_len <= len(v)
+
                 if field.len:
-                    assert field.len[0] <= l <= field.len[1]
+                    assert field.len[0] <= len(v) <= field.len[1]
 
                 if field.assertions:
                     for f in field.assertions:

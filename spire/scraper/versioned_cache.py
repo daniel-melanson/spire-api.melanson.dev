@@ -1,17 +1,21 @@
 class VersionedCache:
-    def __init__(self, head = None):
+    def __init__(self, t, head=None):
         self._head = head
 
         self._cache = {}
-
+        self._type = t
         self._skipped_keys = set()
 
     def __str__(self):
-        return f"VersionedCache({str(self._head)})"
+        return f"VersionedCache[{self._type}]({str(self._head)})"
 
     @property
     def is_empty(self):
         return self._head is None
+
+    @property
+    def type(self):
+        return self._type
 
     def push(self, key: str, value):
         self._cache[key] = value

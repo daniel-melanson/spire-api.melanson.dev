@@ -2,7 +2,7 @@ from spire.models import Section, SectionDetail
 from spire.patterns import UNITS_REGEXP
 
 from .assertions import NO_EMPTY_STRS_ASSERTION
-from .normalizers import COURSE_CREDIT_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER
+from .normalizers import COURSE_CREDIT_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER, SPLIT_NEWLINE, STRIP_STR
 from .shared import RawDictionary, RawField, key_override_factory
 
 
@@ -50,9 +50,7 @@ class RawSectionDetail(RawDictionary):
                 RawField(k="Topic", min_len=1),
                 RawField(
                     k="Gened",
-                    normalizers=[
-                        NONE_STRING_TO_NONE_NORMALIZER,
-                    ],
+                    normalizers=[NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR, lambda x: x.split(" ")],
                 ),
                 RawField(k="RAP/TAP/HLC", normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
             ],

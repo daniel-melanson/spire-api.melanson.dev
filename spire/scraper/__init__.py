@@ -14,9 +14,9 @@ from .spire_search import scrape_sections
 from .versioned_cache import VersionedCache
 
 try:
-    from .debug_cache import debug_cache
+    from .debug_cache import debug_versioned_cache
 except ImportError:
-    debug_cache = None
+    debug_versioned_cache = None
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +34,10 @@ class ScrapeCoverage(Enum):
 def scrape(s, func):
     start_time = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
-    cache = VersionedCache() if not DEBUG_SCRAPER or debug_cache is None else debug_cache
+    if debug_versioned_cache is not None and DEBUG_SCRAPER and debug_versioned_cache.type == s:
+        cache = debug_versioned_cache
+    else:
+        cache = VersionedCache(s)
 
     retries = 0
     while True:
