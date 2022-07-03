@@ -46,12 +46,12 @@ class RawSection(RawObject):
         self.term = term
 
         self.details = RawSectionDetail(self.id, details)
-        log.info("Scraped section detail: %s", self.details)
+        log.info("Scraped section detail:\n%s", self.details)
 
         self.meeting_information = [RawMeetingInformation(self.id, x) for x in meeting_information]
         log.info(
             "Scraped section meeting information: [\n%s]",
-            "\n".join(["\t" + str(x) for x in self.meeting_information]),
+            "\n".join([str(x) for x in self.meeting_information]),
         )
 
         if restrictions:

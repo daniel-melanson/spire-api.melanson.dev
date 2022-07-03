@@ -7,7 +7,7 @@ class VersionedCache:
         self._skipped_keys = set()
 
     def __str__(self):
-        return f"VersionedCache[{self._type}]({str(self._head)})"
+        return f"VersionedCache('{self._type}',{str(self._head)})"
 
     @property
     def is_empty(self):

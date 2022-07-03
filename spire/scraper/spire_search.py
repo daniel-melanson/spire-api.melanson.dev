@@ -1,8 +1,6 @@
 import logging
 from curses.ascii import isspace
 from datetime import datetime
-from distutils.log import warn
-from os import link
 
 from django.utils import timezone
 from selenium.webdriver.common.by import By
@@ -13,7 +11,7 @@ from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
-from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
+from spire.scraper.classes.raw_subject import RawSubject
 from spire.scraper.timer import Timer
 
 from .shared import assert_match, scrape_spire_tables
@@ -283,8 +281,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             # Initialize and search for subject during term
             _initialize_query(driver, term_id, subject_id)
 
+            raw_subject = RawSubject(subject_id, subject_title)
             subject, created = Subject.objects.get_or_create(
-                id=SUBJECT_OVERRIDES.get(subject_id, subject_id), defaults={"title": subject_title.strip()}
+                id=raw_subject.id, defaults={"title": raw_subject.title}
             )
 
             log.info("%s subject: %s", "Created" if created else "Found", subject)
@@ -297,7 +296,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                count = _scrape_search_results(driver, term, subject)
+                count = _scrape_search_results(driver, cache, term, subject)
 
                 assert count > 0
 

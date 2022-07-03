@@ -164,9 +164,9 @@ class SectionRestriction(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="restrictions"
     )
-    drop_consent = models.CharField(null=True, max_length=2**10)
-    enrollment_requirements = models.CharField(null=True, max_length=2**10)
-    add_consent = models.CharField(null=True, max_length=2**10)
+    drop_consent = models.CharField(null=True, max_length=2**12)
+    enrollment_requirements = models.CharField(null=True, max_length=2**12)
+    add_consent = models.CharField(null=True, max_length=2**12)
 
 
 class MeetingInformation(models.Model):

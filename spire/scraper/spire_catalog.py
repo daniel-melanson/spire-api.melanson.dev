@@ -102,12 +102,6 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
             log.debug("Initialized scraped subject: %s", scraped_subject)
 
-            if scraped_subject.id in ("LLEIP"):
-                # Spire Documents LLIEP and LLEIP, both with the same title "LL: Intensive English Program
-                # At the time of writing, neither even had documented courses, so I kept LLIEP because it
-                # was the correct acronym and I didn't want to drop the unique key constraint on Subject.title
-                continue
-
             scraped_subject_id_set.add(scraped_subject.id)
 
             # Expand subject list

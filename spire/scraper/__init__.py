@@ -1,16 +1,16 @@
 import datetime
 import logging
 import os
-import re
 from enum import Enum
+from textwrap import dedent
 from time import sleep
 
 from root.settings import DEBUG_SCRAPER
+from spire.scraper.spire_catalog import scrape_catalog
+from spire.scraper.spire_driver import SpireDriver
+from spire.scraper.spire_search import scrape_sections
 from spire.scraper.timer import Timer
 
-from .spire_catalog import scrape_catalog
-from .spire_driver import SpireDriver
-from .spire_search import scrape_sections
 from .versioned_cache import VersionedCache
 
 try:
@@ -32,7 +32,7 @@ class ScrapeCoverage(Enum):
 
 
 def scrape(s, func):
-    start_time = datetime.datetime.now().replace(microsecond=0).isoformat()
+    start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
     if debug_versioned_cache is not None and DEBUG_SCRAPER and debug_versioned_cache.type == s:
         cache = debug_versioned_cache
@@ -48,32 +48,37 @@ def scrape(s, func):
             func(driver, cache)
             return
         except Exception as e:
-            sel_driver = driver.root_driver
+            log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
+            retries += 1
 
+            sel_driver = driver.root_driver
             if not os.path.isdir("./dump"):
                 os.mkdir("./dump")
 
-            html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_time}.html")
+            html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_date}.html")
             with open(html_dump_path, "wb") as f:
                 f.write(sel_driver.page_source.encode("utf-8"))
 
-            retries += 1
-            log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
-
             cache.commit()
             log.debug("Cache updated to: %s", cache)
-            if retries < MAX_RETRIES:
-                log.info("Closing driver and sleeping...")
-                driver = driver.close()
-                sleep(5 * 60)
+            with open("./spire/scraper/debug_cache.py", "w") as f:
+                f.write(
+                    dedent(
+                        f"""
+                        from .versioned_cache import VersionedCache
+                    
+                        debug_versioned_cache = {cache}"""
+                    ).strip()
+                )
 
-                driver = SpireDriver()
-            else:
+            if retries >= MAX_RETRIES:
                 driver.close()
                 raise e
 
-            for handler in LOG_HANDLERS:
-                handler.doRollover()
+            log.info("Closing driver and sleeping...")
+            driver = driver.close()
+            sleep(5 * 60)
+            driver = SpireDriver()
 
 
 def scrape_data(coverage: ScrapeCoverage):
