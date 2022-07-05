@@ -101,11 +101,9 @@ def _scrape_search_results(driver: SpireDriver, cache: VersionedCache, term: str
 
         span = driver.find(span_id)
 
-        COURSE_GROUP_OVERRIDES.get(span.text, span.text)
-
         title_match = assert_match(
             r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
-            span.text,
+            COURSE_GROUP_OVERRIDES.get(span.text, span.text),
         )
         course_id, _, _ = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")

@@ -72,6 +72,18 @@ def to_camel_case(s: str) -> str:
     return s.lower().replace("/", "_").replace(" ", "_")
 
 
+def serialize(v):
+    if isinstance(v, str):
+        return f"'{v}'"
+    if isinstance(v, list):
+        if len(v) == 0:
+            return "[]"
+
+        return f"[{', '.join([serialize(x) for x in v])}]"
+
+    return str(v)
+
+
 class RawField(NamedTuple):
     k: str
     optional = True
@@ -130,12 +142,7 @@ class RawObject:
     def __str__(self) -> str:
         values = ""
         for k in self._model_keys:
-            v = getattr(self, k)
-
-            if isinstance(v, str):
-                v = f"'{v}'"
-            elif isinstance(v, list):
-                v = f"[{', '.join([str(x) for x in v])}]"
+            v = serialize(getattr(self, k))
 
             if len(self._model_keys) > 2:
                 if len(values) > 0:

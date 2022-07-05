@@ -114,7 +114,7 @@ class Instructor(models.Model):
     email = models.EmailField(null=True)
 
     def __str__(self):
-        return f"Instructor(name={self.name}, email={self.email})"
+        return f"Instructor(name='{self.name}', email='{self.email}')"
 
     class Meta:
         ordering = ["name", "email"]
@@ -186,7 +186,7 @@ class SectionDetail(models.Model):
         Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
     )
     status = models.CharField(null=True, max_length=2**6)
-    class_number = models.IntegerField(unique=True)
+    class_number = models.IntegerField()
     session = models.CharField(null=True, max_length=2**6)
     units = models.CharField(null=True, max_length=2**6)
     class_components = models.JSONField(null=True)
