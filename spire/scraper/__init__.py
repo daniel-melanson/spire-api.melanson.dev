@@ -78,6 +78,9 @@ def scrape(s, func):
             log.info("Closing driver and sleeping...")
             driver = driver.close()
             sleep(5 * 60)
+            for h in LOG_HANDLERS:
+                h.doRollover()
+
             driver = SpireDriver()
 
 
