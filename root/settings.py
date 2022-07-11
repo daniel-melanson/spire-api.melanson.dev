@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django_filters",
     "spire",
     "django.contrib.contenttypes",
-    #"django.contrib.staticfiles",
+    "django.contrib.staticfiles",
 ]
 
 MIDDLEWARE = [
@@ -52,6 +52,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "root.urls"

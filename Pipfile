@@ -12,6 +12,7 @@ uritemplate = "*"
 selenium = "*"
 django-filter = "*"
 gunicorn = "*"
+whitenoise = "*"
 
 [requires]
 python_version = "3.10"
