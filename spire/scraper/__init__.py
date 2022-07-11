@@ -51,13 +51,14 @@ def scrape(s, func):
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
             retries += 1
 
-            sel_driver = driver.root_driver
-            if not os.path.isdir("./dump"):
-                os.mkdir("./dump")
+            if DEBUG_SCRAPER:
+                sel_driver = driver.root_driver
+                if not os.path.isdir("./dump"):
+                    os.mkdir("./dump")
 
-            html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_date}.html")
-            with open(html_dump_path, "wb") as f:
-                f.write(sel_driver.page_source.encode("utf-8"))
+                html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_date}.html")
+                with open(html_dump_path, "wb") as f:
+                    f.write(sel_driver.page_source.encode("utf-8"))
 
             cache.commit()
             log.debug("Cache updated to: %s", cache)
