@@ -137,6 +137,25 @@ class Section(models.Model):
         ordering = ["term", "course_id", "id"]
 
 
+class SectionDetail(models.Model):
+    section = models.OneToOneField(
+        Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
+    )
+    status = models.CharField(null=True, max_length=2**6)
+    class_number = models.IntegerField()
+    session = models.CharField(null=True, max_length=2**6)
+    units = models.CharField(null=True, max_length=2**6)
+    class_components = models.JSONField(null=True)
+    career = models.CharField(null=True, max_length=2**6)
+    topic = models.CharField(null=True, max_length=2**6)
+    grading = models.CharField(null=True, max_length=2**6)
+    gened = models.JSONField(null=True)
+    rap_tap_hlc = models.CharField(null=True, max_length=2**6)
+
+    class Meta:
+        ordering = ["section"]
+
+
 class SectionAvailability(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="availability"
@@ -146,7 +165,7 @@ class SectionAvailability(models.Model):
     available_seats = models.IntegerField()
     wait_list_capacity = models.IntegerField()
     wait_list_total = models.IntegerField()
-    nso_enrollment_capacity = models.IntegerField(null=True)
+    nso_enrollment_capacity = models.IntegerField(null=True, default=None)
 
 
 class CombinedSectionAvailability(models.Model):
@@ -159,6 +178,7 @@ class CombinedSectionAvailability(models.Model):
     available_seats = models.IntegerField()
     wait_list_capacity = models.IntegerField()
     wait_list_total = models.IntegerField()
+    nso_enrollment_capacity = models.IntegerField(null=True, default=None)
 
 
 class SectionRestriction(models.Model):
@@ -180,25 +200,6 @@ class MeetingInformation(models.Model):
 
     class Meta:
         ordering = ["section", "days_and_times"]
-
-
-class SectionDetail(models.Model):
-    section = models.OneToOneField(
-        Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
-    )
-    status = models.CharField(null=True, max_length=2**6)
-    class_number = models.IntegerField()
-    session = models.CharField(null=True, max_length=2**6)
-    units = models.CharField(null=True, max_length=2**6)
-    class_components = models.JSONField(null=True)
-    career = models.CharField(null=True, max_length=2**6)
-    topic = models.CharField(null=True, max_length=2**6)
-    grading = models.CharField(null=True, max_length=2**6)
-    gened = models.JSONField(null=True)
-    rap_tap_hlc = models.CharField(null=True, max_length=2**6)
-
-    class Meta:
-        ordering = ["section"]
 
 
 class SectionCoverage(models.Model):
