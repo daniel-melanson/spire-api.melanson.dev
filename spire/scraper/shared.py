@@ -69,21 +69,26 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> li
             child = None
 
         if element_id in ("win0divSSR_CLS_DTL_WRK_SSR_STATUS_LONG"):
-            log.debug("Skipping element id: %s.", element_id)
+            log.debug("Skipping element id: %s", element_id)
         elif element_id == "win0div$ICField247$0":
             log.debug("Found RAP/TAP/HCL. Scraping...")
 
             details["RAP/TAP/HLC"] = e.find_element(By.ID, "win0divUM_RAPTAP_CLSDT_UM_RAP_TAP$0").text
 
-            log.debug("Adding detail: %s.", ("RAP/TAP/HLC", details["RAP/TAP/HLC"]))
+            log.debug("Adding detail: %s", ("RAP/TAP/HLC", details["RAP/TAP/HLC"]))
+        elif element_id == "win0divUM_CAPS_WRK_UM_ENRL_CAP_CUR":
+            log.debug("Found detail field element: %s", element_id)
+            detail_fields.append((element_id, "NSO Enroll Cap"))
+
+            field_count += 1
         elif child:
-            log.debug("Found detail field element: %s.", element_id)
+            log.debug("Found detail field element: %s", element_id)
             detail_fields.append((element_id, child.text))
             assert "lbl" in element_id
 
             field_count += 1
         else:
-            log.debug("Found detail value element: %s.", element_id)
+            log.debug("Found detail value element: %s", element_id)
             detail_values[element_id] = e
             value_count += 1
 
@@ -99,6 +104,8 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> li
             value_id = field_id[: -len("lbl$0")] + "$0"
         elif field_id.endswith("lbl"):
             value_id = field_id[: -len("lbl")]
+        elif field_id == "win0divUM_CAPS_WRK_UM_ENRL_CAP_CUR":
+            value_id = "win0divUM_CAPS_WRK_UM_ENRL_CAP_CUR$333$"
 
         if value_id in detail_values:
             assert value_id not in matched_ids
@@ -108,12 +115,13 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> li
             element = detail_values[value_id]
             text = element.text.strip()
             if len(text) > 0:
-                log.debug("Adding detail: %s.", (field_title, element.text))
+                log.debug("Adding detail: %s", (field_title, element.text))
                 details[field_title] = text
             else:
                 log.debug("Ignoring, empty value text.")
         else:
             log.warning("Unable to find a match for %s(%s).", field_id, field_title)
+            assert False
 
     log.debug("Scraped detail for table.")
     return details
@@ -180,10 +188,10 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
 
         table_name = table_label.text
         if table_name in ("Textbooks/Materials", "Get Help"):
-            log.debug("Skipping table: %s.", table_name)
+            log.debug("Skipping table: %s", table_name)
             continue
         else:
-            log.debug("Scraping table: %s.", table_name)
+            log.debug("Scraping table: %s", table_name)
 
         assert table_name not in scraped_table_names
         scraped_table_names.add(table_name)

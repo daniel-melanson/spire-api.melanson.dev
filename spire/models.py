@@ -53,7 +53,7 @@ class Subject(models.Model):
     )
 
     def __str__(self):
-        return f"Subject[{self.id}](title=`{self.title}`)"
+        return f"Subject[{self.id}](title='{self.title}')"
 
     class Meta:
         ordering = ["id"]
@@ -146,6 +146,7 @@ class SectionAvailability(models.Model):
     available_seats = models.IntegerField()
     wait_list_capacity = models.IntegerField()
     wait_list_total = models.IntegerField()
+    nso_enrollment_capacity = models.IntegerField(null=True)
 
 
 class CombinedSectionAvailability(models.Model):

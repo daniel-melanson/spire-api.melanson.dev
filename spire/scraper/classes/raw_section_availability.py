@@ -14,6 +14,7 @@ AVAILABILITY_FIELDS = [
     RawField(k="Available Seats"),
     RawField(k="Wait List Capacity"),
     RawField(k="Wait List Total"),
+    RawField(k="NSO Enrollment Capacity"),
 ]
 
 SECTION_ID_OVERRIDES = {
@@ -73,6 +74,10 @@ class RawSectionAvailability(RawDictionary):
         else:
             table["Capacity"] = table["Total Enrollment Capacity"]
             del table["Total Enrollment Capacity"]
+
+            if "NSO Enroll Cap" in table:
+                table["NSO Enrollment Capacity"] = table["NSO Enroll Cap"]
+                del table["NSO Enroll Cap"]
 
             super().__init__(
                 SectionAvailability,

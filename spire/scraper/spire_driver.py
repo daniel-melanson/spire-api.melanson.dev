@@ -42,7 +42,7 @@ class SpireDriver:
             self._driver.switch_to.default_content()
             self._state = "default"
 
-        log.debug("Switched focus to: %s.", self._state)
+        log.debug("Switched focus to: %s", self._state)
 
     def navigate_to(self, page: str) -> None:
         assert page in ("catalog", "search")
