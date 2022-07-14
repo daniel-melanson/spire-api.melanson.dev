@@ -127,7 +127,7 @@ LOGGING = {
     "handlers": {
         "scrape_debug_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./logs/scrape-debug-results.log",
+            "filename": "./logs-debug/scrape-debug-results.log",
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
