@@ -11,6 +11,9 @@ pyyaml = "*"
 uritemplate = "*"
 selenium = "*"
 django-filter = "*"
+gunicorn = "*"
+whitenoise = "*"
+dj-database-url = "*"
 
 [requires]
 python_version = "3.10"
