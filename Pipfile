@@ -20,8 +20,8 @@ python_version = "3.10"
 
 [scripts]
 dev = "python manage.py runserver"
-seed-courses = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.SubjectsAndCourses)'"
-seed-sections = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.Sections)'"
-seed = "python manage.py shell -c 'from spire.scraper import scrape_data, ScrapeCoverage; scrape_data(ScrapeCoverage.Total)'"
+scrape-sections = "python manage.py scrape sections"
+scrape-courses = "python manage.py scrape courses"
+scrape = "python manage.py scrape"
 makemigrations = "python manage.py makemigrations"
 migrate = "python manage.py migrate"

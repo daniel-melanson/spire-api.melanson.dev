@@ -31,7 +31,7 @@ class ScrapeCoverage(Enum):
     Sections = 2
 
 
-def scrape(s, func):
+def scrape(s, func, **kwargs):
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
     if debug_versioned_cache is not None and DEBUG_SCRAPER and debug_versioned_cache.type == s:
@@ -45,7 +45,7 @@ def scrape(s, func):
             if not cache.is_empty:
                 log.info("Scraping %s with cache: %s", s, cache)
 
-            func(driver, cache)
+            func(driver, cache, **kwargs)
             return
         except Exception as e:
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
@@ -85,7 +85,7 @@ def scrape(s, func):
             driver = SpireDriver()
 
 
-def scrape_data(coverage: ScrapeCoverage):
+def scrape_data(coverage: ScrapeCoverage, quick=False):
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
@@ -95,6 +95,6 @@ def scrape_data(coverage: ScrapeCoverage):
         scrape("course catalog", scrape_catalog)
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
-        scrape("course sections", scrape_sections)
+        scrape("course sections", scrape_sections, quick=quick)
 
     log.info("Scraped data from spire in %s", scrape_timer)

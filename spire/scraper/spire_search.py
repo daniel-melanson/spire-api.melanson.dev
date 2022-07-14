@@ -6,7 +6,7 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import Section, SectionCoverage, Subject
+from spire.models import CombinedSectionAvailability, Section, SectionCoverage, Subject
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
@@ -30,9 +30,8 @@ def _count_name_characters(s: str):
     return count
 
 
-def _scrape_meeting_instructor_list(sections_table, link_id):
+def _scrape_meeting_instructor_list(sections_table, link_number):
     log.debug("Scraping meeting instructors...")
-    link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
     meeting_information_table = sections_table.find_element(By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number)
 
     meeting_instructor_list = []
@@ -80,6 +79,37 @@ def _scrape_meeting_instructor_list(sections_table, link_id):
     return meeting_instructor_list
 
 
+def can_skip(driver: SpireDriver, section_id: str, link_number: str):
+    try:
+        section = Section.objects.get(section_id)
+
+        if CombinedSectionAvailability.objects.filter(section=section.availability).first():
+            return False
+
+        status_icon = driver.find(f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG${link_number} > div > img")
+
+        match status_icon.get_attribute("src"):
+            case "/cs/heproda/cache/PS_CS_STATUS_WAITLIST_ICN_1.gif":
+                current_status = "Wait List"
+            case "/cs/heproda/cache/PS_CS_STATUS_OPEN_ICN_1.gif":
+                current_status = "Open"
+            case "/cs/heproda/cache/PS_CS_STATUS_CLOSED_ICN_1.gif":
+                current_status = "Closed"
+            case _:
+                assert False
+
+        current_enrollment = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
+        current_capacity = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
+
+        return (
+            section.details.status == current_status
+            and section.availability.enrollment_total == current_enrollment
+            and section.availability.capacity == current_capacity
+        )
+    except Section.DoesNotExist:
+        return False
+
+
 # Extremely rare cases
 COURSE_GROUP_OVERRIDES = {"FILM-ST  391SF": "FILM-ST  391SF   S-International SciFi Cinema"}
 
@@ -89,11 +119,13 @@ SECTION_ID_OVERRIDES = {
     "-(62800)": "01AB-DIS(62800)",
     "-(62801)": "01AC-DIS(62801)",
     "`01-PRA(52104)": "01-PRA(52104)",
-    "`01-PRA(72927)": "01-PRA(72927)"
+    "`01-PRA(72927)": "01-PRA(72927)",
 }
 
 
-def _scrape_search_results(driver: SpireDriver, cache: VersionedCache, term: str, subject: Subject):
+def _scrape_search_results(
+    driver: SpireDriver, cache: VersionedCache, quick: bool, term: str, subject: Subject
+):
     section_count = 0
 
     for span_id in cache.skip_once(
@@ -133,8 +165,18 @@ def _scrape_search_results(driver: SpireDriver, cache: VersionedCache, term: str
 
             log.debug("Scraping section %s...", section_id)
 
-            meeting_instructor_list = _scrape_meeting_instructor_list(driver.find(section_table_id), link_id)
+            link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
+            meeting_instructor_list = _scrape_meeting_instructor_list(
+                driver.find(section_table_id), link_number
+            )
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
+
+            if quick:
+                if can_skip(driver, section_id, link_number):
+                    log.info("Skipping section: %s", section_id)
+                    continue
+                else:
+                    log.info("Not skipping section: %s", section_id)
 
             log.info("Navigating to section page for %s section %s...", course_id, section_id)
             driver.click(link_id)
@@ -215,7 +257,7 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
         driver.wait_for_spire()
 
 
-def scrape_sections(driver: SpireDriver, cache: VersionedCache):
+def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     log.info("Scraping sections...")
 
     driver.navigate_to("search")
@@ -296,7 +338,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                count = _scrape_search_results(driver, cache, term, subject)
+                count = _scrape_search_results(driver, cache, quick, term, subject)
 
                 assert count > 0
 
