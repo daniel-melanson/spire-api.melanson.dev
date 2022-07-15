@@ -69,7 +69,7 @@ class Course(models.Model):
     _updated_at = models.DateTimeField()
 
     def __str__(self) -> str:
-        return f"Course[{self.id}](subject={self.subject}, title=`{self.title}`)"
+        return f"Course[{self.id}](subject={self.subject}, title='{self.title}')"
 
     class Meta:
         unique_together = ["subject", "number"]

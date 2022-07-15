@@ -7,6 +7,14 @@ COURSE_CREDIT_NORMALIZER = re_override_factory(
     (r"^\d+\.\d$", "$00"),
 )
 
+
+def REPLACE_DOUBLE_SPACE(s):
+    while "  " in s:
+        s = s.replace("  ", " ")
+
+    return s
+
+
 NONE_STRING_TO_NONE_NORMALIZER = re_override_factory((r"^(None|\(None\))$", None))
 
 SPLIT_NEWLINE = lambda x: [s.strip() for s in x.split("\n")]
