@@ -163,3 +163,4 @@ cython_debug/
 
 debug_cache.py
 dump/
+logs-debug/

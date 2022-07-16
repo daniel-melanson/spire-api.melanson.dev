@@ -13,7 +13,7 @@ from spire.scraper.classes.raw_section_detail import RawSectionDetail
 from spire.scraper.classes.raw_section_restriction import RawSectionRestriction
 from spire.scraper.shared import assert_match
 
-from .shared import RawField, RawObject
+from .shared import RawField, RawObject, key_override_factory
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +71,11 @@ class RawSection(RawObject):
                 RawField("course_id", re=COURSE_ID_REGEXP),
                 RawField("course_title", re=COURSE_TITLE_REGEXP, normalizers=[REPLACE_DOUBLE_SPACE]),
                 RawField("term", re=TERM_REGEXP),
-                RawField("description", normalizers=[STRIP_STR], min_len=5),
+                RawField(
+                    "description",
+                    normalizers=[STRIP_STR, key_override_factory({"Not available at this time": None})],
+                    min_len=5,
+                ),
                 RawField("overview", min_len=5),
             ],
         )

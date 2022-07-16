@@ -21,3 +21,7 @@ class Command(BaseCommand):
         for x in Course.objects.raw("select * from spire_course where position('  ' in title) > 0"):
             x.title = REPLACE_DOUBLE_SPACE(x.title)
             x.save()
+
+        for x in Section.objects.filter(description="Not available at this time"):
+            x.description = None
+            x.save()
