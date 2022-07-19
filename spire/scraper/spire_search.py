@@ -62,7 +62,20 @@ def _scrape_meeting_instructor_list(sections_table, link_number):
                 found_names.add(staff_name)
 
             log.debug("Scraping raw text...")
-            for name in raw_instructor_text.split(", "):
+            possible_names = raw_instructor_text.split(", ")
+            skip = False
+
+            for i in range(len(possible_names)):
+                if skip:
+                    skip = False
+                    continue
+
+                if i < len(possible_names) - 1 and possible_names[i + 1] in ("Jr"):
+                    name = f"{possible_names[i]}, {possible_names[i + 1]}"
+                    skip = True
+                else:
+                    name = possible_names[i]
+
                 if name not in found_names:
                     instructor_list.append(RawInstructor(name=name, email=None))
 
@@ -81,22 +94,27 @@ def _scrape_meeting_instructor_list(sections_table, link_number):
 
 def can_skip(driver: SpireDriver, section_id: str, link_number: str):
     try:
-        section = Section.objects.get(section_id)
+        section = Section.objects.get(id=section_id)
 
-        if CombinedSectionAvailability.objects.filter(section=section.availability).first():
+        if CombinedSectionAvailability.objects.filter(individual_availability_id=section.id).first():
             return False
 
-        status_icon = driver.find(f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG${link_number} > div > img")
+        status_icon = driver.find(
+            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img", By.CSS_SELECTOR
+        )
 
-        match status_icon.get_attribute("src"):
-            case "/cs/heproda/cache/PS_CS_STATUS_WAITLIST_ICN_1.gif":
-                current_status = "Wait List"
-            case "/cs/heproda/cache/PS_CS_STATUS_OPEN_ICN_1.gif":
-                current_status = "Open"
-            case "/cs/heproda/cache/PS_CS_STATUS_CLOSED_ICN_1.gif":
-                current_status = "Closed"
-            case _:
-                assert False
+        src = status_icon.get_attribute("src")
+        if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif"):
+            current_status = "Wait List"
+        elif src.endswith("PS_CS_STATUS_OPEN_ICN_1.gif"):
+            current_status = "Open"
+        elif src.endswith("PS_CS_STATUS_CLOSED_ICN_1.gif"):
+            current_status = "Closed"
+        else:
+            log.debug(
+                "Uncaught image src: %s",
+            )
+            assert False
 
         current_enrollment = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
         current_capacity = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
