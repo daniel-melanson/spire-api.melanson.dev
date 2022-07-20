@@ -192,6 +192,7 @@ def _scrape_search_results(
             if quick:
                 if can_skip(driver, section_id, link_number):
                     log.info("Skipping section: %s", section_id)
+                    scraped_section_ids_for_course.add(section_id)
                     continue
                 else:
                     log.info("Not skipping section: %s", section_id)
@@ -357,8 +358,6 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
 
             if return_button:
                 count = _scrape_search_results(driver, cache, quick, term, subject)
-
-                assert count > 0
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",

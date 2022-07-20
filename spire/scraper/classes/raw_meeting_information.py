@@ -19,7 +19,7 @@ class RawInstructor(RawObject):
         super().__init__(
             Instructor,
             fields=[
-                RawField("name", min_len=1, normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
+                RawField("name", min_len=4, normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
                 RawField("email"),
             ],
         )
