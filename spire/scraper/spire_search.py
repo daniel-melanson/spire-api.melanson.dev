@@ -6,8 +6,9 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import CombinedSectionAvailability, Section, SectionCoverage, Subject
+from spire.models import CombinedSectionAvailability, Course, Section, SectionCoverage, Subject
 from spire.patterns import TERM_REGEXP
+from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
 from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
@@ -92,12 +93,15 @@ def _scrape_meeting_instructor_list(sections_table, link_number):
     return meeting_instructor_list
 
 
-def can_skip(driver: SpireDriver, section_id: str, link_number: str):
+def can_skip(driver: SpireDriver, course: Course, section_id: str, link_number: str):
     try:
         section = Section.objects.get(id=section_id)
 
+        if section.course != course:
+            return False, "mismatched section course and current course"
+
         if CombinedSectionAvailability.objects.filter(individual_availability_id=section.id).first():
-            return False
+            return False, "section is combined"
 
         status_icon = driver.find(
             f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img", By.CSS_SELECTOR
@@ -119,13 +123,18 @@ def can_skip(driver: SpireDriver, section_id: str, link_number: str):
         current_enrollment = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
         current_capacity = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
 
-        return (
-            section.details.status == current_status
-            and section.availability.enrollment_total == current_enrollment
-            and section.availability.capacity == current_capacity
-        )
+        if section.details.status != current_status:
+            return False, "mismatched status"
+
+        if section.availability.enrollment_total != current_enrollment:
+            return False, "mismatched enrollment total"
+
+        if section.availability.capacity == current_capacity:
+            return False, "mismatched capacity"
+
+        return True, "OK"
     except Section.DoesNotExist:
-        return False
+        return False, "does not exist"
 
 
 # Extremely rare cases
@@ -157,8 +166,21 @@ def _scrape_search_results(
             r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
             COURSE_GROUP_OVERRIDES.get(span.text, span.text),
         )
-        course_id, _, _ = RawCourse.get_course_id(
+        course_id, _, number = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")
+        )
+
+        course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
+
+        course = Course.objects.get_or_create(
+            id=course_id,
+            defaults={
+                "subject": subject,
+                "number": number,
+                "title": course_title,
+                "description": None,
+                "_updated_at": timezone.now(),
+            },
         )
 
         log.debug("Scraping sections for course: %s", course_id)
@@ -190,12 +212,13 @@ def _scrape_search_results(
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             if quick:
-                if can_skip(driver, section_id, link_number):
+                can_skip_section, reason = can_skip(driver, course, section_id, link_number):
+                if can_skip_section:
                     log.info("Skipping section: %s", section_id)
                     scraped_section_ids_for_course.add(section_id)
                     continue
                 else:
-                    log.info("Not skipping section: %s", section_id)
+                    log.info("Not skipping section: %s - %s", section_id, reason)
 
             log.info("Navigating to section page for %s section %s...", course_id, section_id)
             driver.click(link_id)
@@ -213,10 +236,9 @@ def _scrape_search_results(
                 )
 
             section = RawSection(
-                course_id=course_id,
-                course_title=title_match.group("course_title").strip(),
-                term=term,
                 id=section_id,
+                term=term,
+                alternative_title=course_title if course_title != course.title else None,
                 details=table_results["Class Details"],
                 meeting_information=meeting_info_list,
                 restrictions=table_results.get("RESTRICTIONS & NOTES", None),
@@ -233,7 +255,7 @@ def _scrape_search_results(
             log.info("Clicking return then pushing...")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
 
-            section.push(subject)
+            section.push(subject, course)
 
             driver.wait_for_spire()
             log.info("Returned to search results for %s durning %s.", subject, term)

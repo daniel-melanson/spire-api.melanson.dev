@@ -1,4 +1,4 @@
-# spire-api.melanson.dev
+# spire-api.melanson.dev (WIP)
 
 An API for public information on [UMass Spire](https://www.spire.umass.edu/).
 
@@ -9,10 +9,6 @@ Information about courses, sections, and subjects is publicly available; but ret
 ## Documentation
 
 A list of schemas and endpoints can be found [here](https://spire-api.melanson.dev/docs).
-
-How some data entries are bundled might not make sense. I tried to be un-opinionated and make the schemas near identical to how information is displayed on Spire. Meaning a `Course` is a collection of data that would be on a course page `Main Menu > Course Guides > Browse Course Catalog > C > COMPSCI > CS 121`. The same idea applies to sections.
-
-This means that no data is ignored and it is up to the end developer to decide which information to use. As an example, `Course`s and `Section`s may optionally have descriptions. However, the description in the most recent `Section` tends to be the more up-to-date version.
 
 ## Crawling Routine
 
@@ -30,8 +26,12 @@ Every section during or after the Fall 2018 term is scraped. But only sections t
 
 The course catalog is scraped once a week. The routine usually finishes within 6 hours.
 
-Sections (retrieved from the search page) are scraped every two days. The routine usually takes around 8 hours
-
 ## Inconsistencies
 
 Instructor names are assumed to be unique. This makes handling cases where staff names are documented without emails nicer to handle. This does come with the drawback that some staff might be merged together (considered the same person despite having different emails). However, I do not think that this will happen frequently and the benefit of matching sections labeled without an email is outweighs this.
+
+## Organization
+
+A `Course` is a unique instance of a id across spire. The default information for a course is first obtained from the course catalog. This will generate structures like a `CourseDetail` and `CourseEnrollmentInformation` based on the present information on a course's catalog page.
+
+`Section`s will reference course objects, if one exists with a matching id, or create stub objects using providing only absolute information (id, subject, number, title). They potentially have their own `alternative_title` if the title listed on the section is different from the title listed for the respective `Course` object.

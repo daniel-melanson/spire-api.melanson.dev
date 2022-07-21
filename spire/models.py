@@ -137,6 +137,23 @@ class Section(models.Model):
         ordering = ["term", "course_id", "id"]
 
 
+class NEWSection(models.Model):
+    id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="sections")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sections")
+    alternative_title = models.CharField(max_length=2**8, null=True)
+    term = models.CharField(max_length=2**4, validators=[_section_term_validator])
+    description = models.CharField(max_length=2**12, null=True)
+    overview = models.CharField(max_length=2**15, null=True)
+    _updated_at = models.DateTimeField()
+
+    def __str__(self):
+        return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
+
+    class Meta:
+        ordering = ["term", "course_id", "id"]
+
+
 class SectionDetail(models.Model):
     section = models.OneToOneField(
         Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
