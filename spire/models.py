@@ -78,7 +78,6 @@ class Course(Model):
     number = CharField(max_length=2**4, validators=[_course_id_number_validator])
     title = CharField(max_length=2**8, validators=[_course_title_validator])
     description = CharField(max_length=2**12, null=True)
-    sections = ManyToManyField("Section", related_name="+")
     _updated_at = DateTimeField()
 
     def __str__(self) -> str:
@@ -152,8 +151,8 @@ class Section(Model):
 
 class CourseOffering(Model):
     id = AutoField(primary_key=True)
-    subject = ForeignKey(Subject, on_delete=CASCADE)
-    course = ForeignKey(Course, on_delete=CASCADE)
+    subject = ForeignKey(Subject, on_delete=CASCADE, related_name="offerings")
+    course = ForeignKey(Course, on_delete=CASCADE, related_name="offerings")
     alternative_title = CharField(max_length=2**8, null=True)
     term = CharField(max_length=2**5)
 
@@ -175,14 +174,14 @@ class SectionV2(Model):
     _updated_at = DateTimeField()
 
     def __str__(self):
-        return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
+        return f"Section[{self.id}](offering={self.offering})"
 
     class Meta:
         ordering = ["id"]
 
 
 class SectionDetail(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="details")
+    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="details")
     status = CharField(null=True, max_length=2**6)
     class_number = IntegerField()
     session = CharField(null=True, max_length=2**6)
@@ -199,7 +198,7 @@ class SectionDetail(Model):
 
 
 class SectionAvailability(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="availability")
+    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="availability")
     capacity = IntegerField()
     enrollment_total = IntegerField()
     available_seats = IntegerField()
@@ -222,14 +221,7 @@ class CombinedSectionAvailability(Model):
 
 
 class SectionRestriction(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
-    drop_consent = CharField(null=True, max_length=2**12)
-    enrollment_requirements = CharField(null=True, max_length=2**12)
-    add_consent = CharField(null=True, max_length=2**12)
-
-
-class SectionRestriction(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
+    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="restrictions")
     drop_consent = CharField(null=True, max_length=2**12)
     enrollment_requirements = CharField(null=True, max_length=2**12)
     add_consent = CharField(null=True, max_length=2**12)
@@ -237,7 +229,7 @@ class SectionRestriction(Model):
 
 class MeetingInformation(Model):
     id = AutoField(primary_key=True)
-    section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
+    section = ForeignKey(SectionV2, on_delete=CASCADE, related_name="meeting_information")
     days_and_times = CharField(max_length=2**6)
     room = CharField(max_length=2**6)
     instructors = ManyToManyField(Instructor, "+")
