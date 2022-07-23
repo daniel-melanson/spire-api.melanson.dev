@@ -56,6 +56,11 @@ _section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a secti
 _section_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
 
 
+class AcademicGroup(Model):
+    id = AutoField(primary_key=True)
+    title = CharField(max_length=2**6, unique=True)
+
+
 class Subject(Model):
     title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
     id = CharField(
@@ -64,6 +69,7 @@ class Subject(Model):
         primary_key=True,
         validators=[_subject_id_validator],
     )
+    groups = ManyToManyField(AcademicGroup, related_name="subjects")
 
     def __str__(self):
         return f"Subject[{self.id}](title='{self.title}')"

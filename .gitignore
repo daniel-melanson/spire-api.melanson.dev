@@ -167,3 +167,4 @@ logs/
 logs-debug/
 dump.sql
 .pg_pass
+playground.py
