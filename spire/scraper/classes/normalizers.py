@@ -23,6 +23,21 @@ STRIP_STR = lambda x: x.strip() if isinstance(x, str) else x
 
 EMPTY_TO_NONE = lambda x: None if len(x) == 0 else x
 
+_BAD_DESCRIPTIONS = (
+    "not available at this time",
+    "description not available",
+    "not available at this time.",
+    "this is not available at this time",
+    "description not available at this time",
+    "description not available at this time.",
+    "description - Not available at this time",
+    "course description not available at this time",
+    "course desctiption not available at this time.",
+    "course description not available at this time.",
+)
+
+DESCRIPTION_NOT_AVAILABLE_TO_NONE = lambda x: None if x.lower() in _BAD_DESCRIPTIONS else x
+
 
 def NORMALIZER_FOR_DICT(normalizer):
     def f(x):

@@ -1,5 +1,18 @@
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db.models import (
+    CASCADE,
+    AutoField,
+    BooleanField,
+    CharField,
+    DateTimeField,
+    EmailField,
+    ForeignKey,
+    IntegerField,
+    JSONField,
+    ManyToManyField,
+    Model,
+    OneToOneField,
+)
 
 from spire.patterns import (
     COURSE_ID_NUM_REGEXP,
@@ -43,9 +56,9 @@ _section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a secti
 _section_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
 
 
-class Subject(models.Model):
-    title = models.CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
-    id = models.CharField(
+class Subject(Model):
+    title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
+    id = CharField(
         max_length=2**3,
         unique=True,
         primary_key=True,
@@ -59,14 +72,14 @@ class Subject(models.Model):
         ordering = ["id"]
 
 
-class Course(models.Model):
-    id = models.CharField(max_length=2**5, primary_key=True, validators=[_course_id_validator])
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="courses")
-    number = models.CharField(max_length=2**4, validators=[_course_id_number_validator])
-    title = models.CharField(max_length=2**8, validators=[_course_title_validator])
-    description = models.CharField(max_length=2**12, null=True)
-    sections = models.ManyToManyField("Section", related_name="+")
-    _updated_at = models.DateTimeField()
+class Course(Model):
+    id = CharField(max_length=2**5, primary_key=True, validators=[_course_id_validator])
+    subject = ForeignKey(Subject, on_delete=CASCADE, related_name="courses")
+    number = CharField(max_length=2**4, validators=[_course_id_number_validator])
+    title = CharField(max_length=2**8, validators=[_course_title_validator])
+    description = CharField(max_length=2**12, null=True)
+    sections = ManyToManyField("Section", related_name="+")
+    _updated_at = DateTimeField()
 
     def __str__(self) -> str:
         return f"Course[{self.id}](subject={self.subject}, title='{self.title}')"
@@ -76,15 +89,15 @@ class Course(models.Model):
         ordering = ["id"]
 
 
-class CourseDetail(models.Model):
-    course = models.OneToOneField(Course, on_delete=models.CASCADE, primary_key=True, related_name="details")
-    career = models.CharField(null=True, max_length=2**5)
-    units = models.CharField(null=True, max_length=2**4)
-    grading_basis = models.CharField(null=True, max_length=2**5)
-    course_components = models.JSONField(null=True, default=list)
-    academic_group = models.CharField(null=True, max_length=2**7)
-    academic_organization = models.CharField(null=True, max_length=2**7)
-    campus = models.CharField(null=True, max_length=2**6)
+class CourseDetail(Model):
+    course = OneToOneField(Course, on_delete=CASCADE, primary_key=True, related_name="details")
+    career = CharField(null=True, max_length=2**5)
+    units = CharField(null=True, max_length=2**4)
+    grading_basis = CharField(null=True, max_length=2**5)
+    course_components = JSONField(null=True, default=list)
+    academic_group = CharField(null=True, max_length=2**7)
+    academic_organization = CharField(null=True, max_length=2**7)
+    campus = CharField(null=True, max_length=2**6)
 
     def __str__(self) -> str:
         return f"CourseDetail[{self.course}]"
@@ -93,25 +106,25 @@ class CourseDetail(models.Model):
         ordering = ["course"]
 
 
-class CourseEnrollmentInformation(models.Model):
-    course = models.OneToOneField(
+class CourseEnrollmentInformation(Model):
+    course = OneToOneField(
         "Course",
-        on_delete=models.CASCADE,
+        on_delete=CASCADE,
         primary_key=True,
         related_name="enrollment_information",
     )
-    add_consent = models.CharField(null=True, max_length=2**9)
-    enrollment_requirement = models.CharField(null=True, max_length=2**9)
-    course_attribute = models.JSONField(null=True, default=list)
+    add_consent = CharField(null=True, max_length=2**9)
+    enrollment_requirement = CharField(null=True, max_length=2**9)
+    course_attribute = JSONField(null=True, default=list)
 
     class Meta:
         ordering = ["course"]
 
 
-class Instructor(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=2**6, unique=True)
-    email = models.EmailField(null=True)
+class Instructor(Model):
+    id = AutoField(primary_key=True)
+    name = CharField(max_length=2**6, unique=True)
+    email = EmailField(null=True)
 
     def __str__(self):
         return f"Instructor(name='{self.name}', email='{self.email}')"
@@ -120,15 +133,15 @@ class Instructor(models.Model):
         ordering = ["name", "email"]
 
 
-class Section(models.Model):
-    id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="sections")
-    course_id = models.CharField(max_length=2**5, validators=[_course_id_validator])
-    course_title = models.CharField(max_length=2**8, null=True)
-    term = models.CharField(max_length=2**4, validators=[_section_term_validator])
-    description = models.CharField(max_length=2**12, null=True)
-    overview = models.CharField(max_length=2**15, null=True)
-    _updated_at = models.DateTimeField()
+class Section(Model):
+    id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    subject = ForeignKey(Subject, on_delete=CASCADE, related_name="sections")
+    course_id = CharField(max_length=2**5, validators=[_course_id_validator])
+    course_title = CharField(max_length=2**8, null=True)
+    term = CharField(max_length=2**4, validators=[_section_term_validator])
+    description = CharField(max_length=2**12, null=True)
+    overview = CharField(max_length=2**15, null=True)
+    _updated_at = DateTimeField()
 
     def __str__(self):
         return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
@@ -137,93 +150,108 @@ class Section(models.Model):
         ordering = ["term", "course_id", "id"]
 
 
-class NEWSection(models.Model):
-    id = models.CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="sections")
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="sections")
-    alternative_title = models.CharField(max_length=2**8, null=True)
-    term = models.CharField(max_length=2**4, validators=[_section_term_validator])
-    description = models.CharField(max_length=2**12, null=True)
-    overview = models.CharField(max_length=2**15, null=True)
-    _updated_at = models.DateTimeField()
+class CourseOffering(Model):
+    id = AutoField(primary_key=True)
+    subject = ForeignKey(Subject, on_delete=CASCADE)
+    course = ForeignKey(Course, on_delete=CASCADE)
+    alternative_title = CharField(max_length=2**8, null=True)
+    term = CharField(max_length=2**5)
+
+    def __str__(self):
+        return (
+            f"CourseOffering[{self.id}](term={self.term}, subject={self.subject.id}, course={self.course.id})"
+        )
+
+    class Meta:
+        ordering = ["term", "course"]
+        unique_together = [["course", "term"]]
+
+
+class SectionV2(Model):
+    id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    offering = ForeignKey(CourseOffering, on_delete=CASCADE, related_name="sections")
+    description = CharField(max_length=2**12, null=True)
+    overview = CharField(max_length=2**15, null=True)
+    _updated_at = DateTimeField()
 
     def __str__(self):
         return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
 
     class Meta:
-        ordering = ["term", "course_id", "id"]
+        ordering = ["id"]
 
 
-class SectionDetail(models.Model):
-    section = models.OneToOneField(
-        Section, on_delete=models.CASCADE, primary_key=True, related_name="details"
-    )
-    status = models.CharField(null=True, max_length=2**6)
-    class_number = models.IntegerField()
-    session = models.CharField(null=True, max_length=2**6)
-    units = models.CharField(null=True, max_length=2**6)
-    class_components = models.JSONField(null=True)
-    career = models.CharField(null=True, max_length=2**6)
-    topic = models.CharField(null=True, max_length=2**6)
-    grading = models.CharField(null=True, max_length=2**6)
-    gened = models.JSONField(null=True)
-    rap_tap_hlc = models.CharField(null=True, max_length=2**6)
+class SectionDetail(Model):
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="details")
+    status = CharField(null=True, max_length=2**6)
+    class_number = IntegerField()
+    session = CharField(null=True, max_length=2**6)
+    units = CharField(null=True, max_length=2**6)
+    class_components = JSONField(null=True)
+    career = CharField(null=True, max_length=2**6)
+    topic = CharField(null=True, max_length=2**6)
+    grading = CharField(null=True, max_length=2**6)
+    gened = JSONField(null=True)
+    rap_tap_hlc = CharField(null=True, max_length=2**6)
 
     class Meta:
         ordering = ["section"]
 
 
-class SectionAvailability(models.Model):
-    section = models.OneToOneField(
-        Section, on_delete=models.CASCADE, primary_key=True, related_name="availability"
+class SectionAvailability(Model):
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="availability")
+    capacity = IntegerField()
+    enrollment_total = IntegerField()
+    available_seats = IntegerField()
+    wait_list_capacity = IntegerField()
+    wait_list_total = IntegerField()
+    nso_enrollment_capacity = IntegerField(null=True, default=None)
+
+
+class CombinedSectionAvailability(Model):
+    individual_availability = OneToOneField(
+        SectionAvailability, on_delete=CASCADE, primary_key=True, related_name="combined_availability"
     )
-    capacity = models.IntegerField()
-    enrollment_total = models.IntegerField()
-    available_seats = models.IntegerField()
-    wait_list_capacity = models.IntegerField()
-    wait_list_total = models.IntegerField()
-    nso_enrollment_capacity = models.IntegerField(null=True, default=None)
+    sections = JSONField()
+    capacity = IntegerField()
+    enrollment_total = IntegerField()
+    available_seats = IntegerField()
+    wait_list_capacity = IntegerField()
+    wait_list_total = IntegerField()
+    nso_enrollment_capacity = IntegerField(null=True, default=None)
 
 
-class CombinedSectionAvailability(models.Model):
-    individual_availability = models.OneToOneField(
-        SectionAvailability, on_delete=models.CASCADE, primary_key=True, related_name="combined_availability"
-    )
-    sections = models.JSONField()
-    capacity = models.IntegerField()
-    enrollment_total = models.IntegerField()
-    available_seats = models.IntegerField()
-    wait_list_capacity = models.IntegerField()
-    wait_list_total = models.IntegerField()
-    nso_enrollment_capacity = models.IntegerField(null=True, default=None)
+class SectionRestriction(Model):
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
+    drop_consent = CharField(null=True, max_length=2**12)
+    enrollment_requirements = CharField(null=True, max_length=2**12)
+    add_consent = CharField(null=True, max_length=2**12)
 
 
-class SectionRestriction(models.Model):
-    section = models.OneToOneField(
-        Section, on_delete=models.CASCADE, primary_key=True, related_name="restrictions"
-    )
-    drop_consent = models.CharField(null=True, max_length=2**12)
-    enrollment_requirements = models.CharField(null=True, max_length=2**12)
-    add_consent = models.CharField(null=True, max_length=2**12)
+class SectionRestriction(Model):
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
+    drop_consent = CharField(null=True, max_length=2**12)
+    enrollment_requirements = CharField(null=True, max_length=2**12)
+    add_consent = CharField(null=True, max_length=2**12)
 
 
-class MeetingInformation(models.Model):
-    id = models.AutoField(primary_key=True)
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name="meeting_information")
-    days_and_times = models.CharField(max_length=2**6)
-    room = models.CharField(max_length=2**6)
-    instructors = models.ManyToManyField(Instructor, "+")
-    meeting_dates = models.CharField(max_length=2**6)
+class MeetingInformation(Model):
+    id = AutoField(primary_key=True)
+    section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
+    days_and_times = CharField(max_length=2**6)
+    room = CharField(max_length=2**6)
+    instructors = ManyToManyField(Instructor, "+")
+    meeting_dates = CharField(max_length=2**6)
 
     class Meta:
         ordering = ["section", "days_and_times"]
 
 
-class SectionCoverage(models.Model):
-    term = models.CharField(max_length=2**5, primary_key=True, validators=[_section_term_validator])
-    completed = models.BooleanField(default=False)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True)
+class SectionCoverage(Model):
+    term = CharField(max_length=2**5, primary_key=True, validators=[_section_term_validator])
+    completed = BooleanField(default=False)
+    start_time = DateTimeField()
+    end_time = DateTimeField(null=True)
 
     class Meta:
         ordering = ["term"]

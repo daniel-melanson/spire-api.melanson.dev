@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from spire.models import MeetingInformation, Section
 from spire.patterns import SECTION_ID_REGEXP, TERM_REGEXP
-from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
+from spire.scraper.classes.normalizers import DESCRIPTION_NOT_AVAILABLE_TO_NONE, REPLACE_DOUBLE_SPACE, STRIP_STR
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
@@ -67,10 +67,10 @@ class RawSection(RawObject):
             fields=[
                 RawField("id", re=SECTION_ID_REGEXP),
                 RawField("term", re=TERM_REGEXP),
-                RawField("alternative_title", normalizers=[REPLACE_DOUBLE_SPACE])
+                RawField("alternative_title", normalizers=[REPLACE_DOUBLE_SPACE]),
                 RawField(
                     "description",
-                    normalizers=[STRIP_STR, key_override_factory({"Not available at this time": None})],
+                    normalizers=[STRIP_STR, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
                     min_len=5,
                 ),
                 RawField("overview", min_len=5),

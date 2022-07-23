@@ -212,7 +212,7 @@ def _scrape_search_results(
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             if quick:
-                can_skip_section, reason = can_skip(driver, course, section_id, link_number):
+                can_skip_section, reason = can_skip(driver, course, section_id, link_number)
                 if can_skip_section:
                     log.info("Skipping section: %s", section_id)
                     scraped_section_ids_for_course.add(section_id)
