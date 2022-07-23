@@ -1,155 +1,200 @@
-# from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
-# from spire.models import (
-#     Course,
-#     CourseDetail,
-#     CourseEnrollmentInformation,
-#     Instructor,
-#     MeetingInformation,
-#     Section,
-#     SectionCoverage,
-#     SectionDetail,
-#     Subject,
-# )
-
-# # Field Serializers
-
-
-# class SubjectFieldSerializer(ModelSerializer):
-#     class Meta:
-#         model = Subject
-#         fields = ["url", "id", "title"]
+from spire.models import (
+    AcademicGroup,
+    Course,
+    CourseDetail,
+    CourseEnrollmentInformation,
+    CourseOffering,
+    Instructor,
+    MeetingInformation,
+    Section,
+    SectionAvailability,
+    SectionCombinedAvailability,
+    SectionCoverage,
+    SectionDetail,
+    SectionRestriction,
+    Subject,
+)
 
 
-# class CourseFieldSerializer(ModelSerializer):
-#     class Meta:
-#         model = Course
-#         fields = ["url", "id"]
+class BaseFieldSerializer(ModelSerializer):
+    def __init__(self, instance=None, data=..., **kwargs):
+        super().__init__(instance, data, read_only=True, **kwargs)
 
 
-# class CourseDetailsFieldSerializer(ModelSerializer):
-#     class Meta:
-#         model = CourseDetail
-#         exclude = ["course"]
+# Field Serializers
 
 
-# class CourseEnrollmentInformationFieldSerializer(ModelSerializer):  # lmao
-#     class Meta:
-#         model = CourseEnrollmentInformation
-#         exclude = ["course"]
+class SubjectFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = Subject
+        fields = ["url", "id", "title"]
 
 
-# class SectionFieldSerializer(ModelSerializer):
-#     class Meta:
-#         model = Section
-#         fields = ["url", "id"]
+# Course
+class CourseFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = Course
+        fields = ["url", "id"]
 
 
-# class SectionDetailFieldSerializer(ModelSerializer):
-#     class Meta:
-#         model = SectionDetail
-#         exclude = ["section"]
+class CourseDetailsFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = CourseDetail
+        exclude = ["course"]
 
 
-# # Regular Serializers
-# class SubjectSerializer(HyperlinkedModelSerializer):
-#     courses = CourseFieldSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = Subject
-#         fields = ["url", "id", "title", "courses"]
+class CourseEnrollmentInformationFieldSerializer(BaseFieldSerializer):  # lmao
+    class Meta:
+        model = CourseEnrollmentInformation
+        exclude = ["course"]
 
 
-# class CourseSerializer(HyperlinkedModelSerializer):
-#     sections = SectionFieldSerializer(many=True, read_only=True)
-#     subject = SubjectFieldSerializer(read_only=True)
-#     details = CourseDetailsFieldSerializer(read_only=True)
-#     enrollment_information = CourseEnrollmentInformationFieldSerializer(read_only=True)
-
-#     class Meta:
-#         model = Course
-#         fields = [
-#             "url",
-#             "id",
-#             "subject",
-#             "number",
-#             "title",
-#             "description",
-#             "details",
-#             "enrollment_information",
-#             "sections",
-#             "_updated_at",
-#         ]
+# Offering
+class CourseOfferingFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = CourseOffering
+        fields = ["url", "id", "term"]
 
 
-# class CourseDetailSerializer(ModelSerializer):
-#     class Meta:
-#         model = CourseDetail
-#         fields = "__all__"
+# Section
+class SectionFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = Section
+        fields = ["url", "id"]
 
 
-# class CourseEnrollmentInformationSerializer(ModelSerializer):
-#     class Meta:
-#         model = CourseEnrollmentInformation
-#         fields = "__all__"
+class SectionDetailFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = SectionDetail
+        exclude = ["section"]
 
 
-# class SectionDetailSerializer(HyperlinkedModelSerializer):
-#     section = SectionFieldSerializer(read_only=True)
-
-#     class Meta:
-#         model = SectionDetail
-#         fields = [
-#             "section",
-#             "status",
-#             "class_number",
-#             "session",
-#             "units",
-#             "class_components",
-#             "career",
-#             "topic",
-#             "grading",
-#             "gened",
-#             "rap_tap_hlc",
-#         ]
+class SectionAvailabilityFieldSerializer:
+    class Meta:
+        model = SectionAvailability
+        exclude = ["section"]
 
 
-# class InstructorSerializer(HyperlinkedModelSerializer):
-#     class Meta:
-#         model = Instructor
-#         fields = "__all__"
+class CombinedSectionAvailabilityFieldSerializer:
+    class Meta:
+        model = SectionCombinedAvailability
+        exclude = ["individual_availability"]
 
 
-# class MeetingInformationSerializer(HyperlinkedModelSerializer):
-#     instructors = InstructorSerializer(read_only=True, many=True)
-#     section = SectionFieldSerializer(read_only=True)
-
-#     class Meta:
-#         model = MeetingInformation
-#         fields = "__all__"
+# Regular Serializers
 
 
-# class SectionSerializer(HyperlinkedModelSerializer):
-#     details = SectionDetailFieldSerializer(read_only=True)
-#     meeting_information = MeetingInformationSerializer(read_only=True, many=True)
+class AcademicGroupSerializer(HyperlinkedModelSerializer):
+    subjects = SubjectFieldSerializer(many=True)
 
-#     class Meta:
-#         model = Section
-#         fields = [
-#             "id",
-#             "course_id",
-#             "term",
-#             "details",
-#             "meeting_information",
-#             "restrictions",
-#             "availability",
-#             "description",
-#             "overview",
-#             "_updated_at",
-#         ]
+    class Meta:
+        model = AcademicGroup
+        fields = ["url", "id", "title", "subjects"]
 
 
-# class SectionCoverageSerializer(HyperlinkedModelSerializer):
-#     class Meta:
-#         model = SectionCoverage
-#         fields = ["url", "term", "completed", "start_time", "end_time"]
+class SubjectSerializer(HyperlinkedModelSerializer):
+    courses = CourseFieldSerializer(many=True)
+
+    class Meta:
+        model = Subject
+        fields = ["url", "id", "title", "courses"]
+
+
+class CourseSerializer(HyperlinkedModelSerializer):
+    offerings = CourseOfferingFieldSerializer(many=True)
+    subject = SubjectFieldSerializer()
+    details = CourseDetailsFieldSerializer()
+    enrollment_information = CourseEnrollmentInformationFieldSerializer()
+
+    class Meta:
+        model = Course
+        fields = "__all__"
+
+
+class CourseDetailSerializer(ModelSerializer):
+    course = CourseFieldSerializer()
+
+    class Meta:
+        model = CourseDetail
+        fields = "__all__"
+
+
+class CourseEnrollmentInformationSerializer(ModelSerializer):
+    course = CourseFieldSerializer()
+
+    class Meta:
+        model = CourseEnrollmentInformation
+        fields = "__all__"
+
+
+class CourseOfferingSerializer(ModelSerializer):
+    sections = SectionFieldSerializer(many=True)
+
+    class Meta:
+        model = CourseEnrollmentInformation
+        fields = "__all__"
+
+
+class InstructorSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = Instructor
+        fields = "__all__"
+
+
+class MeetingInformationSerializer(HyperlinkedModelSerializer):
+    instructors = InstructorSerializer(many=True)
+    section = SectionFieldSerializer()
+
+    class Meta:
+        model = MeetingInformation
+        fields = "__all__"
+
+
+class SectionSerializer(HyperlinkedModelSerializer):
+    details = SectionDetailFieldSerializer()
+    meeting_information = MeetingInformationSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Section
+        fields = "__all__"
+
+
+class SectionDetailSerializer(HyperlinkedModelSerializer):
+    section = SectionFieldSerializer()
+
+    class Meta:
+        model = SectionDetail
+        fields = "__all__"
+
+
+class SectionAvailabilitySerializer(HyperlinkedModelSerializer):
+    section = SectionFieldSerializer()
+    combined_availability = CombinedSectionAvailabilityFieldSerializer()
+
+    class Meta:
+        model = SectionAvailability
+        fields = "__all__"
+
+
+class CombinedSectionAvailabilitySerializer(HyperlinkedModelSerializer):
+    individual_availability = SectionAvailabilityFieldSerializer()
+
+    class Meta:
+        model = SectionCombinedAvailability
+        fields = "__all__"
+
+
+class SectionRestrictionSerializer(HyperlinkedModelSerializer):
+    section = SectionFieldSerializer()
+
+    class Meta:
+        model = SectionRestriction
+        fields = "__all__"
+
+
+class SectionCoverageSerializer(HyperlinkedModelSerializer):
+    class Meta:
+        model = SectionCoverage
+        fields = ["url", "term", "completed", "start_time", "end_time"]

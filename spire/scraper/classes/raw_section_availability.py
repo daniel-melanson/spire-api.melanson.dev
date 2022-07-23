@@ -1,7 +1,7 @@
 import logging
 import re
 
-from spire.models import CombinedSectionAvailability, Section, SectionAvailability
+from spire.models import Section, SectionAvailability, SectionCombinedAvailability
 from spire.scraper.shared import assert_match
 
 from .shared import RawDictionary, RawField
@@ -46,7 +46,7 @@ class RawCombinedSectionAvailability(RawDictionary):
         self.section_id = section_id
 
         super().__init__(
-            CombinedSectionAvailability,
+            SectionCombinedAvailability,
             table,
             fields=[RawField(k="Sections", normalizers=[section_list_normalizer]), *AVAILABILITY_FIELDS],
         )

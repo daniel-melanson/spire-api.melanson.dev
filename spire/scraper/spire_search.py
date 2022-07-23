@@ -7,10 +7,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 from spire.models import (
-    CombinedSectionAvailability,
     Course,
     CourseOffering,
     Section,
+    SectionCombinedAvailability,
     SectionCoverage,
     Subject,
 )
@@ -107,7 +107,7 @@ def can_skip(driver: SpireDriver, course: Course, section_id: str, link_number: 
         if section.course != course:
             return False, "mismatched section course and current course"
 
-        if CombinedSectionAvailability.objects.filter(individual_availability_id=section.id).first():
+        if SectionCombinedAvailability.objects.filter(individual_availability_id=section.id).first():
             return False, "section is combined"
 
         status_icon = driver.find(

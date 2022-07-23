@@ -60,6 +60,9 @@ class AcademicGroup(Model):
     id = AutoField(primary_key=True)
     title = CharField(max_length=2**6, unique=True)
 
+    class Meta:
+        ordering = ["id"]
+
 
 class Subject(Model):
     title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
@@ -126,18 +129,6 @@ class CourseEnrollmentInformation(Model):
         ordering = ["course"]
 
 
-class Instructor(Model):
-    id = AutoField(primary_key=True)
-    name = CharField(max_length=2**6, unique=True)
-    email = EmailField(null=True)
-
-    def __str__(self):
-        return f"Instructor(name='{self.name}', email='{self.email}')"
-
-    class Meta:
-        ordering = ["name", "email"]
-
-
 class CourseOffering(Model):
     id = AutoField(primary_key=True)
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="offerings")
@@ -153,6 +144,18 @@ class CourseOffering(Model):
     class Meta:
         ordering = ["term", "course"]
         unique_together = [["course", "term"]]
+
+
+class Instructor(Model):
+    id = AutoField(primary_key=True)
+    name = CharField(max_length=2**6, unique=True)
+    email = EmailField(null=True)
+
+    def __str__(self):
+        return f"Instructor(name='{self.name}', email='{self.email}')"
+
+    class Meta:
+        ordering = ["name", "email"]
 
 
 class Section(Model):
@@ -195,8 +198,11 @@ class SectionAvailability(Model):
     wait_list_total = IntegerField()
     nso_enrollment_capacity = IntegerField(null=True, default=None)
 
+    class Meta:
+        ordering = ["section"]
 
-class CombinedSectionAvailability(Model):
+
+class SectionCombinedAvailability(Model):
     individual_availability = OneToOneField(
         SectionAvailability, on_delete=CASCADE, primary_key=True, related_name="combined_availability"
     )
@@ -208,12 +214,18 @@ class CombinedSectionAvailability(Model):
     wait_list_total = IntegerField()
     nso_enrollment_capacity = IntegerField(null=True, default=None)
 
+    class Meta:
+        ordering = ["individual_availability"]
+
 
 class SectionRestriction(Model):
     section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
     drop_consent = CharField(null=True, max_length=2**12)
     enrollment_requirements = CharField(null=True, max_length=2**12)
     add_consent = CharField(null=True, max_length=2**12)
+
+    class Meta:
+        ordering = ["section"]
 
 
 class MeetingInformation(Model):
