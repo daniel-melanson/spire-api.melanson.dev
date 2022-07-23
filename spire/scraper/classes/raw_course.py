@@ -8,6 +8,7 @@ from spire.scraper.classes.normalizers import (
     REPLACE_DOUBLE_SPACE,
     STRIP_STR,
 )
+from spire.scraper.classes.raw_academic_group import RawAcademicGroup
 from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
 
 from .raw_course_detail import RawCourseDetail
@@ -43,6 +44,9 @@ class RawCourse(RawObject):
 
         self.details = RawCourseDetail(self.id, details)
 
+        if self.details.academic_group is not None:
+            self._raw_group = RawAcademicGroup(self.details.academic_group)
+
         if enrollment_information:
             self.enrollment_information = RawCourseEnrollmentInformation(self.id, enrollment_information)
         else:
@@ -66,6 +70,9 @@ class RawCourse(RawObject):
 
     def push(self):
         course = super().push()
+
+        if hasattr(self, "_raw_group"):
+            self.subject.groups.add(self._raw_group.push())
 
         self.details.push(course)
 

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from spire.models import Course, CourseDetail
+from spire.scraper.classes.raw_academic_group import GROUP_OVERRIDES, RawAcademicGroup
 
 from .assertions import NO_EMPTY_STRS_ASSERTION
 from .normalizers import COURSE_CREDIT_NORMALIZER, SPLIT_NEWLINE
@@ -35,16 +36,7 @@ class RawCourseDetail(RawDictionary):
                 RawField(
                     k="Academic Group",
                     min_len=1,
-                    normalizers=[
-                        key_override_factory(
-                            {
-                                "College of Humanities&Fine Art": "College of Humanities & Fine Art",
-                                "Stockbridge School": "Stockbridge School of Agriculture",
-                                "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
-                                "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
-                            }
-                        )
-                    ],
+                    normalizers=[GROUP_OVERRIDES],
                 ),
                 RawField(
                     k="Academic Organization",

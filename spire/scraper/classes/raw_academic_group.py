@@ -3,10 +3,14 @@ from spire.scraper.classes.shared import RawField, RawObject, key_override_facto
 
 GROUP_OVERRIDES = key_override_factory(
     {
+        "College of Humanities&Fine Art": "College of Humanities & Fine Art",
+        "Stockbridge School": "Stockbridge School of Agriculture",
+        "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
+        "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
         "College of Natural Sci. & Math": "College of Natural Sciences",
         "Sch. of Public Health&Hlth Sci": "School of Public Health & Health Sciences",
         "School of Education": "College of Education",
-    },
+    }
 )
 
 
@@ -14,16 +18,16 @@ class RawAcademicGroup(RawObject):
     title: str
 
     def __init__(self, title: str) -> None:
-        self.title = GROUP_OVERRIDES(title)
+        self.title = title
 
         super().__init__(
             AcademicGroup,
             fields=[
-                RawField(k="title"),
+                RawField(k="title", normalizers=[GROUP_OVERRIDES]),
             ],
         )
 
     def push(self):
-        object, created = AcademicGroup.objects.get_or_create(title=self.title)
+        object, _ = AcademicGroup.objects.get_or_create(title=self.title)
 
         return object
