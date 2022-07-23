@@ -149,7 +149,7 @@ class CourseOffering(Model):
         unique_together = [["course", "term"]]
 
 
-class SectionV2(Model):
+class Section(Model):
     id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
     offering = ForeignKey(CourseOffering, on_delete=CASCADE, related_name="sections")
     description = CharField(max_length=2**12, null=True)
@@ -164,7 +164,7 @@ class SectionV2(Model):
 
 
 class SectionDetail(Model):
-    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="details")
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="details")
     status = CharField(null=True, max_length=2**6)
     class_number = IntegerField()
     session = CharField(null=True, max_length=2**6)
@@ -181,7 +181,7 @@ class SectionDetail(Model):
 
 
 class SectionAvailability(Model):
-    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="availability")
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="availability")
     capacity = IntegerField()
     enrollment_total = IntegerField()
     available_seats = IntegerField()
@@ -204,7 +204,7 @@ class CombinedSectionAvailability(Model):
 
 
 class SectionRestriction(Model):
-    section = OneToOneField(SectionV2, on_delete=CASCADE, primary_key=True, related_name="restrictions")
+    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
     drop_consent = CharField(null=True, max_length=2**12)
     enrollment_requirements = CharField(null=True, max_length=2**12)
     add_consent = CharField(null=True, max_length=2**12)
@@ -212,7 +212,7 @@ class SectionRestriction(Model):
 
 class MeetingInformation(Model):
     id = AutoField(primary_key=True)
-    section = ForeignKey(SectionV2, on_delete=CASCADE, related_name="meeting_information")
+    section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
     days_and_times = CharField(max_length=2**6)
     room = CharField(max_length=2**6)
     instructors = ManyToManyField(Instructor, "+")
