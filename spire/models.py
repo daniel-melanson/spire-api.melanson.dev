@@ -132,23 +132,6 @@ class Instructor(Model):
         ordering = ["name", "email"]
 
 
-class Section(Model):
-    id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
-    subject = ForeignKey(Subject, on_delete=CASCADE, related_name="sections")
-    course_id = CharField(max_length=2**5, validators=[_course_id_validator])
-    course_title = CharField(max_length=2**8, null=True)
-    term = CharField(max_length=2**4, validators=[_section_term_validator])
-    description = CharField(max_length=2**12, null=True)
-    overview = CharField(max_length=2**15, null=True)
-    _updated_at = DateTimeField()
-
-    def __str__(self):
-        return f"Section[{self.id}](term={self.term}, course_id={self.course_id})"
-
-    class Meta:
-        ordering = ["term", "course_id", "id"]
-
-
 class CourseOffering(Model):
     id = AutoField(primary_key=True)
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="offerings")
