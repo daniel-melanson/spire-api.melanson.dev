@@ -6,7 +6,11 @@ from django.utils import timezone
 
 from spire.models import MeetingInformation, Section
 from spire.patterns import SECTION_ID_REGEXP, TERM_REGEXP
-from spire.scraper.classes.normalizers import DESCRIPTION_NOT_AVAILABLE_TO_NONE, REPLACE_DOUBLE_SPACE, STRIP_STR
+from spire.scraper.classes.normalizers import (
+    DESCRIPTION_NOT_AVAILABLE_TO_NONE,
+    REPLACE_DOUBLE_SPACE,
+    STRIP_STR,
+)
 from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
 from spire.scraper.classes.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
@@ -30,8 +34,6 @@ class RawSection(RawObject):
     def __init__(
         self,
         id: str,
-        term: str,
-        alternative_title: str,
         details: dict[str, str],
         meeting_information: list,
         restrictions: Optional[dict[str, str]],
@@ -40,8 +42,6 @@ class RawSection(RawObject):
         overview: Optional[str],
     ):
         self.id = id
-        self.term = term
-        self.alternative_title = alternative_title
 
         self.details = RawSectionDetail(self.id, details)
         log.info("Scraped section detail:\n%s", self.details)
@@ -77,14 +77,11 @@ class RawSection(RawObject):
             ],
         )
 
-    def push(self, subject, course):
+    def push(self, offering):
         with transaction.atomic():
             section = super().push(
                 defaults={
-                    "subject": subject,
-                    "course": course,
-                    "term": self.term,
-                    "alternative_title": self.alternative_title,
+                    "offering": offering,
                     "description": self.description,
                     "overview": self.overview,
                     "_updated_at": timezone.now(),

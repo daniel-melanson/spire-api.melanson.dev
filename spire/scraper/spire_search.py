@@ -6,7 +6,14 @@ from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from spire.models import CombinedSectionAvailability, Course, Section, SectionCoverage, Subject
+from spire.models import (
+    CombinedSectionAvailability,
+    Course,
+    CourseOffering,
+    Section,
+    SectionCoverage,
+    Subject,
+)
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
 from spire.scraper.classes.raw_course import RawCourse
@@ -166,13 +173,14 @@ def _scrape_search_results(
             r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
             COURSE_GROUP_OVERRIDES.get(span.text, span.text),
         )
+
         course_id, _, number = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")
         )
 
         course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
 
-        course = Course.objects.get_or_create(
+        course, created = Course.objects.get_or_create(
             id=course_id,
             defaults={
                 "subject": subject,
@@ -183,7 +191,18 @@ def _scrape_search_results(
             },
         )
 
-        log.debug("Scraping sections for course: %s", course_id)
+        log.debug("Scraping sections for %s course: %s", "new" if created else "found", course)
+
+        offering, created = CourseOffering.objects.get_or_create(
+            course=course,
+            term=term,
+            defaults={
+                "subject": subject,
+                "alternative_title": course_title if course_title != course.title else None,
+            },
+        )
+
+        log.debug("%s course offering: %s", "Created" if created else "Got", offering)
 
         scraped_section_ids_for_course = set()
 
@@ -237,8 +256,6 @@ def _scrape_search_results(
 
             section = RawSection(
                 id=section_id,
-                term=term,
-                alternative_title=course_title if course_title != course.title else None,
                 details=table_results["Class Details"],
                 meeting_information=meeting_info_list,
                 restrictions=table_results.get("RESTRICTIONS & NOTES", None),
@@ -255,7 +272,7 @@ def _scrape_search_results(
             log.info("Clicking return then pushing...")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
 
-            section.push(subject, course)
+            section.push(offering)
 
             driver.wait_for_spire()
             log.info("Returned to search results for %s durning %s.", subject, term)
