@@ -10,7 +10,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from root.settings import HEADLESS
+from config.settings import SCRAPER_HEADLESS
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 class SpireDriver:
     def __init__(self):
         options = Options()
-        options.headless = HEADLESS
+        options.headless = SCRAPER_HEADLESS
         self._driver = WebDriver(options=options)
 
         self._wait = WebDriverWait(self._driver, 60 * 2)

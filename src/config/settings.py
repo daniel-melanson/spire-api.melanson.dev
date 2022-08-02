@@ -11,12 +11,13 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+from distutils.util import strtobool
 from pathlib import Path
 
 
 def get_bool_env(key):
     if key in os.environ:
-        return os.environ[key].lower() in ("true", "t", "yes", "on", "1")
+        return strtobool(os.environ[key])
 
     return False
 
@@ -28,12 +29,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_bool_env("DEBUG")
+DEBUG = get_bool_env("DEBUG", True)
 
-ALLOWED_HOSTS = [] if DEBUG else ["spire-api.melanson.dev", "spire-api.herokuapp.com"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
 
 
 # Application definition
@@ -59,7 +60,7 @@ ROOT_URLCONF = "root.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": ["./root/templates"],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -79,10 +80,11 @@ WSGI_APPLICATION = "root.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "OPTIONS": {
-            "service": "spire_service",
-            "passfile": ".pg_pass",
-        },
+        "NAME": os.environ.get("POSTGRES_DB", "spire"),
+        "USER": os.environ.get("POSTGRES_USER", "spire_db_user"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "password"),
+        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
     }
 }
 
@@ -101,14 +103,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = "static/"
-
-STATIC_ROOT = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = ["/public", os.path.join(BASE_DIR, "..", "public")]
+STATIC_ROOT = "/public_collected"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# rest_framework
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
@@ -118,7 +123,12 @@ REST_FRAMEWORK = {
     "UNAUTHENTICATED_USER": None,
 }
 
-DEBUG_SCRAPER = get_bool_env("DEBUG_SCRAPER")
+# spire.scraper
+
+SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)
+SCRAPER_HEADLESS = get_bool_env("SCRAPER_HEADLESS", True)
+
+# Logging
 
 LOGGING = {
     "version": 1,
@@ -132,14 +142,14 @@ LOGGING = {
     "handlers": {
         "scrape_debug_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./logs-debug/scrape-debug-results.log",
+            "filename": "./logs/debug/scrape-debug-results.log",
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
         },
         "scrape_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./logs/scrape-results.log",
+            "filename": "./logs/info/scrape-results.log",
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
@@ -156,10 +166,25 @@ LOGGING = {
     "loggers": {
         "spire.scraper": {
             "handlers": ["scrape_handler", "scrape_debug_handler"],
-            "level": "DEBUG" if DEBUG_SCRAPER else "INFO",
+            "level": "DEBUG" if SCRAPER_DEBUG else "INFO",
             "propagate": False,
         },
     },
 }
 
-HEADLESS = get_bool_env("HEADLESS_SCRAPER")
+# Redis
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+
+# Caching
+# https://docs.djangoproject.com/en/4.0/topics/cache/
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+    }
+}
+
+# Celery
+# https://docs.celeryproject.org/en/stable/userguide/configuration.html
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL

@@ -5,7 +5,7 @@ from enum import Enum
 from textwrap import dedent
 from time import sleep
 
-from root.settings import DEBUG_SCRAPER
+from config.settings import SCRAPER_DEBUG
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.spire_search import scrape_sections
@@ -34,7 +34,7 @@ class ScrapeCoverage(Enum):
 def scrape(s, func, **kwargs):
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
-    if debug_versioned_cache is not None and DEBUG_SCRAPER and debug_versioned_cache.type == s:
+    if debug_versioned_cache is not None and SCRAPER_DEBUG and debug_versioned_cache.type == s:
         cache = debug_versioned_cache
     else:
         cache = VersionedCache(s)
@@ -51,12 +51,12 @@ def scrape(s, func, **kwargs):
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
             retries += 1
 
-            if DEBUG_SCRAPER:
+            if SCRAPER_DEBUG:
                 sel_driver = driver.root_driver
-                if not os.path.isdir("./dump"):
-                    os.mkdir("./dump")
+                if not os.path.isdir("./logs/dump"):
+                    os.mkdir("./logs/dump")
 
-                html_dump_path = os.path.join("./dump", f"scrape-html-dump-{retries}-{start_date}.html")
+                html_dump_path = os.path.join("./logs/dump", f"scrape-html-dump-{retries}-{start_date}.html")
                 with open(html_dump_path, "wb") as f:
                     f.write(sel_driver.page_source.encode("utf-8"))
 
@@ -70,6 +70,7 @@ def scrape(s, func, **kwargs):
                     
                         debug_versioned_cache = {cache}"""
                     ).strip()
+                    + "\n"
                 )
 
             if retries >= MAX_RETRIES:
