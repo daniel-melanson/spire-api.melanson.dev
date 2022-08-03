@@ -101,7 +101,7 @@ class CourseDetail(Model):
     course = OneToOneField(Course, on_delete=CASCADE, primary_key=True, related_name="details")
     career = CharField(null=True, max_length=2**5)
     units = CharField(null=True, max_length=2**4)
-    grading_basis = CharField(null=True, max_length=2**5)
+    grading_basis = CharField(null=True, max_length=2**6)
     course_components = JSONField(null=True, default=list)
     academic_group = CharField(null=True, max_length=2**7)
     academic_organization = CharField(null=True, max_length=2**7)

@@ -25,7 +25,15 @@ class RawCourseDetail(RawDictionary):
             fields=[
                 RawField(k="Career", min_len=1),
                 RawField(k="Units", min_len=1, normalizers=[COURSE_CREDIT_NORMALIZER]),
-                RawField(k="Grading Basis", min_len=1),
+                RawField(
+                    k="Grading Basis",
+                    min_len=1,
+                    normalizers=[
+                        key_override_factory(
+                            {"Grad Ltr Grading, with options": "Graduate Letter Grading, with options"}
+                        )
+                    ],
+                ),
                 RawField(
                     k="Course Components",
                     len=(1, 4),
