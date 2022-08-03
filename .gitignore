@@ -4,6 +4,7 @@ public/
 public_collected/
 
 .env*
+!.env.example
 
 *.log
 *.pem

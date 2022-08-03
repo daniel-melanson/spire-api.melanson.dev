@@ -2,6 +2,7 @@ x-app: &default-app
   build:
     context: "."
     target: "app"
+    network: host
     args:
       - "DEBUG=${DEBUG:-false}"
   depends_on:
@@ -12,7 +13,7 @@ x-app: &default-app
   stop_grace_period: "3s"
   tty: true
   volumes:
-    - "${DOCKER_WEB_VOLUME:-./public_collected:/app/public_collected}"
+    - "${DOCKER_WEB_VOLUME:-./static:/home/app/spire-api/static}"
 
 services:
   redis:
@@ -55,5 +56,17 @@ services:
           cpus: "${DOCKER_WORKER_CPUS:-0}"
           memory: "${DOCKER_WORKER_MEMORY:-0}"
 
+  nginx:
+    build: ./nginx
+    ports:
+      - 1339:80
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+      - static:/home/app/spire-api/static
+    depends_on:
+      - web
+
+
 volumes:
   redis: {}
+  static: {}

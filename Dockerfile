@@ -1,16 +1,24 @@
-FROM python:3.10-slim-buster
+FROM python:3.10-slim-bullseye as app
 
+ENV APP_PATH=/home/app/spire-api/
+RUN mkdir -p $APP_PATH
+
+WORKDIR $APP_PATH
+
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-ENV PYTHONUNBUFFERED 1
-RUN mkdir -p /opt/services/spire-api/
+COPY Pipfile Pipfile.lock $APP_PATH
+RUN python -m pip install pipenv && pipenv install --system --deploy
 
-COPY . /opt/services/spire-api/
-WORKDIR /opt/services/spire-api
-RUN pip install pipenv && pipenv install --system
+COPY . $APP_PATH
 
-RUN python manage.py collectstatic --no-input
+WORKDIR $APP_PATH/src
+
+RUN if [ "${DEBUG}" = "false" ]; then \
+    SECRET_KEY=dummyvalue python manage.py collectstatic --no-input; \
+    fi
 
 EXPOSE 8000
-CMD ["gunicorn", "-c", "config/gunicorn/conf.py", "--bind", ":8000", "--chdir", "hello", "hello.wsgi:application"]
 
+CMD ["gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]
