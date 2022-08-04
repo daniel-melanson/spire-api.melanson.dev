@@ -121,6 +121,11 @@ REST_FRAMEWORK = {
     "UNAUTHENTICATED_USER": None,
 }
 
+MINUTE = 60
+HOUR = MINUTE * 60
+
+VIEW_CACHE_TTL = MINUTE if DEBUG else os.environ.get("VIEW_CACHE_TTL", 3 * HOUR)
+
 # spire.scraper
 
 SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)

@@ -1,6 +1,8 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.viewsets import ReadOnlyModelViewSet as ROMVS
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from config.settings import VIEW_CACHE_TTL
 from spire.models import (
     AcademicGroup,
     Course,
@@ -35,72 +37,77 @@ from spire.serializers import (
 )
 
 
-class AcademicGroupViewSet(ROMVS):
+class BaseViewSet(ReadOnlyModelViewSet):
+    @method_decorator(cache_page(VIEW_CACHE_TTL))
+    def dispatch(self, *args, **kwargs):
+        return super(BaseViewSet, self).dispatch(*args, **kwargs)
+
+
+class AcademicGroupViewSet(BaseViewSet):
     queryset = AcademicGroup.objects.all()
     serializer_class = AcademicGroupSerializer
 
 
-class SubjectViewSet(ROMVS):
+class SubjectViewSet(BaseViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
 
 
-class CourseViewSet(ROMVS):
+class CourseViewSet(BaseViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
 
-class CourseDetailsViewSet(ROMVS):
+class CourseDetailsViewSet(BaseViewSet):
     queryset = CourseDetail.objects.all()
     serializer_class = CourseDetailSerializer
 
 
-class CourseEnrollmentInformationViewSet(ROMVS):
+class CourseEnrollmentInformationViewSet(BaseViewSet):
     queryset = CourseEnrollmentInformation.objects.all()
     serializer_class = CourseEnrollmentInformationSerializer
 
 
-class CourseOfferingViewSet(ROMVS):
+class CourseOfferingViewSet(BaseViewSet):
     queryset = CourseOffering.objects.all()
     serializer_class = CourseOfferingSerializer
 
 
-class InstructorViewSet(ROMVS):
+class InstructorViewSet(BaseViewSet):
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
 
 
-class SectionViewSet(ROMVS):
+class SectionViewSet(BaseViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
 
 
-class SectionDetailsViewSet(ROMVS):
+class SectionDetailsViewSet(BaseViewSet):
     queryset = SectionDetail.objects.all()
     serializer_class = SectionDetailSerializer
 
 
-class SectionAvailabilityViewSet(ROMVS):
+class SectionAvailabilityViewSet(BaseViewSet):
     queryset = SectionAvailability.objects.all()
     serializer_class = SectionAvailabilitySerializer
 
 
-class CombinedSectionAvailabilityViewSet(ROMVS):
+class CombinedSectionAvailabilityViewSet(BaseViewSet):
     queryset = SectionCombinedAvailability.objects.all()
     serializer_class = CombinedSectionAvailabilitySerializer
 
 
-class SectionRestrictionViewSet(ROMVS):
+class SectionRestrictionViewSet(BaseViewSet):
     queryset = SectionRestriction.objects.all()
     serializer_class = SectionRestrictionSerializer
 
 
-class MeetingInformationViewSet(ROMVS):
+class MeetingInformationViewSet(BaseViewSet):
     queryset = MeetingInformation.objects.all()
     serializer_class = MeetingInformationSerializer
 
 
-class CoverageViewSet(ROMVS):
+class CoverageViewSet(BaseViewSet):
     queryset = SectionCoverage.objects.all()
     serializer_class = SectionCoverageSerializer
-    pagination_class = None

@@ -234,4 +234,4 @@ class SectionRestrictionSerializer(HyperlinkedModelSerializer):
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = SectionCoverage
-        fields = "__all__"
+        fields = ["url", "term", "completed"]
