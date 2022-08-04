@@ -1,8 +1,8 @@
+from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from config.settings import VIEW_CACHE_TTL
 from spire.models import (
     AcademicGroup,
     Course,
@@ -38,7 +38,7 @@ from spire.serializers import (
 
 
 class BaseViewSet(ReadOnlyModelViewSet):
-    @method_decorator(cache_page(VIEW_CACHE_TTL))
+    @method_decorator(cache_page(settings.VIEW_CACHE_TTL))
     def dispatch(self, *args, **kwargs):
         return super(BaseViewSet, self).dispatch(*args, **kwargs)
 

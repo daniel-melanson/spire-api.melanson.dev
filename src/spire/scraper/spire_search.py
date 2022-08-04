@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
 
+from django.conf import settings
 from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
-from config.settings import SCRAPER_SKIP_OLD_TERMS
 from spire.models import (
     Course,
     CourseOffering,
@@ -20,11 +20,10 @@ from spire.scraper.classes.raw_course import RawCourse
 from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
 from spire.scraper.classes.raw_subject import RawSubject
+from spire.scraper.shared import assert_match, scrape_spire_tables
+from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.timer import Timer
-
-from .shared import assert_match, scrape_spire_tables
-from .spire_driver import SpireDriver
-from .versioned_cache import VersionedCache
+from spire.scraper.versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
@@ -354,7 +353,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             term=term, defaults={"completed": False, "start_time": timezone.now()}
         )
 
-        if coverage.completed and SCRAPER_SKIP_OLD_TERMS:
+        if coverage.completed and settings.SCRAPER_SKIP_OLD_TERMS:
             year = int(year)
             match season:
                 case "Fall":

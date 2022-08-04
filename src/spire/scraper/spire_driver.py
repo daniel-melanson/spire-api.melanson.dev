@@ -1,6 +1,7 @@
 import logging
 from typing import Union
 
+from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -10,15 +11,13 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from config.settings import SCRAPER_HEADLESS
-
 log = logging.getLogger(__name__)
 
 
 class SpireDriver:
     def __init__(self):
         options = Options()
-        options.headless = SCRAPER_HEADLESS
+        options.headless = settings.SCRAPER_HEADLESS
         self._driver = WebDriver(options=options)
 
         self._wait = WebDriverWait(self._driver, 60 * 2)

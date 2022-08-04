@@ -5,13 +5,13 @@ from enum import Enum
 from textwrap import dedent
 from time import sleep
 
-from config.settings import SCRAPER_DEBUG
+from django.conf import settings
+
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.spire_search import scrape_sections
 from spire.scraper.timer import Timer
-
-from .versioned_cache import VersionedCache
+from spire.scraper.versioned_cache import VersionedCache
 
 try:
     from .debug_cache import debug_versioned_cache
@@ -34,7 +34,7 @@ class ScrapeCoverage(Enum):
 def scrape(s, func, **kwargs):
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
-    if debug_versioned_cache is not None and SCRAPER_DEBUG and debug_versioned_cache.type == s:
+    if debug_versioned_cache is not None and settings.SCRAPER_DEBUG and debug_versioned_cache.type == s:
         cache = debug_versioned_cache
     else:
         cache = VersionedCache(s)
@@ -51,7 +51,7 @@ def scrape(s, func, **kwargs):
             log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
             retries += 1
 
-            if SCRAPER_DEBUG:
+            if settings.SCRAPER_DEBUG:
                 sel_driver = driver.root_driver
                 if not os.path.isdir("./logs/dump"):
                     os.mkdir("./logs/dump")
