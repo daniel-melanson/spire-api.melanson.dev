@@ -35,6 +35,7 @@ class_component_set = set(
         "Practicum",
         "Seminar",
         "Studio/Skills",
+        "Online",
     ]
 )
 

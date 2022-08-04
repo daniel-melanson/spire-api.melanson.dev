@@ -1,11 +1,11 @@
 import logging
-from curses.ascii import isspace
 from datetime import datetime
 
 from django.utils import timezone
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
+from config.settings import SCRAPER_SKIP_OLD_TERMS
 from spire.models import (
     Course,
     CourseOffering,
@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 def _count_name_characters(s: str):
     count = 0
     for c in s:
-        if not isspace(c) and c != ",":
+        if not c.isspace() and c != ",":
             count += 1
 
     return count
@@ -278,7 +278,7 @@ def _scrape_search_results(
             log.info("Returned to search results for %s durning %s.", subject, term)
 
         dropped, _ = (
-            Section.objects.filter(course_id=course_id, term=term)
+            Section.objects.filter(offering__course=course, offering__term=term)
             .exclude(id__in=scraped_section_ids_for_course)
             .delete()
         )
@@ -306,7 +306,7 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
 
     number_input = driver.find("CLASS_SRCH_WRK2_CATALOG_NBR$8$")
     number_input.clear()
-    number_input.send_keys("0")
+    number_input.send_keys("A")
     driver.wait_for_spire()
 
     open_input = driver.find("CLASS_SRCH_WRK2_SSR_OPEN_ONLY")
@@ -354,7 +354,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             term=term, defaults={"completed": False, "start_time": timezone.now()}
         )
 
-        if coverage.completed:
+        if coverage.completed and SCRAPER_SKIP_OLD_TERMS:
             year = int(year)
             match season:
                 case "Fall":

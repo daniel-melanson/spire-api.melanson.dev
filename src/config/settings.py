@@ -125,6 +125,7 @@ REST_FRAMEWORK = {
 
 SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)
 SCRAPER_HEADLESS = get_bool_env("SCRAPER_HEADLESS", True)
+SCRAPER_SKIP_OLD_TERMS = get_bool_env("SCRAPER_SKIP_OLD_TERMS", True)
 
 # Logging
 

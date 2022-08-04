@@ -66,8 +66,6 @@ class RawSection(RawObject):
             Section,
             fields=[
                 RawField("id", re=SECTION_ID_REGEXP),
-                RawField("term", re=TERM_REGEXP),
-                RawField("alternative_title", normalizers=[REPLACE_DOUBLE_SPACE]),
                 RawField(
                     "description",
                     normalizers=[STRIP_STR, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
