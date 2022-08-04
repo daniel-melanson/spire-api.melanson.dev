@@ -46,15 +46,15 @@ services:
     ports:
       - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:8000"
 
-  worker:
-    <<: *default-app
-    command: celery -A config worker -l "${CELERY_LOG_LEVEL:-info}"
-    entrypoint: []
-    deploy:
-      resources:
-        limits:
-          cpus: "${DOCKER_WORKER_CPUS:-0}"
-          memory: "${DOCKER_WORKER_MEMORY:-0}"
+#   worker:
+#     <<: *default-app
+#     command: celery -A config worker -l "${CELERY_LOG_LEVEL:-info}"
+#     entrypoint: []
+#     deploy:
+#       resources:
+#         limits:
+#           cpus: "${DOCKER_WORKER_CPUS:-0}"
+#           memory: "${DOCKER_WORKER_MEMORY:-0}"
 
   nginx:
     build: ./nginx
