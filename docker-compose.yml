@@ -76,6 +76,4 @@ services:
 volumes:
   redis: 
   static:
-  certbot:
-    conf:
-    www:
+  certbot: {}
