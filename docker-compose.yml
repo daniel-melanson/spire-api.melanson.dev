@@ -51,15 +51,15 @@ services:
       context: "nginx/"
       dockerfile: "Dockerfile"
     volumes:
-      - certbot/conf:/etc/letsencrypt
-      - certbot/www:/var/www/certbot
-      - static:/home/app/
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - static:/home/app/spire-api/static
 
   certbot:
     image: certbot/certbot
     volumes:
-      - certbot/conf:/etc/letsencrypt
-      - certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
     command: certonly --non-interactive --webroot -w /var/www/certbot --force-renewal --email daniel@melanson.dev -d melanson.dev --agree-tos
 
 #   worker:
@@ -76,4 +76,3 @@ services:
 volumes:
   redis: 
   static:
-  certbot: {}
