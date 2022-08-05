@@ -8,7 +8,8 @@ WORKDIR $APP_PATH
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN wget -O /home/app/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz \
+RUN sudo apt-get install wget \
+    wget -O /home/app/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz \
     tar -xzf /home/app/geckodriver.tar.gz \
     mv ./home/app/geckodriver /usr/local/bin/ \
     rm /home/app/geckodriver.tar.gz
