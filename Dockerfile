@@ -16,7 +16,9 @@ RUN apt-get update; \
     rm geckodriver.tar.gz;
 
 COPY Pipfile Pipfile.lock $APP_PATH
-RUN python -m pip install pipenv && pipenv install --system --deploy
+RUN python -m pip install --upgrade pip; \
+    python -m pip install pipenv; \
+    pipenv install --system --deploy;
 
 COPY . $APP_PATH
 
