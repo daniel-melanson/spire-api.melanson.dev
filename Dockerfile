@@ -8,11 +8,12 @@ WORKDIR $APP_PATH
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get install wget tar \
-    wget -O /home/app/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz \
-    tar -xzf /home/app/geckodriver.tar.gz \
-    mv ./home/app/geckodriver /usr/local/bin/ \
-    rm /home/app/geckodriver.tar.gz
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends wget tar; \
+    wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz; \
+    tar -xf geckodriver.tar.gz; \
+    mv geckodriver /usr/local/bin/; \
+    rm geckodriver.tar.gz;
 
 COPY Pipfile Pipfile.lock $APP_PATH
 RUN python -m pip install pipenv && pipenv install --system --deploy
