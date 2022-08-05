@@ -12,6 +12,8 @@ x-app: &default-app
   restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
   stop_grace_period: "3s"
   tty: true
+  volumes:
+    - static:/home/app/spire-api/static
 
 services:
   redis:
@@ -49,15 +51,16 @@ services:
       context: "nginx/"
       dockerfile: "Dockerfile"
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - certbot/conf:/etc/letsencrypt
+      - certbot/www:/var/www/certbot
+      - static:/home/app/
 
   certbot:
     image: certbot/certbot
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email daniel@melanson.dev -d melanson.dev --agree-tos
+      - certbot/conf:/etc/letsencrypt
+      - certbot/www:/var/www/certbot
+    command: certonly --non-interactive --webroot -w /var/www/certbot --force-renewal --email daniel@melanson.dev -d melanson.dev --agree-tos
 
 #   worker:
 #     <<: *default-app
@@ -73,3 +76,4 @@ services:
 volumes:
   redis: 
   static:
+  certbot:
