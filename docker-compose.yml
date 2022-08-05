@@ -12,8 +12,6 @@ x-app: &default-app
   restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
   stop_grace_period: "3s"
   tty: true
-  volumes:
-    - "${DOCKER_WEB_VOLUME:-./static:/home/app/spire-api/static}"
 
 services:
   redis:
@@ -46,6 +44,21 @@ services:
     ports:
       - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:8000"
 
+  nginx:
+    build:
+      context: "nginx/"
+      dockerfile: "Dockerfile"
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email daniel@melanson.dev -d melanson.dev --agree-tos
+
 #   worker:
 #     <<: *default-app
 #     command: celery -A config worker -l "${CELERY_LOG_LEVEL:-info}"
@@ -56,17 +69,7 @@ services:
 #           cpus: "${DOCKER_WORKER_CPUS:-0}"
 #           memory: "${DOCKER_WORKER_MEMORY:-0}"
 
-  nginx:
-    build: ./nginx
-    ports:
-      - 1339:80
-    volumes:
-      - ./conf.d:/etc/nginx/conf.d
-      - static:/home/app/spire-api/static
-    depends_on:
-      - web
-
 
 volumes:
-  redis: {}
-  static: {}
+  redis: 
+  static:
