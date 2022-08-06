@@ -14,8 +14,6 @@ import os
 from distutils.util import strtobool
 from pathlib import Path
 
-from celery.schedules import crontab
-
 
 def get_bool_env(key, default=False):
     if key in os.environ:
@@ -36,7 +34,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_bool_env("DEBUG", True)
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", os.getenv("DJANGO_ALLOWED_HOST", None)]
 
 
 # Application definition
