@@ -33,4 +33,4 @@ RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]
+CMD ["/usr/local/bin/gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]
