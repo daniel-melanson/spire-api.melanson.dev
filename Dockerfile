@@ -8,7 +8,7 @@ RUN mkdir -p $APP_PATH
 WORKDIR $APP_PATH
 
 RUN addgroup -S django; \
-    adduser -S django -G django;
+    adduser --system django --ingroup django;
 
 RUN apt-get update; \
     apt-get install -y --no-install-recommends wget tar; \
