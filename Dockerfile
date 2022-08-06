@@ -23,7 +23,7 @@ USER django
 COPY Pipfile Pipfile.lock $APP_PATH
 RUN python -m pip install --upgrade pip; \
     python -m pip install pipenv; \
-    pipenv install --deploy;
+    /home/django/.local/bin/pipenv install --deploy;
 
 COPY ./src $APP_PATH/src
 
