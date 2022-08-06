@@ -7,7 +7,8 @@ ENV APP_PATH=/home/django/app/
 RUN mkdir -p $APP_PATH
 WORKDIR $APP_PATH
 
-RUN addgroup -S django && adduser -S django -G django
+RUN addgroup -S django; \
+    adduser -S django -G django;
 
 RUN apt-get update; \
     apt-get install -y --no-install-recommends wget tar; \
