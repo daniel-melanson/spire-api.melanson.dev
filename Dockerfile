@@ -1,12 +1,13 @@
 FROM python:3.10-slim-bullseye as app
 
-ENV APP_PATH=/home/app/spire-api/
-RUN mkdir -p $APP_PATH
-
-WORKDIR $APP_PATH
-
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV APP_PATH=/home/django/app/
+
+RUN mkdir -p $APP_PATH
+WORKDIR $APP_PATH
+
+RUN addgroup -S django && adduser -S django -G django
 
 RUN apt-get update; \
     apt-get install -y --no-install-recommends wget tar; \
@@ -15,18 +16,19 @@ RUN apt-get update; \
     mv geckodriver /usr/local/bin/; \
     rm geckodriver.tar.gz;
 
+RUN chown -R django:django /home/django
+USER django
+
 COPY Pipfile Pipfile.lock $APP_PATH
 RUN python -m pip install --upgrade pip; \
     python -m pip install pipenv; \
-    pipenv install --system --deploy;
+    pipenv install --deploy;
 
-COPY . $APP_PATH
+COPY ./src $APP_PATH/src
 
 WORKDIR $APP_PATH/src
 
-RUN if [ "${DEBUG}" = "false" ]; then \
-    SECRET_KEY=dummyvalue python manage.py collectstatic --no-input; \
-    fi
+RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
 
 EXPOSE 8000
 

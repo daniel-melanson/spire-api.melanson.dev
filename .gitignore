@@ -1,7 +1,6 @@
 __pycache__/
 logs/
-public/
-public_collected/
+static/
 
 .env*
 !.env.example
@@ -9,6 +8,5 @@ public_collected/
 *.log
 *.pem
 
-celerybeat-schedule
 src/spire/management/commands/playground.py
 src/spire/scraper/debug_cache.py
