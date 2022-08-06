@@ -46,14 +46,14 @@ services:
     ports:
       - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:8000"
 
-    nginx:
-        image: nginx:latest
-        ports:
-            - "80:80"
-        volumes:
-            - ./nginx.conf:/etc/nginx/conf.d/default.conf
-        networks:
-            - docker-networknetworks:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - docker-networknetworks:
   
 
 
