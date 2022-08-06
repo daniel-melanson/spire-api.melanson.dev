@@ -1,6 +1,7 @@
 __pycache__/
 logs/
 static/
+certbot/
 
 .env*
 !.env.example
