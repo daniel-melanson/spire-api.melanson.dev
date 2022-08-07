@@ -1,5 +1,4 @@
-from attr import fields
-from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer
 
 from spire.models import (
     AcademicGroup,
@@ -72,6 +71,12 @@ class SectionFieldSerializer(BaseFieldSerializer):
         fields = ["url", "id"]
 
 
+class SectionRestrictionFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = SectionRestriction
+        fields = "__all__"
+
+
 class SectionDetailFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = SectionDetail
@@ -81,7 +86,7 @@ class SectionDetailFieldSerializer(BaseFieldSerializer):
 class CombinedSectionAvailabilityFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = SectionCombinedAvailability
-        exclude = ["individual_availability"]
+        fields = "__all__"
 
 
 class SectionAvailabilityFieldSerializer(BaseFieldSerializer):
@@ -192,10 +197,23 @@ class MeetingInformationSerializer(HyperlinkedModelSerializer):
 class SectionSerializer(HyperlinkedModelSerializer):
     details = SectionDetailFieldSerializer()
     meeting_information = MeetingInformationFieldSerializer(many=True)
+    restrictions = SectionRestrictionFieldSerializer()
+    availability = SectionAvailabilityFieldSerializer()
 
     class Meta:
         model = Section
-        fields = "__all__"
+        fields = [
+            "url",
+            "id",
+            "offering",
+            "description",
+            "overview",
+            "_updated_at",
+            "availability",
+            "details",
+            "meeting_information",
+            "restrictions",
+        ]
 
 
 class SectionDetailSerializer(HyperlinkedModelSerializer):
@@ -224,8 +242,6 @@ class CombinedSectionAvailabilitySerializer(HyperlinkedModelSerializer):
 
 
 class SectionRestrictionSerializer(HyperlinkedModelSerializer):
-    section = SectionFieldSerializer()
-
     class Meta:
         model = SectionRestriction
         fields = "__all__"
