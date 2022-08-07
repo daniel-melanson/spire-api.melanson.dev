@@ -99,11 +99,11 @@ def _scrape_meeting_instructor_list(sections_table, link_number):
     return meeting_instructor_list
 
 
-def can_skip(driver: SpireDriver, course: Course, section_id: str, link_number: str):
+def can_skip(driver: SpireDriver, offering: CourseOffering, section_id: str, link_number: str):
     try:
         section = Section.objects.get(id=section_id)
 
-        if section.course != course:
+        if section.offering != offering:
             return False, "mismatched section course and current course"
 
         if SectionCombinedAvailability.objects.filter(individual_availability_id=section.id).first():
@@ -126,17 +126,18 @@ def can_skip(driver: SpireDriver, course: Course, section_id: str, link_number: 
             )
             assert False
 
-        current_enrollment = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
-        current_capacity = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
-
         if section.details.status != current_status:
             return False, "mismatched status"
+
+        current_enrollment = int(driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number).text)
 
         if section.availability.enrollment_total != current_enrollment:
             return False, "mismatched enrollment total"
 
-        if section.availability.capacity == current_capacity:
-            return False, "mismatched capacity"
+        current_capacity = int(driver.find("UM_DERIVED_SR_ENRL_CAP$" + link_number).text)
+
+        if section.availability.capacity != current_capacity:
+            return False, f"mismatched capacity, {section.availability.capacity} != {current_capacity}"
 
         return True, "OK"
     except Section.DoesNotExist:
@@ -159,8 +160,10 @@ SECTION_ID_OVERRIDES = {
 def _scrape_search_results(
     driver: SpireDriver, cache: VersionedCache, quick: bool, term: str, subject: Subject
 ):
-    section_count = 0
+    scraped_section_count = 0
+    found_section_count = 0
 
+    scraped_course_ids = set()
     for span_id in cache.skip_once(
         driver.find_all_ids("span[id^=DERIVED_CLSRCH_DESCR200]"), "course_span_id"
     ):
@@ -176,7 +179,7 @@ def _scrape_search_results(
         course_id, _, number = RawCourse.get_course_id(
             title_match.group("subject_id"), title_match.group("course_number")
         )
-
+        scraped_course_ids.add(course_id)
         course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
 
         course, created = Course.objects.get_or_create(
@@ -216,10 +219,14 @@ def _scrape_search_results(
             )
         ]
 
+        found_section_count += len(link_ids)
+
         for link_id in link_ids:
             link = driver.find(link_id)
             t = link.text.strip()
             section_id = SECTION_ID_OVERRIDES.get(t, t)
+
+            scraped_section_ids_for_course.add(section_id)
 
             log.debug("Scraping section %s...", section_id)
 
@@ -230,13 +237,14 @@ def _scrape_search_results(
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             if quick:
-                can_skip_section, reason = can_skip(driver, course, section_id, link_number)
+                can_skip_section, reason = can_skip(driver, offering, section_id, link_number)
                 if can_skip_section:
                     log.info("Skipping section: %s", section_id)
-                    scraped_section_ids_for_course.add(section_id)
                     continue
                 else:
                     log.info("Not skipping section: %s - %s", section_id, reason)
+
+            scraped_section_count += 1
 
             log.info("Navigating to section page for %s section %s...", course_id, section_id)
             driver.click(link_id)
@@ -264,9 +272,6 @@ def _scrape_search_results(
             )
 
             log.info("Scraped section:\n%s", section)
-            scraped_section_ids_for_course.add(section.id)
-
-            section_count += 1
 
             log.info("Clicking return then pushing...")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
@@ -281,9 +286,16 @@ def _scrape_search_results(
             .exclude(id__in=scraped_section_ids_for_course)
             .delete()
         )
-        log.info("Dropped %s %s sections for course %s that are no longer listed.", dropped, term, course_id)
+        log.info("Dropped %s %s sections during %s that are no longer listed.", dropped, course_id, term)
 
-    return section_count
+    dropped, _ = (
+        CourseOffering.objects.filter(subject=subject, term=term)
+        .exclude(course__id__in=scraped_course_ids)
+        .delete()
+    )
+    log.info("Dropped %s %s course offerings during %s that are no longer listed.", dropped, subject.id, term)
+
+    return scraped_section_count, found_section_count
 
 
 def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
@@ -321,6 +333,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
 
     total_timer = Timer()
     scraped_terms = 0
+
+    total_scraped = 0
+    total_found = 0
 
     def get_option_values(select):
         return [
@@ -395,15 +410,21 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                count = _scrape_search_results(driver, cache, quick, term, subject)
+                scraped, found = _scrape_search_results(driver, cache, quick, term, subject)
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",
-                    count,
+                    scraped,
                     subject,
                     term,
                     subject_timer,
                 )
+
+                if quick:
+                    total_scraped += scraped
+                    total_found += found
+
+                    log.info("Running skip percentage of: %.2f%%", (1 - (total_scraped / total_found)) * 100)
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
             else:
                 error_message_span = driver.find("DERIVED_CLSMSG_ERROR_TEXT")
