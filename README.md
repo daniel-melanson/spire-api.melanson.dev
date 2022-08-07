@@ -1,4 +1,4 @@
-# spire-api.melanson.dev (WIP)
+# spire-api.melanson.dev
 
 An API for public information on [UMass Spire](https://www.spire.umass.edu/).
 
@@ -34,4 +34,6 @@ Instructor names are assumed to be unique. This makes handling cases where staff
 
 A `Course` is a unique instance of a id across spire. The default information for a course is first obtained from the course catalog. This will generate structures like a `CourseDetail` and `CourseEnrollmentInformation` based on the present information on a course's catalog page.
 
-`Section`s will reference course objects, if one exists with a matching id, or create stub objects using providing only absolute information (id, subject, number, title). They potentially have their own `alternative_title` if the title listed on the section is different from the title listed for the respective `Course` object.
+A `CorseOffering` is an offering of a course during a specific semester. The course offerings will map to their matching `Course` via id. Offerings may list different titles than what was originally found for the course. Thus `CourseOfferings` may potentially have an `alternative_title` field.
+
+Within that offering, will be a list of `Section`s. If a section is found that references a course that was not listed in the course catalog, then a stub `Course` object is created (without any `CourseDetail` or `CourseEnrollment` information objects).
