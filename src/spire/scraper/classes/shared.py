@@ -44,7 +44,7 @@ def re_override_factory(*args: tuple[str, Any]):
     return f
 
 
-def key_override_factory(table, as_table=False):
+def key_override_factory(table):
     for k in list(table.keys()):
         if isinstance(k, tuple):
             value = table[k]
@@ -53,10 +53,7 @@ def key_override_factory(table, as_table=False):
             for sub_k in k:
                 table[sub_k] = value
 
-    if as_table:
-        return table
-
-    return lambda k: table[k] if k in table else k
+    return table
 
 
 def clean_id(*args: str) -> list[str]:

@@ -15,6 +15,10 @@ def REPLACE_DOUBLE_SPACE(s):
     return s
 
 
+def DICT_KEY_NORMALIZER(table):
+    return lambda k: table[k] if k in table else k
+
+
 NONE_STRING_TO_NONE_NORMALIZER = re_override_factory((r"^(None|\(None\))$", None))
 
 SPLIT_NEWLINE = lambda x: [s.strip() for s in x.split("\n")]

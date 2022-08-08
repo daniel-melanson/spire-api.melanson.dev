@@ -1,4 +1,5 @@
 from spire.models import AcademicGroup
+from spire.scraper.classes.normalizers import DICT_KEY_NORMALIZER
 from spire.scraper.classes.shared import RawField, RawObject, key_override_factory
 
 GROUP_OVERRIDES = key_override_factory(
@@ -16,6 +17,8 @@ GROUP_OVERRIDES = key_override_factory(
     }
 )
 
+ACADEMIC_GROUP_NORMALIZER = DICT_KEY_NORMALIZER(GROUP_OVERRIDES)
+
 
 class RawAcademicGroup(RawObject):
     title: str
@@ -26,7 +29,7 @@ class RawAcademicGroup(RawObject):
         super().__init__(
             AcademicGroup,
             fields=[
-                RawField(k="title", normalizers=[GROUP_OVERRIDES]),
+                RawField(k="title", normalizers=[ACADEMIC_GROUP_NORMALIZER]),
             ],
         )
 

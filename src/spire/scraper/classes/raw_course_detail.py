@@ -2,9 +2,31 @@ from typing import Optional
 
 from spire.models import CourseDetail
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
-from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, SPLIT_NEWLINE
-from spire.scraper.classes.raw_academic_group import GROUP_OVERRIDES
-from spire.scraper.classes.shared import RawDictionary, RawField, key_override_factory
+from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
+from spire.scraper.classes.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
+from spire.scraper.classes.shared import RawDictionary, RawField
+
+ACADEMIC_ORG_NORMALIZER = DICT_KEY_NORMALIZER(
+    {
+        **GROUP_OVERRIDES,
+        "Bldg &Construction Technology": "Building & Construction Technology",
+        "Civil & Environmental Engin.": "Civil & Environmental Engineering",
+        "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
+        "Organismic&EvolutionaryBiology": "Organismic & Evolutionary Biology",
+        "BA/BS w. Individual Concentra.": "BA/BS with Individual Concentration",
+        "LL: Career & Personal Develop.": "LL: Career & Personal Development",
+        "Data Analytcs & Comput. SocSci": "Data Analytics and Computational Social Science",
+        "Univ. of Massachusetts Amherst": "University of Massachusetts Amherst",
+        "Languages,Literature & Culture": "Languages, Literature & Culture",
+        "Sustainable Community Develop": "Sustainable Community Development",
+        "Electrical & Computer Engin.": "Electrical & Computer Engineering",
+        "Mechanical&IndustrialEngineerg": "Mechanical & Industrial Engineering",
+        "Five Coll Ctr: World Languages": "Five College Center: World Languages",
+        "Social Thought &Political Econ": "Social Thought & Political Economy",
+        "Hospitality & Tourism Managmnt": "Hospitality & Tourism Management",
+        "Info. and Computer Sciences": "Informatics and Computer Sciences",
+    }
+)
 
 
 class RawCourseDetail(RawDictionary):
@@ -28,7 +50,7 @@ class RawCourseDetail(RawDictionary):
                     k="Grading Basis",
                     min_len=1,
                     normalizers=[
-                        key_override_factory(
+                        DICT_KEY_NORMALIZER(
                             {"Grad Ltr Grading, with options": "Graduate Letter Grading, with options"}
                         )
                     ],
@@ -43,34 +65,12 @@ class RawCourseDetail(RawDictionary):
                 RawField(
                     k="Academic Group",
                     min_len=1,
-                    normalizers=[GROUP_OVERRIDES],
+                    normalizers=[ACADEMIC_GROUP_NORMALIZER],
                 ),
                 RawField(
                     k="Academic Organization",
                     min_len=1,
-                    normalizers=[
-                        key_override_factory(
-                            {
-                                **GROUP_OVERRIDES,
-                                "Bldg &Construction Technology": "Building & Construction Technology",
-                                "Civil & Environmental Engin.": "Civil & Environmental Engineering",
-                                "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
-                                "Organismic&EvolutionaryBiology": "Organismic & Evolutionary Biology",
-                                "BA/BS w. Individual Concentra.": "BA/BS with Individual Concentration",
-                                "LL: Career & Personal Develop.": "LL: Career & Personal Development",
-                                "Data Analytcs & Comput. SocSci": "Data Analytics and Computational Social Science",
-                                "Univ. of Massachusetts Amherst": "University of Massachusetts Amherst",
-                                "Languages,Literature & Culture": "Languages, Literature & Culture",
-                                "Sustainable Community Develop": "Sustainable Community Development",
-                                "Electrical & Computer Engin.": "Electrical & Computer Engineering",
-                                "Mechanical&IndustrialEngineerg": "Mechanical & Industrial Engineering",
-                                "Five Coll Ctr: World Languages": "Five College Center: World Languages",
-                                "Social Thought &Political Econ": "Social Thought & Political Economy",
-                                "Hospitality & Tourism Managmnt": "Hospitality & Tourism Management",
-                                "Info. and Computer Sciences": "Informatics and Computer Sciences",
-                            }
-                        )
-                    ],
+                    normalizers=[ACADEMIC_ORG_NORMALIZER],
                 ),
             ],
             pk="course_id",

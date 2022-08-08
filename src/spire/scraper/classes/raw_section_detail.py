@@ -1,12 +1,13 @@
-from spire.models import Section, SectionDetail
+from spire.models import SectionDetail
 from spire.patterns import UNITS_REGEXP
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.normalizers import (
     COURSE_CREDIT_NORMALIZER,
+    DICT_KEY_NORMALIZER,
     NONE_STRING_TO_NONE_NORMALIZER,
     STRIP_STR,
 )
-from spire.scraper.classes.shared import RawDictionary, RawField, key_override_factory
+from spire.scraper.classes.shared import RawDictionary, RawField
 
 
 def class_component_norm(x: str) -> list[str]:
@@ -57,7 +58,7 @@ class RawSectionDetail(RawDictionary):
                 RawField(
                     k="Session",
                     normalizers=[
-                        key_override_factory({"*University": "University", "UWW": "University Without Walls"})
+                        DICT_KEY_NORMALIZER({"*University": "University", "UWW": "University Without Walls"})
                     ],
                     min_len=1,
                 ),

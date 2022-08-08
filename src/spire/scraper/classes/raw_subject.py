@@ -24,8 +24,7 @@ SUBJECT_OVERRIDES = key_override_factory(
         "SPHHS": ("SPHHS", "School of Public Health & Health Sciences"),
         "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
         "ZEROCRED": ("TSTOCRED", "Zero Credit Test Equiv"),
-    },
-    as_table=True,
+    }
 )
 
 
