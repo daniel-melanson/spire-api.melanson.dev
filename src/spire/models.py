@@ -12,6 +12,7 @@ from django.db.models import (
     ManyToManyField,
     Model,
     OneToOneField,
+    TimeField,
 )
 
 from spire.patterns import (
@@ -65,13 +66,13 @@ class AcademicGroup(Model):
 
 
 class Subject(Model):
-    title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
     id = CharField(
         max_length=2**3,
         unique=True,
         primary_key=True,
         validators=[_subject_id_validator],
     )
+    title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
     groups = ManyToManyField(AcademicGroup, related_name="subjects")
 
     def __str__(self):
@@ -135,6 +136,7 @@ class CourseOffering(Model):
     course = ForeignKey(Course, on_delete=CASCADE, related_name="offerings")
     alternative_title = CharField(max_length=2**8, null=True)
     term = CharField(max_length=2**5)
+    _term_ordinal = IntegerField()
 
     def __str__(self):
         return (
@@ -142,7 +144,7 @@ class CourseOffering(Model):
         )
 
     class Meta:
-        ordering = ["term", "course"]
+        ordering = ["_term_ordinal", "course"]
         unique_together = [["course", "term"]]
 
 
@@ -228,23 +230,35 @@ class SectionRestriction(Model):
         ordering = ["section"]
 
 
-class MeetingInformation(Model):
+class SectionMeetingInformation(Model):
     id = AutoField(primary_key=True)
     section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
-    days_and_times = CharField(max_length=2**6)
     room = CharField(max_length=2**6)
     instructors = ManyToManyField(Instructor, "+")
     meeting_dates = CharField(max_length=2**6)
 
     class Meta:
-        ordering = ["section", "days_and_times"]
+        ordering = ["section"]
+
+
+class SectionMeetingSchedule(Model):
+    meeting_information = OneToOneField(
+        SectionMeetingInformation, primary_key=True, on_delete=CASCADE, related_name="schedule"
+    )
+    days = JSONField()
+    start_time = TimeField()
+    end_time = TimeField()
+
+    class Meta:
+        ordering = ["meeting_information", "start_time"]
 
 
 class SectionCoverage(Model):
-    term = CharField(max_length=2**5, primary_key=True, validators=[_section_term_validator])
+    term = CharField(max_length=2**5, primary_key=True)
     completed = BooleanField(default=False)
     start_time = DateTimeField()
     end_time = DateTimeField(null=True)
+    _term_ordinal = IntegerField()
 
     class Meta:
-        ordering = ["term"]
+        ordering = ["_term_ordinal"]

@@ -10,31 +10,33 @@ from spire.models import (
     CourseEnrollmentInformation,
     CourseOffering,
     Instructor,
-    MeetingInformation,
     Section,
     SectionAvailability,
     SectionCombinedAvailability,
     SectionCoverage,
     SectionDetail,
+    SectionMeetingInformation,
     SectionRestriction,
     Subject,
 )
-from spire.serializers import (
-    AcademicGroupSerializer,
-    CombinedSectionAvailabilitySerializer,
+from spire.serializers.academic_group import AcademicGroupSerializer
+from spire.serializers.course import (
     CourseDetailSerializer,
     CourseEnrollmentInformationSerializer,
     CourseOfferingSerializer,
     CourseSerializer,
-    InstructorSerializer,
-    MeetingInformationSerializer,
+)
+from spire.serializers.instructor import InstructorSerializer
+from spire.serializers.section import (
     SectionAvailabilitySerializer,
+    SectionCombinedAvailabilitySerializer,
     SectionCoverageSerializer,
     SectionDetailSerializer,
+    SectionMeetingInformationSerializer,
     SectionRestrictionSerializer,
     SectionSerializer,
-    SubjectSerializer,
 )
+from spire.serializers.subject import SubjectSerializer
 
 
 class BaseViewSet(ReadOnlyModelViewSet):
@@ -58,7 +60,7 @@ class CourseViewSet(BaseViewSet):
     serializer_class = CourseSerializer
 
 
-class CourseDetailsViewSet(BaseViewSet):
+class CourseDetailViewSet(BaseViewSet):
     queryset = CourseDetail.objects.all()
     serializer_class = CourseDetailSerializer
 
@@ -83,7 +85,7 @@ class SectionViewSet(BaseViewSet):
     serializer_class = SectionSerializer
 
 
-class SectionDetailsViewSet(BaseViewSet):
+class SectionDetailViewSet(BaseViewSet):
     queryset = SectionDetail.objects.all()
     serializer_class = SectionDetailSerializer
 
@@ -93,9 +95,9 @@ class SectionAvailabilityViewSet(BaseViewSet):
     serializer_class = SectionAvailabilitySerializer
 
 
-class CombinedSectionAvailabilityViewSet(BaseViewSet):
+class SectionCombinedAvailabilityViewSet(BaseViewSet):
     queryset = SectionCombinedAvailability.objects.all()
-    serializer_class = CombinedSectionAvailabilitySerializer
+    serializer_class = SectionCombinedAvailabilitySerializer
 
 
 class SectionRestrictionViewSet(BaseViewSet):
@@ -103,9 +105,9 @@ class SectionRestrictionViewSet(BaseViewSet):
     serializer_class = SectionRestrictionSerializer
 
 
-class MeetingInformationViewSet(BaseViewSet):
-    queryset = MeetingInformation.objects.all()
-    serializer_class = MeetingInformationSerializer
+class SectionMeetingInformationViewSet(BaseViewSet):
+    queryset = SectionMeetingInformation.objects.all()
+    serializer_class = SectionMeetingInformationSerializer
 
 
 class CoverageViewSet(BaseViewSet):

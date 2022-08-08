@@ -3,16 +3,16 @@ from rest_framework.routers import DefaultRouter
 
 from spire.views import (
     AcademicGroupViewSet,
-    CombinedSectionAvailabilityViewSet,
-    CourseDetailsViewSet,
+    CourseDetailViewSet,
     CourseEnrollmentInformationViewSet,
     CourseOfferingViewSet,
     CourseViewSet,
     CoverageViewSet,
     InstructorViewSet,
-    MeetingInformationViewSet,
     SectionAvailabilityViewSet,
-    SectionDetailsViewSet,
+    SectionCombinedAvailabilityViewSet,
+    SectionDetailViewSet,
+    SectionMeetingInformationViewSet,
     SectionRestrictionViewSet,
     SectionViewSet,
     SubjectViewSet,
@@ -24,7 +24,7 @@ router.register("academic-groups", AcademicGroupViewSet, basename="academicgroup
 router.register("subjects", SubjectViewSet, basename="subject")
 
 router.register("courses", CourseViewSet, basename="course")
-router.register("course-details", CourseDetailsViewSet, basename="coursedetail")
+router.register("course-detail", CourseDetailViewSet, basename="coursedetail")
 router.register(
     "course-enrollment-information",
     CourseEnrollmentInformationViewSet,
@@ -35,17 +35,19 @@ router.register("course-offerings", CourseOfferingViewSet, basename="courseoffer
 router.register("instructors", InstructorViewSet, basename="instructor")
 
 router.register("sections", SectionViewSet, basename="section")
-router.register("section-details", SectionDetailsViewSet, basename="sectiondetail")
+router.register("section-detail", SectionDetailViewSet, basename="sectiondetail")
 router.register("section-availability", SectionAvailabilityViewSet, basename="sectionavailability")
 router.register(
     "section-combined-availability",
-    CombinedSectionAvailabilityViewSet,
+    SectionCombinedAvailabilityViewSet,
     basename="sectioncombinedavailability",
 )
-router.register("section-restrictions", SectionRestrictionViewSet, basename="sectionrestriction")
-router.register("meeting-information", MeetingInformationViewSet, basename="meetinginformation")
+router.register("section-restriction", SectionRestrictionViewSet, basename="sectionrestriction")
+router.register(
+    "section-meeting-information", SectionMeetingInformationViewSet, basename="sectionmeetinginformation"
+)
 
-router.register("coverage", CoverageViewSet, basename="sectioncoverage")
+router.register("coverage", CoverageViewSet, basename="coverage")
 
 urlpatterns = [
     path("", include(router.urls)),
