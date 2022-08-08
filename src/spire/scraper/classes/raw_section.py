@@ -81,10 +81,10 @@ class RawSection(RawObject):
                 }
             )
 
-            self.details.push(section)
+            self.details.push(section=section)
             if hasattr(self, "restrictions"):
-                self.restrictions.push(section)
-            self.availability.push(section)
+                self.restrictions.push(section=section)
+            self.availability.push(section=section)
 
             dropped, _ = SectionMeetingInformation.objects.filter(section_id=section.id).delete()
 

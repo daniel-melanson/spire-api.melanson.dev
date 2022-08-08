@@ -1,11 +1,10 @@
 from typing import Optional
 
-from spire.models import Course, CourseDetail
-from spire.scraper.classes.raw_academic_group import GROUP_OVERRIDES, RawAcademicGroup
-
-from .assertions import NO_EMPTY_STRS_ASSERTION
-from .normalizers import COURSE_CREDIT_NORMALIZER, SPLIT_NEWLINE
-from .shared import RawDictionary, RawField, key_override_factory
+from spire.models import CourseDetail
+from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
+from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, SPLIT_NEWLINE
+from spire.scraper.classes.raw_academic_group import GROUP_OVERRIDES
+from spire.scraper.classes.shared import RawDictionary, RawField, key_override_factory
 
 
 class RawCourseDetail(RawDictionary):
@@ -62,6 +61,3 @@ class RawCourseDetail(RawDictionary):
             ],
             pk="course_id",
         )
-
-    def push(self, course: Course):
-        return super().push(course=course)

@@ -2,9 +2,8 @@ import logging
 import re
 
 from spire.models import Section, SectionAvailability, SectionCombinedAvailability
+from spire.scraper.classes.shared import RawDictionary, RawField
 from spire.scraper.shared import assert_match
-
-from .shared import RawDictionary, RawField
 
 log = logging.getLogger(__name__)
 
@@ -51,9 +50,6 @@ class RawCombinedSectionAvailability(RawDictionary):
             fields=[RawField(k="Sections", normalizers=[section_list_normalizer]), *AVAILABILITY_FIELDS],
         )
 
-    def push(self, individual_availability: SectionAvailability):
-        return super().push(individual_availability=individual_availability)
-
 
 class RawSectionAvailability(RawDictionary):
     def __init__(self, section_id: str, table: dict[str, str]) -> None:
@@ -90,4 +86,4 @@ class RawSectionAvailability(RawDictionary):
         availability = super().push(section=section)
 
         if self._is_combined:
-            self.combined_availability.push(availability)
+            self.combined_availability.push(individual_availability=availability)

@@ -1,10 +1,9 @@
 from typing import Optional
 
-from spire.models import Course, CourseEnrollmentInformation
+from spire.models import CourseEnrollmentInformation
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.normalizers import SPLIT_NEWLINE
-
-from .shared import RawDictionary, RawField
+from spire.scraper.classes.shared import RawDictionary, RawField
 
 
 class RawCourseEnrollmentInformation(RawDictionary):
@@ -30,6 +29,3 @@ class RawCourseEnrollmentInformation(RawDictionary):
                 ),
             ],
         )
-
-    def push(self, course: Course):
-        return super().push(course=course)

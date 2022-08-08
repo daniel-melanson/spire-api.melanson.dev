@@ -1,9 +1,12 @@
 from spire.models import Section, SectionDetail
 from spire.patterns import UNITS_REGEXP
-
-from .assertions import NO_EMPTY_STRS_ASSERTION
-from .normalizers import COURSE_CREDIT_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR
-from .shared import RawDictionary, RawField, key_override_factory
+from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
+from spire.scraper.classes.normalizers import (
+    COURSE_CREDIT_NORMALIZER,
+    NONE_STRING_TO_NONE_NORMALIZER,
+    STRIP_STR,
+)
+from spire.scraper.classes.shared import RawDictionary, RawField, key_override_factory
 
 
 def class_component_norm(x: str) -> list[str]:
@@ -79,6 +82,3 @@ class RawSectionDetail(RawDictionary):
                 RawField(k="RAP/TAP/HLC", normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
             ],
         )
-
-    def push(self, section: Section):
-        return super().push(section=section)

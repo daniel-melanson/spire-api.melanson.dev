@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from spire.models import Course, Subject
@@ -9,11 +10,12 @@ from spire.scraper.classes.normalizers import (
     STRIP_STR,
 )
 from spire.scraper.classes.raw_academic_group import RawAcademicGroup
+from spire.scraper.classes.raw_course_detail import RawCourseDetail
+from spire.scraper.classes.raw_course_enrollment_information import RawCourseEnrollmentInformation
 from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
+from spire.scraper.classes.shared import RawField, RawObject, clean_id
 
-from .raw_course_detail import RawCourseDetail
-from .raw_course_enrollment_information import RawCourseEnrollmentInformation
-from .shared import RawField, RawObject, clean_id
+log = logging.getLogger(__name__)
 
 
 class RawCourse(RawObject):
@@ -43,14 +45,15 @@ class RawCourse(RawObject):
         self.description = description
 
         self.details = RawCourseDetail(self.id, details)
+        log.info("Scraped course detail:\n%s", self.details)
 
         if self.details.academic_group is not None:
             self._raw_group = RawAcademicGroup(self.details.academic_group)
+            log.info("Scraped academic group:\n%s", self._raw_group)
 
         if enrollment_information:
             self.enrollment_information = RawCourseEnrollmentInformation(self.id, enrollment_information)
-        else:
-            self.enrollment_information = None
+            log.info("Scraped course enrollment information:\n%s", self.enrollment_information)
 
         super().__init__(
             Course,
@@ -74,7 +77,7 @@ class RawCourse(RawObject):
         if hasattr(self, "_raw_group"):
             self.subject.groups.add(self._raw_group.push())
 
-        self.details.push(course)
+        self.details.push(course=course)
 
-        if self.enrollment_information:
-            self.enrollment_information.push(course)
+        if hasattr(self, "enrollment_information"):
+            self.enrollment_information.push(course=course)
