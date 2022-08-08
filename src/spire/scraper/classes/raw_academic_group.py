@@ -8,7 +8,10 @@ GROUP_OVERRIDES = key_override_factory(
         "College of Social & Behav. Sci": "College of Social & Behavioral Sciences",
         "College of Info & Computer Sci": "Manning College of Information & Computer Sciences",
         "College of Natural Sci. & Math": "College of Natural Sciences",
-        "Sch. of Public Health&Hlth Sci": "School of Public Health & Health Sciences",
+        (
+            "School of Pub Hlth & Hlth Sci",
+            "Sch. of Public Health&Hlth Sci",
+        ): "School of Public Health & Health Sciences",
         "School of Education": "College of Education",
     }
 )
