@@ -182,12 +182,13 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
 # Caching
 # https://docs.djangoproject.com/en/4.0/topics/cache/
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": REDIS_URL,
+if not DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
     }
-}
 
 # Celery
 # https://docs.celeryproject.org/en/stable/userguide/configuration.html
