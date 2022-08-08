@@ -119,6 +119,8 @@ class RawSectionMeetingInformation(RawDictionary):
             meeting_dates=self.meeting_dates,
         )
 
+        log.info("Created SectionMeetingInformation: %s", mi)
+
         if hasattr(self, "schedule"):
             self.schedule.push(meeting_information=mi)
 
