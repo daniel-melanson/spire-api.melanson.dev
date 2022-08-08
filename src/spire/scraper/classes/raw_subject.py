@@ -21,7 +21,7 @@ SUBJECT_OVERRIDES = key_override_factory(
         ("ORG&EVBI", "ORGEVBI"): ("OEB", "Organismic & Evolutionary Biology"),
         "PUBP&ADM": ("SPP", "School of Public Policy"),
         "SC@MIC": ("SC@MIC", "Science @ Mt. Ida College"),
-        "SPHH": ("SPHH", "School of Public Health & Health Sciences"),
+        "SPHHS": ("SPHHS", "School of Public Health & Health Sciences"),
         "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
         "ZEROCRED": ("TSTOCRED", "Zero Credit Test Equiv"),
     },
