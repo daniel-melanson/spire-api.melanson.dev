@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Tuple
 
 from django.conf import settings
 from django.utils import timezone
@@ -17,8 +18,8 @@ from spire.models import (
 from spire.patterns import TERM_REGEXP
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
 from spire.scraper.classes.raw_course import RawCourse
-from spire.scraper.classes.raw_meeting_information import RawInstructor
 from spire.scraper.classes.raw_section import RawSection
+from spire.scraper.classes.raw_section_meeting_information import RawInstructor
 from spire.scraper.classes.raw_subject import RawSubject
 from spire.scraper.shared import assert_match, scrape_spire_tables
 from spire.scraper.spire_driver import SpireDriver
@@ -158,8 +159,10 @@ SECTION_ID_OVERRIDES = {
 
 
 def _scrape_search_results(
-    driver: SpireDriver, cache: VersionedCache, quick: bool, term: str, subject: Subject
+    driver: SpireDriver, cache: VersionedCache, quick: bool, term_tuple: Tuple[str, str], subject: Subject
 ):
+    (term, term_ordinal) = term_tuple
+
     scraped_section_count = 0
     found_section_count = 0
 
@@ -201,6 +204,7 @@ def _scrape_search_results(
             defaults={
                 "subject": subject,
                 "alternative_title": course_title if course_title != course.title else None,
+                "_term_ordinal": term_ordinal,
             },
         )
 
@@ -363,9 +367,13 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
         term = f"{season} {year}"
         assert_match(TERM_REGEXP, term)
 
+        season_order = ["Winter", "Fall", "Summer", "Spring"]
+        term_ordinal = int(year + str(season_order.index(season)))
+
         # Establish coverage entry
         coverage, _ = SectionCoverage.objects.get_or_create(
-            term=term, defaults={"completed": False, "start_time": timezone.now()}
+            term=term,
+            defaults={"completed": False, "start_time": timezone.now(), "_term_ordinal": term_ordinal},
         )
 
         if coverage.completed and settings.SCRAPER_SKIP_OLD_TERMS:
@@ -410,7 +418,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                scraped, found = _scrape_search_results(driver, cache, quick, term, subject)
+                scraped, found = _scrape_search_results(driver, cache, quick, (term, term_ordinal), subject)
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",

@@ -4,20 +4,15 @@ from typing import Optional
 from django.db import transaction
 from django.utils import timezone
 
-from spire.models import MeetingInformation, Section
-from spire.patterns import SECTION_ID_REGEXP, TERM_REGEXP
-from spire.scraper.classes.normalizers import (
-    DESCRIPTION_NOT_AVAILABLE_TO_NONE,
-    REPLACE_DOUBLE_SPACE,
-    STRIP_STR,
-)
-from spire.scraper.classes.raw_meeting_information import RawMeetingInformation
+from spire.models import Section, SectionMeetingInformation
+from spire.patterns import SECTION_ID_REGEXP
+from spire.scraper.classes.normalizers import DESCRIPTION_NOT_AVAILABLE_TO_NONE, STRIP_STR
 from spire.scraper.classes.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.raw_section_detail import RawSectionDetail
+from spire.scraper.classes.raw_section_meeting_information import RawSectionMeetingInformation
 from spire.scraper.classes.raw_section_restriction import RawSectionRestriction
+from spire.scraper.classes.shared import RawField, RawObject
 from spire.scraper.shared import assert_match
-
-from .shared import RawField, RawObject
 
 log = logging.getLogger(__name__)
 
@@ -46,7 +41,7 @@ class RawSection(RawObject):
         self.details = RawSectionDetail(self.id, details)
         log.info("Scraped section detail:\n%s", self.details)
 
-        self.meeting_information = [RawMeetingInformation(self.id, x) for x in meeting_information]
+        self.meeting_information = [RawSectionMeetingInformation(self.id, x) for x in meeting_information]
         log.info(
             "Scraped section meeting information: [\n%s]",
             "\n".join([str(x) for x in self.meeting_information]),
@@ -91,7 +86,7 @@ class RawSection(RawObject):
                 self.restrictions.push(section)
             self.availability.push(section)
 
-            dropped, _ = MeetingInformation.objects.filter(section_id=section.id).delete()
+            dropped, _ = SectionMeetingInformation.objects.filter(section_id=section.id).delete()
 
             log.debug(
                 "Dropped %s MeetingInformation records in preparation to push %s new ones.",

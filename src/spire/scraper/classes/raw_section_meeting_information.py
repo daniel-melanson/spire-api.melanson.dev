@@ -3,7 +3,7 @@ import re
 from datetime import time
 from typing import Optional
 
-from spire.models import Instructor, MeetingInformation, MeetingSchedule, Section
+from spire.models import Instructor, Section, SectionMeetingInformation, SectionMeetingSchedule
 from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
 
 log = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ def as_time(time_str, meridiem):
     return time(hour=hour, minute=minute)
 
 
-class RawMeetingSchedule(RawObject):
+class RawSectionMeetingSchedule(RawObject):
     def __init__(self, days_and_times) -> None:
         m = re.fullmatch(
             r"(?P<days>(Mo|Tu|We|Th|Fr|Sa|Su){1,6}) (?P<start_time>\d\d?:\d\d)(?P<start_m>AM|PM) - (?P<end_time>\d\d?:\d\d)(?P<end_m>AM|PM)",
@@ -81,7 +81,7 @@ class RawMeetingSchedule(RawObject):
         self.end_time = as_time(m.group("end_time"), m.group("end_m"))
 
         super().__init__(
-            MeetingSchedule,
+            SectionMeetingSchedule,
             [
                 RawField("days", min_len=1),
                 RawField("start_time"),
@@ -91,18 +91,18 @@ class RawMeetingSchedule(RawObject):
         )
 
 
-class RawMeetingInformation(RawDictionary):
+class RawSectionMeetingInformation(RawDictionary):
     def __init__(self, section_id: str, table: dict[str, str]) -> None:
         self.section_id = section_id
 
         days_and_times = table["days_and_times"]
         del table["days_and_times"]
         if days_and_times not in ("TBA", "TBA 1:00AM - 1:00AM"):
-            self.schedule = RawMeetingSchedule(days_and_times)
+            self.schedule = RawSectionMeetingSchedule(days_and_times)
             log.info("Scraped meeting schedule:\n%s", self.schedule)
 
         super().__init__(
-            MeetingInformation,
+            SectionMeetingInformation,
             table,
             pk="section_id",
             fields=[
@@ -113,7 +113,7 @@ class RawMeetingInformation(RawDictionary):
         )
 
     def push(self, section: Section):
-        mi = MeetingInformation.objects.create(
+        mi = SectionMeetingInformation.objects.create(
             section=section,
             room=self.room,
             meeting_dates=self.meeting_dates,
