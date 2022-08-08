@@ -404,11 +404,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             _initialize_query(driver, term_id, subject_id)
 
             raw_subject = RawSubject(subject_id, subject_title)
-            subject, created = Subject.objects.get_or_create(
-                id=raw_subject.id, defaults={"title": raw_subject.title}
-            )
-
-            log.info("%s subject: %s", "Created" if created else "Found", subject)
+            subject = raw_subject.push()
 
             log.info("Searching for sections in subject %s during %s...", subject.id, term)
             driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
