@@ -44,12 +44,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "spire",
+    "corsheaders",
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
