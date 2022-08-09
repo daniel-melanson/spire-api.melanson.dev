@@ -24,7 +24,7 @@ SUBJECT_OVERRIDES = key_override_factory(
         "SC@MIC": ("SC@MIC", "Science @ Mt. Ida College"),
         "SPHHS": ("SPHHS", "School of Public Health & Health Sciences"),
         "STOCKSCH": ("STOCKSCH", "Stockbridge School of Agriculture"),
-        "WGSS": ("Women, Gender, Sexuality Studies"),
+        "WGSS": ("WGSS", "Women, Gender, Sexuality Studies"),
         "ZEROCRED": ("TSTOCRED", "Zero Credit Test Equiv"),
     }
 )
