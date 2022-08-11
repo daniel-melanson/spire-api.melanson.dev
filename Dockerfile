@@ -1,7 +1,7 @@
 FROM python:3.10-slim-bullseye
 
 ENV PYTHONUNBUFFERED 1
-ENV APP_PATH=/home/django/app/
+ENV APP_PATH=/home/django/app
 
 RUN mkdir -p $APP_PATH
 WORKDIR $APP_PATH
