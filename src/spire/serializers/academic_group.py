@@ -9,4 +9,4 @@ class AcademicGroupSerializer(HyperlinkedModelSerializer):
 
     class Meta:
         model = AcademicGroup
-        fields = ["url", "title", "subjects"]
+        fields = ["url", "id", "title", "subjects"]
