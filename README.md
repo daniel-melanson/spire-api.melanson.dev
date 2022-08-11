@@ -37,3 +37,12 @@ A `Course` is a unique instance of a id across spire. The default information fo
 A `CorseOffering` is an offering of a course during a specific semester. The course offerings will map to their matching `Course` via id. Offerings may list different titles than what was originally found for the course. Thus `CourseOfferings` may potentially have an `alternative_title` field.
 
 Within that offering, will be a list of `Section`s. If a section is found that references a course that was not listed in the course catalog, then a stub `Course` object is created (without any `CourseDetail` or `CourseEnrollment` information objects).
+
+## TODO
+
+Apply data tweaks to:
+
+- CourseDetail.campus
+- CourseEnrollmentInformation.course_attribute
+- SectionDetail.session
+- SectionDetail.rap_tap_hlc
