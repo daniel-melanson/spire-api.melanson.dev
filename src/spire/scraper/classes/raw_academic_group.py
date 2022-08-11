@@ -14,6 +14,8 @@ GROUP_OVERRIDES = key_override_factory(
             "Sch. of Public Health&Hlth Sci",
         ): "School of Public Health & Health Sciences",
         "School of Education": "College of Education",
+        "School of Management": "Isenberg School of Management",
+        "Commonwealth College": "Commonwealth Honors College",
     }
 )
 
