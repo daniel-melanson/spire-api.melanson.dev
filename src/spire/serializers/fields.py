@@ -11,7 +11,7 @@ class BaseFieldSerializer(HyperlinkedModelSerializer):
 class AcademicGroupFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = AcademicGroup
-        fields = ["url", "title"]
+        fields = ["url", "id", "title"]
 
 
 class SubjectFieldSerializer(BaseFieldSerializer):

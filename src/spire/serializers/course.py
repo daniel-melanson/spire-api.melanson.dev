@@ -28,10 +28,18 @@ class CourseEnrollmentInformationSerializer(HyperlinkedModelSerializer):
 class CourseOfferingSerializer(HyperlinkedModelSerializer):
     course = CourseFieldSerializer()
     sections = SectionFieldSerializer(many=True)
+    subject = SubjectFieldSerializer()
 
     class Meta:
         model = CourseOffering
-        exclude = ["_term_ordinal"]
+        fields = [
+            "id",
+            "subject",
+            "course",
+            "alternative_title",
+            "term",
+            "sections",
+        ]
 
 
 class CourseSerializer(HyperlinkedModelSerializer):
