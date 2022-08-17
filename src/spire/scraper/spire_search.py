@@ -367,7 +367,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
         term = f"{season} {year}"
         assert_match(TERM_REGEXP, term)
 
-        season_order = ["Winter", "Fall", "Summer", "Spring"]
+        season_order = ["Spring", "Summer", "Fall", "Winter"]
         term_ordinal = int(year + str(season_order.index(season)))
 
         # Establish coverage entry
