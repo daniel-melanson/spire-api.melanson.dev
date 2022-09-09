@@ -4,6 +4,7 @@ from django.db.models import (
     AutoField,
     BooleanField,
     CharField,
+    DateField,
     DateTimeField,
     EmailField,
     ForeignKey,
@@ -54,7 +55,27 @@ _subject_title_validator = re_validator_factory(
 
 _section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a section id (match the id RegExp")
 
-_section_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
+_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
+
+
+class Term(Model):
+    id = CharField(primary_key=True, validators=[_term_validator])
+    season = CharField(choices=["Fall", "Winter", "Summer", "Spring"])
+    year = IntegerField()
+    ordinal = IntegerField()
+
+    class Meta:
+        ordering = ["term"]
+        unique_together = [["year", "season"]]
+
+
+class TermEvent(Model):
+    term = ForeignKey(Term, related_name="events")
+    date = DateField()
+    description = CharField(max_length=2**8, unique=True)
+
+    class Meta:
+        ordering = ["term", "date"]
 
 
 class AcademicGroup(Model):
@@ -135,8 +156,7 @@ class CourseOffering(Model):
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="offerings")
     course = ForeignKey(Course, on_delete=CASCADE, related_name="offerings")
     alternative_title = CharField(max_length=2**8, null=True)
-    term = CharField(max_length=2**5)
-    _term_ordinal = IntegerField()
+    term = ForeignKey(Term, related_name="+")
 
     def __str__(self):
         return (
@@ -144,7 +164,7 @@ class CourseOffering(Model):
         )
 
     class Meta:
-        ordering = ["_term_ordinal", "course"]
+        ordering = ["term", "course"]
         unique_together = [["course", "term"]]
 
 
@@ -254,11 +274,10 @@ class SectionMeetingSchedule(Model):
 
 
 class SectionCoverage(Model):
-    term = CharField(max_length=2**5, primary_key=True)
+    term = OneToOneField(Term, primary_key=True)
     completed = BooleanField(default=False)
     start_time = DateTimeField()
     end_time = DateTimeField(null=True)
-    _term_ordinal = IntegerField()
 
     class Meta:
-        ordering = ["_term_ordinal"]
+        ordering = ["term"]
