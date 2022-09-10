@@ -7,6 +7,7 @@ from time import sleep
 
 from django.conf import settings
 
+from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.spire_search import scrape_sections
@@ -29,6 +30,7 @@ class ScrapeCoverage(Enum):
     Total = 0
     SubjectsAndCourses = 1
     Sections = 2
+    Calendar = 3
 
 
 def scrape(s, func, **kwargs):
@@ -91,6 +93,9 @@ def scrape_data(coverage: ScrapeCoverage, quick=False):
     log.info("Scrape coverage: %s", coverage)
 
     scrape_timer = Timer()
+
+    if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Calendar:
+        scrape_academic_schedule()
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.SubjectsAndCourses:
         scrape("course catalog", scrape_catalog)

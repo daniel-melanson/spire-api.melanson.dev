@@ -59,20 +59,22 @@ _term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the t
 
 
 class Term(Model):
-    id = CharField(primary_key=True, validators=[_term_validator])
-    season = CharField(choices=["Fall", "Winter", "Summer", "Spring"])
+    id = CharField(primary_key=True, validators=[_term_validator], max_length=2**5)
+    season = CharField(max_length=2**4)
     year = IntegerField()
     ordinal = IntegerField()
+    start_date = DateField(default=None, null=True)
+    end_date = DateField(default=None, null=True)
 
     class Meta:
-        ordering = ["term"]
+        ordering = ["ordinal"]
         unique_together = [["year", "season"]]
 
 
 class TermEvent(Model):
-    term = ForeignKey(Term, related_name="events")
+    term = ForeignKey(Term, related_name="events", on_delete=CASCADE)
     date = DateField()
-    description = CharField(max_length=2**8, unique=True)
+    description = CharField(max_length=2**8)
 
     class Meta:
         ordering = ["term", "date"]
@@ -156,7 +158,7 @@ class CourseOffering(Model):
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="offerings")
     course = ForeignKey(Course, on_delete=CASCADE, related_name="offerings")
     alternative_title = CharField(max_length=2**8, null=True)
-    term = ForeignKey(Term, related_name="+")
+    term = ForeignKey(Term, on_delete=CASCADE, related_name="+")
 
     def __str__(self):
         return (
@@ -274,7 +276,7 @@ class SectionMeetingSchedule(Model):
 
 
 class SectionCoverage(Model):
-    term = OneToOneField(Term, primary_key=True)
+    term = OneToOneField(Term, primary_key=True, on_delete=CASCADE)
     completed = BooleanField(default=False)
     start_time = DateTimeField()
     end_time = DateTimeField(null=True)

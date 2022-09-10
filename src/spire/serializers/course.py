@@ -6,6 +6,7 @@ from spire.serializers.fields import (
     CourseOfferingFieldSerializer,
     SectionFieldSerializer,
     SubjectFieldSerializer,
+    TermFieldSerializer,
 )
 
 
@@ -29,11 +30,13 @@ class CourseOfferingSerializer(HyperlinkedModelSerializer):
     course = CourseFieldSerializer()
     sections = SectionFieldSerializer(many=True)
     subject = SubjectFieldSerializer()
+    term = TermFieldSerializer()
 
     class Meta:
         model = CourseOffering
         fields = [
             "id",
+            "url",
             "subject",
             "course",
             "alternative_title",

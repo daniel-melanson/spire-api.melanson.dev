@@ -17,6 +17,9 @@ celery = "*"
 redis = "*"
 django-cors-headers = "*"
 unidecode = "*"
+bs4 = "*"
+html5lib = "*"
+requests = "*"
 
 [requires]
 python_version = "3.10"

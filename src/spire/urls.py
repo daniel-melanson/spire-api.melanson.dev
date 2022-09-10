@@ -16,9 +16,15 @@ from spire.views import (
     SectionRestrictionViewSet,
     SectionViewSet,
     SubjectViewSet,
+    TermEventViewSet,
+    TermViewSet,
 )
 
 router = DefaultRouter()
+
+router.register("terms", TermViewSet, basename="term")
+router.register("term-events", TermEventViewSet, basename="termevent")
+
 router.register("academic-groups", AcademicGroupViewSet, basename="academicgroup")
 
 router.register("subjects", SubjectViewSet, basename="subject")

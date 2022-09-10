@@ -18,6 +18,8 @@ from spire.models import (
     SectionMeetingInformation,
     SectionRestriction,
     Subject,
+    Term,
+    TermEvent,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.course import (
@@ -37,12 +39,23 @@ from spire.serializers.section import (
     SectionSerializer,
 )
 from spire.serializers.subject import SubjectSerializer
+from spire.serializers.term import TermEventSerializer, TermSerializer
 
 
 class BaseViewSet(ReadOnlyModelViewSet):
     @method_decorator(cache_page(settings.VIEW_CACHE_TTL))
     def dispatch(self, *args, **kwargs):
         return super(BaseViewSet, self).dispatch(*args, **kwargs)
+
+
+class TermViewSet(BaseViewSet):
+    queryset = Term.objects.all()
+    serializer_class = TermSerializer
+
+
+class TermEventViewSet(BaseViewSet):
+    queryset = TermEvent.objects.all()
+    serializer_class = TermEventSerializer
 
 
 class AcademicGroupViewSet(BaseViewSet):

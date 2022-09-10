@@ -11,12 +11,18 @@ from spire.models import (
     SectionMeetingSchedule,
     SectionRestriction,
 )
-from spire.serializers.fields import BaseFieldSerializer, CourseFieldSerializer, SectionFieldSerializer
+from spire.serializers.fields import (
+    BaseFieldSerializer,
+    CourseFieldSerializer,
+    SectionFieldSerializer,
+    TermFieldSerializer,
+)
 from spire.serializers.instructor import InstructorSerializer
 
 
 class SectionCourseOfferingFieldSerializer(BaseFieldSerializer):
     course = CourseFieldSerializer()
+    term = TermFieldSerializer()
 
     class Meta:
         model = CourseOffering
@@ -72,6 +78,8 @@ class SectionRestrictionSerializer(HyperlinkedModelSerializer):
 
 
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
+    term = TermFieldSerializer()
+
     class Meta:
         model = SectionCoverage
         fields = ["completed", "term", "start_time", "end_time"]
