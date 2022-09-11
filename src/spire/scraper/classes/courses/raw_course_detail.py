@@ -3,7 +3,7 @@ from typing import Optional
 from spire.models import CourseDetail
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
-from spire.scraper.classes.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
+from spire.scraper.classes.groups.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
 from spire.scraper.classes.shared import RawDictionary, RawField
 
 ACADEMIC_ORG_NORMALIZER = DICT_KEY_NORMALIZER(

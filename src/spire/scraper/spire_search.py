@@ -16,11 +16,8 @@ from spire.models import (
     Term,
 )
 from spire.scraper.academic_calendar import get_or_create_term
+from spire.scraper.classes import RawCourse, RawInstructor, RawSection, RawSubject
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
-from spire.scraper.classes.raw_course import RawCourse
-from spire.scraper.classes.raw_section import RawSection
-from spire.scraper.classes.raw_section_meeting_information import RawInstructor
-from spire.scraper.classes.raw_subject import RawSubject
 from spire.scraper.shared import assert_match, scrape_spire_tables
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.timer import Timer

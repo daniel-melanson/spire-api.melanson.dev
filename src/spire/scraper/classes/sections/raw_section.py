@@ -7,10 +7,10 @@ from django.utils import timezone
 from spire.models import Section, SectionMeetingInformation
 from spire.patterns import SECTION_ID_REGEXP
 from spire.scraper.classes.normalizers import DESCRIPTION_NOT_AVAILABLE_TO_NONE, STRIP_STR
-from spire.scraper.classes.raw_section_availability import RawSectionAvailability
-from spire.scraper.classes.raw_section_detail import RawSectionDetail
-from spire.scraper.classes.raw_section_meeting_information import RawSectionMeetingInformation
-from spire.scraper.classes.raw_section_restriction import RawSectionRestriction
+from spire.scraper.classes.sections.raw_section_availability import RawSectionAvailability
+from spire.scraper.classes.sections.raw_section_detail import RawSectionDetail
+from spire.scraper.classes.sections.raw_section_meeting_information import RawSectionMeetingInformation
+from spire.scraper.classes.sections.raw_section_restriction import RawSectionRestriction
 from spire.scraper.classes.shared import RawField, RawObject
 from spire.scraper.shared import assert_match
 

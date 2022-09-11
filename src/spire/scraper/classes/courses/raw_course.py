@@ -3,16 +3,16 @@ from typing import Optional
 
 from spire.models import Course, Subject
 from spire.patterns import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
+from spire.scraper.classes.courses.raw_course_detail import RawCourseDetail
+from spire.scraper.classes.courses.raw_course_enrollment_information import RawCourseEnrollmentInformation
+from spire.scraper.classes.groups.raw_academic_group import RawAcademicGroup
+from spire.scraper.classes.groups.raw_subject import SUBJECT_OVERRIDES
 from spire.scraper.classes.normalizers import (
     DESCRIPTION_NOT_AVAILABLE_TO_NONE,
     EMPTY_TO_NONE,
     REPLACE_DOUBLE_SPACE,
     STRIP_STR,
 )
-from spire.scraper.classes.raw_academic_group import RawAcademicGroup
-from spire.scraper.classes.raw_course_detail import RawCourseDetail
-from spire.scraper.classes.raw_course_enrollment_information import RawCourseEnrollmentInformation
-from spire.scraper.classes.raw_subject import SUBJECT_OVERRIDES
 from spire.scraper.classes.shared import RawField, RawObject, clean_id
 
 log = logging.getLogger(__name__)
