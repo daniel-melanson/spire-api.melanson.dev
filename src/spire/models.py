@@ -66,6 +66,9 @@ class Term(Model):
     start_date = DateField(default=None, null=True)
     end_date = DateField(default=None, null=True)
 
+    def __str__(self) -> str:
+        return f"Term[{self.id}]"
+
     class Meta:
         ordering = ["ordinal"]
         unique_together = [["year", "season"]]
@@ -76,6 +79,9 @@ class TermEvent(Model):
     date = DateField()
     description = CharField(max_length=2**8)
 
+    def __str__(self) -> str:
+        return f"TermEvent[None](term={self.term}, date={self.date})"
+
     class Meta:
         ordering = ["term", "date"]
 
@@ -83,6 +89,9 @@ class TermEvent(Model):
 class AcademicGroup(Model):
     id = AutoField(primary_key=True)
     title = CharField(max_length=2**6, unique=True)
+
+    def __str__(self) -> str:
+        return f"AcademicGroup[{self.id}](title={self.title})"
 
     class Meta:
         ordering = ["id"]
