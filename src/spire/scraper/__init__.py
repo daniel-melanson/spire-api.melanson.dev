@@ -83,7 +83,7 @@ def scrape(s, func, **kwargs):
             driver = driver.close()
             sleep(5 * 60)
             for h in LOG_HANDLERS:
-                h.doRollover()
+                h.doRollover()  # type: ignore
 
             driver = SpireDriver()
 

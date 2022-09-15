@@ -19,8 +19,10 @@ log = logging.getLogger(__name__)
 
 
 class RawCourse(RawObject):
+    @staticmethod
     def get_course_id(subject: str, number: str):
-        [subject, number] = clean_id(subject, number)
+        subject = clean_id(subject)
+        number = clean_id(number)
 
         if subject in SUBJECT_OVERRIDES:
             subject = SUBJECT_OVERRIDES[subject][0]

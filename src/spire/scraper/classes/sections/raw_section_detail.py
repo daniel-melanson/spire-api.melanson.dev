@@ -45,14 +45,12 @@ class_component_set = set(
 
 
 class RawSectionDetail(RawDictionary):
-    def __init__(self, section_id: str, table: dict[str, str]) -> None:
-        self.section_id = section_id
-
+    def __init__(self, spire_id: str, table: dict[str, str]) -> None:
         super().__init__(
             SectionDetail,
+            spire_id,
             table,
-            pk="section_id",
-            fields=[
+            [
                 RawField(k="Status", choices=("Open", "Closed", "Wait List")),
                 RawField(k="Class Number", re=r"^\d{3,15}$"),
                 RawField(

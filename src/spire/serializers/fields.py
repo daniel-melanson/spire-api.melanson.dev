@@ -1,3 +1,5 @@
+# type: ignore
+
 from rest_framework.serializers import HyperlinkedModelSerializer
 
 from spire.models import AcademicGroup, Course, CourseOffering, Section, Subject, Term, TermEvent

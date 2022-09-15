@@ -28,7 +28,7 @@ def COMBINED_SECTION_ASSERTION(x):
 class RawSection(RawObject):
     def __init__(
         self,
-        id: str,
+        spire_id: str,
         details: dict[str, str],
         meeting_information: list,
         restrictions: Optional[dict[str, str]],
@@ -36,22 +36,24 @@ class RawSection(RawObject):
         description: Optional[str],
         overview: Optional[str],
     ):
-        self.id = id
+        self.spire_id = spire_id
 
-        self.details = RawSectionDetail(self.id, details)
+        self.details = RawSectionDetail(self.spire_id, details)
         log.info("Scraped section detail:\n%s", self.details)
 
-        self.meeting_information = [RawSectionMeetingInformation(self.id, x) for x in meeting_information]
+        self.meeting_information = [
+            RawSectionMeetingInformation(self.spire_id, x) for x in meeting_information
+        ]
         log.info(
             "Scraped section meeting information: [\n%s]",
             "\n".join([str(x) for x in self.meeting_information]),
         )
 
         if restrictions:
-            self.restrictions = RawSectionRestriction(self.id, restrictions)
+            self.restrictions = RawSectionRestriction(self.spire_id, restrictions)
             log.info("Scraped section restrictions:\n%s", self.restrictions)
 
-        self.availability = RawSectionAvailability(self.id, availability)
+        self.availability = RawSectionAvailability(self.spire_id, availability)
         log.info("Scraped section availability:\n%s", self.availability)
 
         self.description = description
@@ -59,8 +61,9 @@ class RawSection(RawObject):
 
         super().__init__(
             Section,
+            spire_id,
             fields=[
-                RawField("id", re=SECTION_ID_REGEXP),
+                RawField("spire_id", re=SECTION_ID_REGEXP),
                 RawField(
                     "description",
                     normalizers=[STRIP_STR, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
@@ -95,6 +98,6 @@ class RawSection(RawObject):
             )
 
             for r_mi in self.meeting_information:
-                r_mi.push(section)
+                r_mi.push(section=section)
 
         return section

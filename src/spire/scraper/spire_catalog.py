@@ -1,6 +1,7 @@
 import logging
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 from spire.models import Subject
 from spire.scraper.timer import Timer
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
-    title_element = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
+    title_element: WebElement = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
 
     raw_title = title_element.text
 
@@ -68,7 +69,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
     # For each uppercase letter; start at 65 (A) or cached value
     total_timer = Timer()
-    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):
+    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1): # type: ignore
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
             continue
@@ -118,6 +119,5 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             driver.click(subject_link_id)
 
         log.info("Scraped subject letter group %s in %s", letter, subject_group_timer)
-
 
     log.info("Scraped course catalog in %s", total_timer)

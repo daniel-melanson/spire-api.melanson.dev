@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from django.db.models import (
     CASCADE,
+    SET_NULL,
     AutoField,
     BooleanField,
     CharField,
@@ -56,6 +57,14 @@ _subject_title_validator = re_validator_factory(
 _section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a section id (match the id RegExp")
 
 _term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
+
+
+class Building(Model):
+    pass
+
+
+class BuildingRoom(Model):
+    pass
 
 
 class Term(Model):
@@ -149,7 +158,7 @@ class CourseDetail(Model):
 
 class CourseEnrollmentInformation(Model):
     course = OneToOneField(
-        "Course",
+        Course,
         on_delete=CASCADE,
         primary_key=True,
         related_name="enrollment_information",
@@ -157,6 +166,9 @@ class CourseEnrollmentInformation(Model):
     add_consent = CharField(null=True, max_length=2**9)
     enrollment_requirement = CharField(null=True, max_length=2**9)
     course_attribute = JSONField(null=True, default=list)
+
+    def __str__(self) -> str:
+        return f"CourseEnrollmentInformation[{self.course.id}]"
 
     class Meta:
         ordering = ["course"]
@@ -192,14 +204,14 @@ class Instructor(Model):
 
 
 class Section(Model):
-    id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    spire_id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
     offering = ForeignKey(CourseOffering, on_delete=CASCADE, related_name="sections")
     description = CharField(max_length=2**12, null=True)
     overview = CharField(max_length=2**15, null=True)
     _updated_at = DateTimeField()
 
     def __str__(self):
-        return f"Section[{self.id}](offering={self.offering})"
+        return f"Section[{self.spire_id}](offering={self.offering})"
 
     class Meta:
         ordering = ["id"]
@@ -218,6 +230,9 @@ class SectionDetail(Model):
     gened = JSONField(null=True)
     rap_tap_hlc = CharField(null=True, max_length=2**6)
 
+    def __str__(self) -> str:
+        return f"SectionDetail[{self.section.id}]"
+
     class Meta:
         ordering = ["section"]
 
@@ -230,6 +245,9 @@ class SectionAvailability(Model):
     wait_list_capacity = IntegerField()
     wait_list_total = IntegerField()
     nso_enrollment_capacity = IntegerField(null=True, default=None)
+
+    def __str__(self) -> str:
+        return f"SectionAvailability[{self.section.id}]"
 
     class Meta:
         ordering = ["section"]
@@ -247,6 +265,9 @@ class SectionCombinedAvailability(Model):
     wait_list_total = IntegerField()
     nso_enrollment_capacity = IntegerField(null=True, default=None)
 
+    def __str__(self) -> str:
+        return f"SectionCombinedAvailability[{self.individual_availability.section.id}]"
+
     class Meta:
         ordering = ["individual_availability"]
 
@@ -257,6 +278,9 @@ class SectionRestriction(Model):
     enrollment_requirements = CharField(null=True, max_length=2**12)
     add_consent = CharField(null=True, max_length=2**12)
 
+    def __str__(self) -> str:
+        return f"SectionRestriction[{self.section.id}]"
+
     class Meta:
         ordering = ["section"]
 
@@ -264,12 +288,25 @@ class SectionRestriction(Model):
 class SectionMeetingInformation(Model):
     id = AutoField(primary_key=True)
     section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
-    room = CharField(max_length=2**6)
+    room = ForeignKey(BuildingRoom, on_delete=SET_NULL, null=True, related_name="+")
     instructors = ManyToManyField(Instructor, "+")
-    meeting_dates = CharField(max_length=2**6)
+
+    def __str__(self) -> str:
+        return f"SectionMeetingInformation[{self.id}]"
 
     class Meta:
         ordering = ["section"]
+
+
+class SectionMeetingDates(Model):
+    meeting_information = ForeignKey(
+        SectionMeetingInformation, on_delete=CASCADE, related_name="meeting_dates"
+    )
+    start = DateField()
+    end = DateField()
+
+    def __str__(self) -> str:
+        return f"SectionMeetingDates[{self.meeting_information.id}](start={self.start}, end={self.end})"
 
 
 class SectionMeetingSchedule(Model):
@@ -279,6 +316,9 @@ class SectionMeetingSchedule(Model):
     days = JSONField()
     start_time = TimeField()
     end_time = TimeField()
+
+    def __str__(self) -> str:
+        return f"SectionMeetingSchedule[{self.meeting_information.id}](days={self.days}, start_time={self.start_time}, end_time={self.end_time})"
 
     class Meta:
         ordering = ["meeting_information", "start_time"]

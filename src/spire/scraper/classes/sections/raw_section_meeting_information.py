@@ -1,10 +1,18 @@
 import logging
 import re
-from datetime import time
-from typing import Optional
+from datetime import date, time
+from typing import Any, Optional
 
-from spire.models import Instructor, Section, SectionMeetingInformation, SectionMeetingSchedule
-from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
+from spire.models import (
+    Instructor,
+    Section,
+    SectionMeetingDates,
+    SectionMeetingInformation,
+    SectionMeetingSchedule,
+)
+from spire.scraper.classes.buildings.raw_building_room import RawBuildingRoom
+from spire.scraper.classes.shared import RawField, RawObject
+from spire.scraper.shared import assert_match
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +69,27 @@ def as_time(time_str, meridiem):
     return time(hour=hour, minute=minute)
 
 
+class RawSectionMeetingDates(RawObject):
+    def __init__(self, dates: str) -> None:
+        match = assert_match(r"^(?P<start>\S+) - (?P<end>\S+)$", dates.strip())
+
+        date_pattern = r"^(\d{2})/(\d{2})/(\d{4})$"
+
+        start_match = assert_match(date_pattern, match.group("start"))
+        end_match = assert_match(date_pattern, match.group("end"))
+
+        start_kwargs = {}
+        end_kwargs = {}
+        for i, unit in enumerate(["month", "day", "year"]):
+            start_kwargs[unit] = int(start_match.group(i))
+            end_kwargs[unit] = int(end_match.group(i))
+
+        self.start = date(**start_kwargs)
+        self.end = date(**end_kwargs)
+
+        super().__init__(SectionMeetingDates, None, [RawField("start"), RawField("end")])
+
+
 class RawSectionMeetingSchedule(RawObject):
     def __init__(self, days_and_times) -> None:
         m = re.fullmatch(
@@ -82,49 +111,49 @@ class RawSectionMeetingSchedule(RawObject):
 
         super().__init__(
             SectionMeetingSchedule,
-            [
+            fields=[
                 RawField("days", min_len=1),
                 RawField("start_time"),
                 RawField("end_time"),
             ],
-            "meeting_information_id",
         )
 
 
-class RawSectionMeetingInformation(RawDictionary):
-    def __init__(self, section_id: str, table: dict[str, str]) -> None:
-        self.section_id = section_id
+class RawSectionMeetingInformation(RawObject):
+    def __init__(self, spire_id: str, table: dict[str, Any]) -> None:
+        self.id = spire_id
+
+        self.room = RawBuildingRoom(table["room"])
+        log.info("Scraped building room:\n%s", self.room)
+
+        self.instructors: list[RawInstructor] = table["instructors"]
+        assert len(self.instructors) > 0
 
         days_and_times = table["days_and_times"]
-        del table["days_and_times"]
         if days_and_times not in ("TBA", "TBA 1:00AM - 1:00AM"):
             self.schedule = RawSectionMeetingSchedule(days_and_times)
             log.info("Scraped meeting schedule:\n%s", self.schedule)
 
-        super().__init__(
-            SectionMeetingInformation,
-            table,
-            pk="section_id",
-            fields=[
-                RawField("instructors", min_len=1),
-                RawField("room", min_len=1),
-                RawField("meeting_dates", min_len=1),
-            ],
-        )
+        if days_and_times not in ("TBA"):
+            self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
+            log.info("Scraped meeting_dates:\n%s", self.meeting_dates)
+
+            
 
     def push(self, section: Section):
         mi = SectionMeetingInformation.objects.create(
             section=section,
-            room=self.room,
-            meeting_dates=self.meeting_dates,
+            room=self.room.push(),
         )
-
         log.info("Created SectionMeetingInformation: %s", mi)
 
         if hasattr(self, "schedule"):
             self.schedule.push(meeting_information=mi)
 
-        new_instructors = []
+        if hasattr(self, "meeting_dates"):
+            self.meeting_dates.push(meeting_information=mi)
+
+        new_instructors: list[RawInstructor] = []
         for r_staff in self.instructors:
             new_instructors.append(r_staff.push())
 

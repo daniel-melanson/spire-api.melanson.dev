@@ -1,3 +1,5 @@
+# type: ignore
+
 import logging
 from typing import Union
 
@@ -9,7 +11,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.wait import WebDriverWait
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +65,7 @@ class SpireDriver:
 
         log.debug("Navigated to %s.", page)
 
-    def click(self, selector: str, by: By = By.ID, wait=True):
+    def click(self, selector: str, by: str = By.ID, wait: bool = True):
         element = self._wait.until(EC.element_to_be_clickable((by, selector)))
 
         self.scroll_to(element)
@@ -76,11 +78,11 @@ class SpireDriver:
         coords = element.location
         self._driver.execute_script(f"window.scrollTo({coords['x']},{coords['y']});")
 
-    def wait_for_presence(self, by: By, selector: str):
+    def wait_for_presence(self, by: str, selector: str):
         log.debug("Waiting for presence of element by locator %s:%s...", by, selector)
         return self._wait.until(EC.visibility_of_element_located((by, selector)))
 
-    def wait_for_interaction(self, by: By, selector: str):
+    def wait_for_interaction(self, by: str, selector: str):
         log.debug("Waiting for clickable element by locator %s:%s...", by, selector)
         return self._wait.until(EC.element_to_be_clickable((by, selector)))
 
@@ -88,16 +90,16 @@ class SpireDriver:
         log.debug("Waiting for spire...")
         self._wait.until_not(EC.visibility_of_element_located((By.ID, "processing")))
 
-    def find(self, id: str, by: By = By.ID) -> Union[WebElement, None]:
+    def find(self, id: str, by: str = By.ID) -> Union[WebElement, None]:
         try:
             return self._driver.find_element(by, id)
         except NoSuchElementException:
             return None
 
-    def find_all(self, selector: str, by: By = By.CSS_SELECTOR) -> list[WebElement]:
+    def find_all(self, selector: str, by: str = By.CSS_SELECTOR) -> list[WebElement]:
         return self._driver.find_elements(by, selector)
 
-    def find_all_ids(self, selector: str, by: By = By.CSS_SELECTOR) -> list[str]:
+    def find_all_ids(self, selector: str, by: str = By.CSS_SELECTOR) -> list[str]:
         return [e.get_property("id") for e in self.find_all(selector, by)]
 
     def close(self) -> None:

@@ -3,7 +3,7 @@ from time import sleep, time
 
 
 class Timer:
-    def __init__(self, running=True) -> None:
+    def __init__(self, running: bool = True) -> None:
         self._running = running
         self._last = time()
         self._count = 0

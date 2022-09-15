@@ -49,7 +49,7 @@ def fetch_soup(url: str) -> BeautifulSoup:
     return get_soup(fetch(url))
 
 
-def get_tag_text(tag: Tag, decode=False):
+def get_tag_text(tag: Tag, decode: bool = False) -> str:
     text = clean_text(tag.text)
 
     return unidecode(text) if decode else text

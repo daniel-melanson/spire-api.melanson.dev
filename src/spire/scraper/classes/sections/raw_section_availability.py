@@ -1,5 +1,6 @@
 import logging
 import re
+from typing import Any
 
 from spire.models import Section, SectionAvailability, SectionCombinedAvailability
 from spire.scraper.classes.shared import RawDictionary, RawField
@@ -28,44 +29,42 @@ def section_list_normalizer(lst):
     sections = []
     for section in lst:
         if m := re.fullmatch(r"- \((\d+)\): S-International SciFi Cinema", section):
-            section_id = SECTION_ID_OVERRIDES[f"-({m.group(1)})"]
+            spire_id = SECTION_ID_OVERRIDES[f"-({m.group(1)})"]
         else:
             # COMP-LIT 391SF-01AC DIS (50749): S-International SciFi Cinema
             m = assert_match(r"\S+\s+\S+-(?P<id>\S+)\s+(?P<type>\S+)\s+\((?P<number>\d+)\).+", section)
 
-            section_id = f"{m.group('id')}-{m.group('type')}({m.group('number')})"
+            spire_id = f"{m.group('id')}-{m.group('type')}({m.group('number')})"
 
-        sections.append(section_id)
+        sections.append(spire_id)
 
     return sections
 
 
 class RawCombinedSectionAvailability(RawDictionary):
-    def __init__(self, section_id: str, table: dict[str, str]) -> None:
-        self.section_id = section_id
-
+    def __init__(self, spire_id: str, table: dict[str, str]) -> None:
         super().__init__(
             SectionCombinedAvailability,
+            spire_id,
             table,
-            fields=[RawField(k="Sections", normalizers=[section_list_normalizer]), *AVAILABILITY_FIELDS],
+            [RawField(k="Sections", normalizers=[section_list_normalizer]), *AVAILABILITY_FIELDS],
         )
 
 
 class RawSectionAvailability(RawDictionary):
-    def __init__(self, section_id: str, table: dict[str, str]) -> None:
-        self.section_id = section_id
+    def __init__(self, spire_id: str, table: dict[str, Any]) -> None:
         self._is_combined = "Individual Availability" in table
 
         if self._is_combined:
             self.combined_availability = RawCombinedSectionAvailability(
-                section_id, table["Combined Availability"]
+                spire_id, table["Combined Availability"]
             )
             log.info("Scraped combined availability:\n%s", self.combined_availability)
             super().__init__(
                 SectionAvailability,
+                spire_id,
                 table["Individual Availability"],
-                pk="section_id",
-                fields=AVAILABILITY_FIELDS,
+                AVAILABILITY_FIELDS,
             )
         else:
             table["Capacity"] = table["Total Enrollment Capacity"]
@@ -77,9 +76,9 @@ class RawSectionAvailability(RawDictionary):
 
             super().__init__(
                 SectionAvailability,
+                spire_id,
                 table,
-                pk="section_id",
-                fields=AVAILABILITY_FIELDS,
+                AVAILABILITY_FIELDS,
             )
 
     def push(self, section: Section):

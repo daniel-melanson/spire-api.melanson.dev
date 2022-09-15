@@ -1,7 +1,7 @@
 import logging
 import re
 from functools import reduce
-from typing import Any, Iterable, NamedTuple
+from typing import Any, Callable, Iterable, NamedTuple, Optional, Union
 
 from django.db.models import Model
 from django.utils import timezone
@@ -11,7 +11,7 @@ from spire.scraper.shared import assert_match
 log = logging.getLogger(__name__)
 
 
-def assert_dict_keys_subset(d: dict, keys: Iterable[str]):
+def assert_dict_keys_subset(d: dict[str, Any], keys: Iterable[str]):
     a = set(d.keys())
     b = set(keys)
 
@@ -19,8 +19,8 @@ def assert_dict_keys_subset(d: dict, keys: Iterable[str]):
     assert a.issubset(b)
 
 
-def re_override_factory(*args: tuple[str, Any]):
-    def f(x):
+def re_override_factory(*args: tuple[str, Any]) -> Callable[[str], str]:
+    def f(x: str):
         for (pattern, replace) in args:
             if match := re.match(pattern, x):
                 if not isinstance(replace, str):
@@ -44,32 +44,28 @@ def re_override_factory(*args: tuple[str, Any]):
     return f
 
 
-def key_override_factory(table):
-    for k in list(table.keys()):
-        if isinstance(k, tuple):
-            value = table[k]
-            del table[k]
+def key_override_factory(*args: Any) -> dict[str, Any]:
+    d: dict[str, Any] = {}
 
-            for sub_k in k:
-                table[sub_k] = value
+    for (key, value) in args:
+        if isinstance(key, tuple):
+            for sub_k in key:
+                d[sub_k] = value
+        else:
+            d[key] = value
 
-    return table
+    return d
 
 
-def clean_id(*args: str) -> list[str]:
-    cleaned = []
-
-    for s in args:
-        cleaned.append(s.strip().upper())
-
-    return cleaned[0] if len(args) == 1 else cleaned
+def clean_id(s: str) -> str:
+    return s.strip().upper()
 
 
 def to_camel_case(s: str) -> str:
     return s.lower().replace("/", "_").replace(" ", "_")
 
 
-def serialize(v):
+def serialize(v: Any):
     if isinstance(v, str):
         return f"'{v}'"
     if isinstance(v, list):
@@ -84,19 +80,25 @@ def serialize(v):
 class RawField(NamedTuple):
     k: str
     optional = True
-    normalizers: list = None
-    re: str = None
-    min_len: int = None
-    len: tuple[int, int] = None
-    assertions: list = None
-    choices: tuple[str, ...] = None
+    normalizers: list[Callable[[Any], Any]] = []
+    re: str = "."
+    min_len: int = 0
+    len: tuple[int, int] = (0, 10**5)
+    assertions: list[Callable[[Any], bool]] = []
+    choices: Optional[tuple[str, ...]] = None
 
 
 class RawObject:
-    def __init__(self, model: Model, fields: list[RawField], pk="id", update_time=False) -> None:
-        self._name = "Raw" + model.__name__
+    def __init__(
+        self,
+        model: Any,
+        id: Union[str, None] = None,
+        fields: list[RawField] = [],
+        update_time: bool = False,
+    ) -> None:
+        self._name: str = "Raw" + model.__name__  # type: ignore
         self._model = model
-        self._pk = pk
+        self.id = id
         self._update_time = update_time
 
         for field in fields:
@@ -152,7 +154,7 @@ class RawObject:
 
                 values += f"{k}={v}"
 
-        s = f"{self._name}[{getattr(self, self._pk, None)}]("
+        s = f"{self._name}[{self.id}]("
         if len(self._model_keys) > 2:
             s += f"\n\t{values}\n)"
         else:
@@ -160,30 +162,31 @@ class RawObject:
 
         return s
 
-    def get_model_defaults(self) -> dict:
-        default = {k: getattr(self, k) for k in self._model_keys if k != self._pk}
+    def get_model_defaults(self) -> dict[str, str]:
+        default = {k: getattr(self, k) for k in self._model_keys if k != "id"}
 
         if self._update_time:
             default["_updated_at"] = timezone.now()
 
         return default
 
-    def push(self, defaults=None, **kwargs):
+    def push(self, defaults: Optional[dict[str, Any]] = None, **kwargs: Any):
         if defaults is None:
             defaults = self.get_model_defaults()
 
         if len(kwargs) == 0:
+            assert self.id is not None
             kwargs["id"] = self.id
 
         object, created = self._model.objects.update_or_create(**kwargs, defaults=defaults)
 
-        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)
+        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)  # type: ignore
 
         return object
 
 
 class RawDictionary(RawObject):
-    def __init__(self, model: Model, table: dict[str, str], fields: list[RawField], pk="id") -> None:
+    def __init__(self, model: Any, id: str, table: dict[str, str], fields: list[RawField]) -> None:
         assert_dict_keys_subset(table, map(lambda d: d.k, fields))
 
         for f in fields:
@@ -194,4 +197,4 @@ class RawDictionary(RawObject):
             else:
                 setattr(self, s_k, None)
 
-        super().__init__(model, fields=fields, pk=pk)
+        super().__init__(model, id, fields)

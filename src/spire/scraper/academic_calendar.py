@@ -3,6 +3,7 @@ import logging
 import re
 from datetime import date
 
+from bs4 import Tag
 from django.db import transaction
 
 from spire.models import Term, TermEvent
@@ -14,13 +15,11 @@ log = logging.getLogger(__name__)
 SEASON_LIST = ["Spring", "Summer", "UWW Summer", "Fall", "Winter"]
 
 
-def get_or_create_term(season, year):
+def get_or_create_term(season: str, year: str):
     log.debug("Making or finding term: %s %s", season, year)
 
-    year = int(year)
-
     assert type(season) is str and season in SEASON_LIST
-    assert 2000 <= year <= 2100
+    assert 2000 <= int(year) <= 2100
 
     term_id = f"{season} {year}"
 
@@ -48,10 +47,13 @@ def scrape_academic_schedule():
             continue
 
         for header in soup.select(f"a[id~={season}]"):
+            assert header.parent
             semester_title = get_tag_text(header.parent, decode=True)
 
             log.debug("Scraping term events: %s", semester_title)
-            match = re.match(r"((University|UWW \(CPE\)) )?(Spring|Summer|Fall|Winter) (\d{4})", semester_title)
+            match = re.match(
+                r"((University|UWW \(CPE\)) )?(Spring|Summer|Fall|Winter) (\d{4})", semester_title
+            )
             if not match:
                 log.debug("Header '%s' does not match, skipping.", semester_title)
                 continue
@@ -70,6 +72,8 @@ def scrape_academic_schedule():
             log.debug("Scraping events for: %s", term)
 
             table = header.find_next("table")
+            assert type(table) is Tag
+
             for event_element in table.select("tr"):
                 event_text = get_tag_text(event_element, decode=True)
 

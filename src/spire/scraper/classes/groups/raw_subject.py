@@ -38,17 +38,14 @@ class RawSubject(RawObject):
         id = clean_id(id)
 
         if id in SUBJECT_OVERRIDES:
-            override = SUBJECT_OVERRIDES[id]
-
-            self.id = override[0]
-            self.title = override[1]
+            (id, self.title) = SUBJECT_OVERRIDES[id]
         else:
-            self.id = id
             self.title = title
 
         super().__init__(
             Subject,
-            fields=[
+            id,
+            [
                 RawField(k="id", re=SUBJECT_ID_REGEXP),
                 RawField(k="title", re=SUBJECT_TITLE_REGEXP),
             ],
