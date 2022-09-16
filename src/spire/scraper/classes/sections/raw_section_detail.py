@@ -1,12 +1,7 @@
 from spire.models import SectionDetail
-from spire.patterns import UNITS_REGEXP
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
-from spire.scraper.classes.normalizers import (
-    COURSE_CREDIT_NORMALIZER,
-    DICT_KEY_NORMALIZER,
-    NONE_STRING_TO_NONE_NORMALIZER,
-    STRIP_STR,
-)
+from spire.scraper.classes.courses.raw_course_detail import RawUnits
+from spire.scraper.classes.normalizers import DICT_KEY_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR
 from spire.scraper.classes.shared import RawDictionary, RawField
 
 
@@ -46,6 +41,9 @@ class_component_set = set(
 
 class RawSectionDetail(RawDictionary):
     def __init__(self, spire_id: str, table: dict[str, str]) -> None:
+        self.units = RawUnits(table["Units"])
+        del table["Units"]
+
         super().__init__(
             SectionDetail,
             spire_id,
@@ -56,14 +54,16 @@ class RawSectionDetail(RawDictionary):
                 RawField(
                     k="Session",
                     normalizers=[
-                        DICT_KEY_NORMALIZER({"*University": "University", "UWW": "University Without Walls"})
+                        DICT_KEY_NORMALIZER(
+                            {
+                                "*University": "University",
+                                "UWW": "University Without Walls",
+                                "*University Eligible/UWW": "University Eligible/UWW",
+                                "*University Non-standard Dates": "University Non-standard Dates",
+                            }
+                        )
                     ],
                     min_len=1,
-                ),
-                RawField(
-                    k="Units",
-                    normalizers=[COURSE_CREDIT_NORMALIZER],
-                    re=UNITS_REGEXP,
                 ),
                 RawField(
                     k="Class Components",
@@ -81,3 +81,11 @@ class RawSectionDetail(RawDictionary):
                 RawField(k="RAP/TAP/HLC", normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
             ],
         )
+
+    def push(self, **kwargs):
+        sd = super().push(**kwargs)
+
+        sd.units = self.units.push()
+        sd.save()
+
+        return sd

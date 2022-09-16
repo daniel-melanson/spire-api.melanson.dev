@@ -1,10 +1,10 @@
 from typing import Optional
 
-from spire.models import CourseDetail
+from spire.models import CourseDetail, CourseUnits
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
-from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
 from spire.scraper.classes.groups.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
-from spire.scraper.classes.shared import RawDictionary, RawField
+from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
+from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
 
 ACADEMIC_ORG_NORMALIZER = DICT_KEY_NORMALIZER(
     {
@@ -29,23 +29,46 @@ ACADEMIC_ORG_NORMALIZER = DICT_KEY_NORMALIZER(
 )
 
 
+class RawUnits(RawObject):
+    def __init__(self, units: str) -> None:
+        credits = COURSE_CREDIT_NORMALIZER(units)
+
+        if " - " in credits:
+            [min_s, max_s] = credits.split(" - ")
+            self.min = float(min_s)
+            self.max = float(max_s)
+            self.base = None
+        else:
+            self.min = None
+            self.max = None
+            self.base = float(credits)
+
+        super().__init__(CourseUnits, None, [RawField("base"), RawField("min"), RawField("max")])
+
+    def push(self):
+        if self.base:
+            u, _ = CourseUnits.objects.get_or_create(base=self.base)
+        else:
+            u, _ = CourseUnits.objects.get_or_create(min=self.min, max=self.max)
+
+
 class RawCourseDetail(RawDictionary):
     career: Optional[str]
-    units: Optional[str]
     grading_basis: Optional[str]
     course_components: Optional[list[str]]
     academic_group: Optional[str]
     campus: Optional[str]
 
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
-        self.course_id = course_id
+        self.units = RawUnits(table["Units"])
+        del table["Units"]
 
         super().__init__(
             CourseDetail,
+            course_id,
             table,
             fields=[
                 RawField(k="Career", min_len=1),
-                RawField(k="Units", min_len=1, normalizers=[COURSE_CREDIT_NORMALIZER]),
                 RawField(
                     k="Grading Basis",
                     min_len=1,
@@ -61,7 +84,18 @@ class RawCourseDetail(RawDictionary):
                     normalizers=[SPLIT_NEWLINE],
                     assertions=[NO_EMPTY_STRS_ASSERTION],
                 ),
-                RawField(k="Campus", min_len=3),
+                RawField(
+                    k="Campus",
+                    min_len=3,
+                    normalizers=[
+                        DICT_KEY_NORMALIZER(
+                            {
+                                "University (not CE)": "University",
+                                "Continuing Education": "Continuing Education",
+                            }
+                        )
+                    ],
+                ),
                 RawField(
                     k="Academic Group",
                     min_len=1,
@@ -73,5 +107,12 @@ class RawCourseDetail(RawDictionary):
                     normalizers=[ACADEMIC_ORG_NORMALIZER],
                 ),
             ],
-            pk="course_id",
         )
+
+    def push(self, **kwargs):
+        cd = super().push(**kwargs)
+
+        cd.units = self.units.push()
+        cd.save()
+
+        return cd

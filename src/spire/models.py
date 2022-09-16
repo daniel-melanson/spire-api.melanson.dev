@@ -8,6 +8,7 @@ from django.db.models import (
     DateField,
     DateTimeField,
     EmailField,
+    FloatField,
     ForeignKey,
     IntegerField,
     JSONField,
@@ -145,10 +146,19 @@ class Course(Model):
         ordering = ["id"]
 
 
+class CourseUnits(Model):
+    base = FloatField(null=True)
+    min = FloatField(null=True)
+    max = FloatField(null=True)
+
+    class Meta:
+        ordering = ["base"]
+
+
 class CourseDetail(Model):
     course = OneToOneField(Course, on_delete=CASCADE, primary_key=True, related_name="details")
     career = CharField(null=True, max_length=2**5)
-    units = CharField(null=True, max_length=2**4)
+    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+")
     grading_basis = CharField(null=True, max_length=2**6)
     course_components = JSONField(null=True, default=list)
     academic_group = CharField(null=True, max_length=2**7)
@@ -228,7 +238,7 @@ class SectionDetail(Model):
     status = CharField(null=True, max_length=2**6)
     class_number = IntegerField()
     session = CharField(null=True, max_length=2**6)
-    units = CharField(null=True, max_length=2**6)
+    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+")
     class_components = JSONField(null=True)
     career = CharField(null=True, max_length=2**6)
     topic = CharField(null=True, max_length=2**6)
