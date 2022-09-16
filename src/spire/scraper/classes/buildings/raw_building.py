@@ -20,7 +20,7 @@ class RawBuilding(RawObject):
         super().__init__(Building, None, [RawField("name"), RawField("address")])
 
     def push(self):
-        obj, _ = Building.objects.get_or_create(name=self.name)
+        obj, _ = Building.objects.get_or_create(name=self.name, defaults={"address": self.address})
 
         return obj
 
