@@ -73,7 +73,7 @@ class BuildingRoom(Model):
     id = AutoField(primary_key=True)
     building = ForeignKey(Building, on_delete=CASCADE, related_name="rooms", null=True)
     number = CharField(max_length=2**3, null=True)
-    alt = CharField(max_length=2**5, unique=True)
+    alt = CharField(max_length=2**6, unique=True)
 
     def __str__(self) -> str:
         return f"BuildingRoom[{self.id}](building={self.building}, number={self.number}, alt={self.alt})"

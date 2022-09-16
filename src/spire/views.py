@@ -1,5 +1,3 @@
-# type: ignore
-
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -7,6 +5,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from spire.models import (
     AcademicGroup,
+    Building,
     Course,
     CourseDetail,
     CourseEnrollmentInformation,
