@@ -24,6 +24,7 @@ from spire.models import (
     TermEvent,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
+from spire.serializers.building import BuildingSerializer
 from spire.serializers.course import (
     CourseDetailSerializer,
     CourseEnrollmentInformationSerializer,
@@ -48,6 +49,11 @@ class BaseViewSet(ReadOnlyModelViewSet):
     @method_decorator(cache_page(settings.VIEW_CACHE_TTL))
     def dispatch(self, *args, **kwargs):
         return super(BaseViewSet, self).dispatch(*args, **kwargs)
+
+
+class BuildingViewSet(BaseViewSet):
+    queryset = Building.objects.all()
+    serializer_class = BuildingSerializer
 
 
 class TermViewSet(BaseViewSet):

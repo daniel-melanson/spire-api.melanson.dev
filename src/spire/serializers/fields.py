@@ -2,13 +2,31 @@
 
 from rest_framework.serializers import HyperlinkedModelSerializer
 
-from spire.models import AcademicGroup, Course, CourseOffering, Section, Subject, Term, TermEvent
+from spire.models import (
+    AcademicGroup,
+    BuildingRoom,
+    Course,
+    CourseOffering,
+    Section,
+    Subject,
+    Term,
+    TermEvent,
+)
 
 
 class BaseFieldSerializer(HyperlinkedModelSerializer):
     def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, read_only=True, **kwargs)
 
+class BuildingRoomFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = BuildingRoom
+        fields = ["number", "alt"]
+
+class BuildingFieldSerializer(BaseFieldSerializer):
+    class Meta6;
+        model = Building
+        fields = ["url", "name", "address"]
 
 class TermFieldSerializer(BaseFieldSerializer):
     class Meta:
