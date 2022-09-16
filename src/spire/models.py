@@ -65,13 +65,22 @@ class Building(Model):
     name = CharField(max_length=2**6, unique=True)
     address = CharField(max_length=2**6, null=True)
 
+    def __str__(self) -> str:
+        return f"Building[{self.id}](name={self.name}, address={self.address})"
+
 
 class BuildingRoom(Model):
     id = AutoField(primary_key=True)
-    building = ForeignKey(Building, on_delete=CASCADE, related_name="rooms")
+    building = ForeignKey(Building, on_delete=CASCADE, related_name="rooms", null=True)
     number = CharField(max_length=2**3, null=True)
     alt = CharField(max_length=2**5, unique=True)
-    raw = CharField(max_length=2**5)
+
+    def __str__(self) -> str:
+        return f"BuildingRoom[{self.id}](building={self.building}, number={self.number}, alt={self.alt})"
+
+    class Meta:
+        ordering = ["building", "number"]
+        unique_together = [["building", "number"]]
 
 
 class Term(Model):
@@ -158,7 +167,7 @@ class CourseUnits(Model):
 class CourseDetail(Model):
     course = OneToOneField(Course, on_delete=CASCADE, primary_key=True, related_name="details")
     career = CharField(null=True, max_length=2**5)
-    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+")
+    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+", null=True)
     grading_basis = CharField(null=True, max_length=2**6)
     course_components = JSONField(null=True, default=list)
     academic_group = CharField(null=True, max_length=2**7)
@@ -220,7 +229,8 @@ class Instructor(Model):
 
 
 class Section(Model):
-    spire_id = CharField(max_length=2**5, primary_key=True, validators=[_section_id_validator])
+    id = AutoField(primary_key=True)
+    spire_id = CharField(max_length=2**5, validators=[_section_id_validator])
     offering = ForeignKey(CourseOffering, on_delete=CASCADE, related_name="sections")
     description = CharField(max_length=2**12, null=True)
     overview = CharField(max_length=2**15, null=True)
@@ -238,7 +248,7 @@ class SectionDetail(Model):
     status = CharField(null=True, max_length=2**6)
     class_number = IntegerField()
     session = CharField(null=True, max_length=2**6)
-    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+")
+    units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+", null=True)
     class_components = JSONField(null=True)
     career = CharField(null=True, max_length=2**6)
     topic = CharField(null=True, max_length=2**6)
@@ -305,6 +315,7 @@ class SectionMeetingInformation(Model):
     id = AutoField(primary_key=True)
     section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
     room = ForeignKey(BuildingRoom, on_delete=SET_NULL, null=True, related_name="+")
+    room_raw = CharField(max_length=2**6)
     instructors = ManyToManyField(Instructor, "+")
 
     def __str__(self) -> str:

@@ -26,24 +26,27 @@ class RawBuilding(RawObject):
 
 
 class RawBuildingRoom(RawObject):
-    def __init__(self, building=None, room=None, alt=None) -> None:
+    def __init__(self, building=None, number=None, alt=None) -> None:
         self.building = building
-        self.room = room
+        self.number = number
         self.alt = alt
 
-        super().__init__(RawBuildingRoom, None, [RawField("building"), RawField("room"), RawField("alt")])
+        super().__init__(BuildingRoom, None, [RawField("building"), RawField("number"), RawField("alt")])
 
     def push(self):
         if self.building:
             building = self.building.push()
+            log.debug("Pushed building: %s", building)
             try:
                 b = BuildingRoom.objects.get(alt=self.alt)
 
-                assert b.building is building
-                assert b.room == self.room
+                log.debug("Found building room: %s", b)
+
+                assert b.building == building
+                assert b.number == self.number
             except BuildingRoom.DoesNotExist:
                 b, _ = BuildingRoom.objects.get_or_create(
-                    building=building, room=self.room, defaults={"alt": self.alt}
+                    building=building, number=self.number, defaults={"alt": self.alt}
                 )
 
             return b
@@ -430,32 +433,36 @@ def get_raw_building_room(s: str):
     match = match_building_and_room(expanded)
 
     if match is None:
-        return f"{s}\n\t-> {expanded}\n\t-> {match}\n\t-> {RawBuildingRoom(alt=s)}"
+        building_room = RawBuildingRoom(alt=expanded)
+    else:
+        building_match = BUILDING_MATCH_OVERRIDES.get(match[0], match[0])
 
-    building_match = BUILDING_MATCH_OVERRIDES.get(match[0], match[0])
+        building = BUILDINGS_DICT.get(building_match, None)
+        if not building and ("Community College" in building_match or "Mount Ida" in building_match):
+            building = RawBuilding(name=building_match, address=None)
 
-    building = BUILDINGS_DICT.get(building_match, None)
-    if not building and ("Community College" in building_match or "Mount Ida" in building_match):
-        building = RawBuilding(name=building_match, address=None)
+        if not building and " " not in building_match:
+            postfixes = [" House", " Hall", " Laboratory", " Dorm"]
 
-    if not building and " " not in building_match:
-        postfixes = [" House", " Hall", " Laboratory", " Dorm"]
+            while len(postfixes) > 0 and not building:
+                building = BUILDINGS_DICT.get(building_match + postfixes.pop(), None)
 
-        while len(postfixes) > 0 and not building:
-            building = BUILDINGS_DICT.get(building_match + postfixes.pop(), None)
+        if not building:
+            best = get_close_matches(building_match, BUILDING_NAMES, cutoff=0.80)
+            if len(best) == 1:
+                building = BUILDINGS_DICT[best[0]]
 
-    if not building:
-        best = get_close_matches(building_match, BUILDING_NAMES, cutoff=0.80)
-        if len(best) == 1:
-            building = BUILDINGS_DICT[best[0]]
+        if not building:
+            for ending in (" House", " Dormitory"):
+                if building_match.endswith(ending):
+                    if building := BUILDINGS_DICT.get(building_match[: -len(ending)] + " Hall", None):
+                        break
 
-    if not building:
-        for ending in (" House", " Dormitory"):
-            if building_match.endswith(ending):
-                if building := BUILDINGS_DICT.get(building_match[: -len(ending)] + " Hall", None):
-                    break
+        if building:
+            building_room = RawBuildingRoom(building, match[1], expanded)
+        else:
+            building_room = RawBuildingRoom(alt=expanded)
 
-    building_room = RawBuildingRoom(building, match[1]) if building else None
-    log.debug(f"{s}\n\t-> {expanded}\n\t-> {match}\n\t-> {building_room}")
+    log.debug("%s\n\t-> %s\n\t-> %s\n\t-> %s", s, expanded, match, building_room)
 
     return building_room

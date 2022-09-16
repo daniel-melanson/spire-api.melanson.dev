@@ -1,8 +1,12 @@
+import logging
+
 from spire.models import SectionDetail
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.courses.raw_course_detail import RawUnits
 from spire.scraper.classes.normalizers import DICT_KEY_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR
 from spire.scraper.classes.shared import RawDictionary, RawField
+
+log = logging.getLogger(__name__)
 
 
 def class_component_norm(x: str) -> list[str]:
@@ -41,8 +45,10 @@ class_component_set = set(
 
 class RawSectionDetail(RawDictionary):
     def __init__(self, spire_id: str, table: dict[str, str]) -> None:
-        self.units = RawUnits(table["Units"])
-        del table["Units"]
+        if "Units" in table:
+            self.units = RawUnits(table["Units"])
+            log.info("Scraped units: %s", self.units)
+            del table["Units"]
 
         super().__init__(
             SectionDetail,
@@ -85,7 +91,8 @@ class RawSectionDetail(RawDictionary):
     def push(self, **kwargs):
         sd = super().push(**kwargs)
 
-        sd.units = self.units.push()
-        sd.save()
+        if hasattr(self, "units"):
+            sd.units = self.units.push()
+            sd.save()
 
         return sd

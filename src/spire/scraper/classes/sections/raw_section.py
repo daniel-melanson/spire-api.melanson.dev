@@ -6,7 +6,11 @@ from django.utils import timezone
 
 from spire.models import Section, SectionMeetingInformation
 from spire.patterns import SECTION_ID_REGEXP
-from spire.scraper.classes.normalizers import DESCRIPTION_NOT_AVAILABLE_TO_NONE, STRIP_STR
+from spire.scraper.classes.normalizers import (
+    DESCRIPTION_NOT_AVAILABLE_TO_NONE,
+    NONE_STRING_TO_NONE_NORMALIZER,
+    STRIP_STR,
+)
 from spire.scraper.classes.sections.raw_section_availability import RawSectionAvailability
 from spire.scraper.classes.sections.raw_section_detail import RawSectionDetail
 from spire.scraper.classes.sections.raw_section_meeting_information import RawSectionMeetingInformation
@@ -69,19 +73,21 @@ class RawSection(RawObject):
                     normalizers=[STRIP_STR, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
                     min_len=5,
                 ),
-                RawField("overview", min_len=5),
+                RawField("overview", min_len=5, normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
             ],
         )
 
     def push(self, offering):
         with transaction.atomic():
-            section = super().push(
+            section, _ = Section.objects.update_or_create(
+                spire_id=self.spire_id,
+                offering=offering,
                 defaults={
-                    "offering": offering,
+                    "spire_id": self.spire_id,
                     "description": self.description,
                     "overview": self.overview,
                     "_updated_at": timezone.now(),
-                }
+                },
             )
 
             self.details.push(section=section)

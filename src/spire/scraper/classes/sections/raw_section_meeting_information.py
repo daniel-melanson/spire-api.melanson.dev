@@ -81,8 +81,8 @@ class RawSectionMeetingDates(RawObject):
         start_kwargs = {}
         end_kwargs = {}
         for i, unit in enumerate(["month", "day", "year"]):
-            start_kwargs[unit] = int(start_match.group(i))
-            end_kwargs[unit] = int(end_match.group(i))
+            start_kwargs[unit] = int(start_match.group(i + 1))
+            end_kwargs[unit] = int(end_match.group(i + 1))
 
         self.start = date(**start_kwargs)
         self.end = date(**end_kwargs)
@@ -121,10 +121,10 @@ class RawSectionMeetingSchedule(RawObject):
 
 class RawSectionMeetingInformation(RawObject):
     def __init__(self, spire_id: str, table: dict[str, Any]) -> None:
-        self.id = spire_id
-
         self.room = get_raw_building_room(table["room"])
         log.info("Scraped building room:\n%s", self.room)
+
+        self.room_raw = table["room"]
 
         self.instructors: list[RawInstructor] = table["instructors"]
         assert len(self.instructors) > 0
@@ -138,10 +138,15 @@ class RawSectionMeetingInformation(RawObject):
             self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
             log.info("Scraped meeting_dates:\n%s", self.meeting_dates)
 
+        super().__init__(
+            SectionMeetingInformation,
+            spire_id,
+            [RawField("room"), RawField("room_raw"), RawField("instructors")],
+        )
+
     def push(self, section: Section):
         mi = SectionMeetingInformation.objects.create(
-            section=section,
-            room=self.room.push(),
+            section=section, room=self.room.push(), room_raw=self.room_raw
         )
         log.info("Created SectionMeetingInformation: %s", mi)
 

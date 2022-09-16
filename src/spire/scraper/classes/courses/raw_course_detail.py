@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from spire.models import CourseDetail, CourseUnits
@@ -5,6 +6,8 @@ from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.groups.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
 from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
 from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
+
+log = logging.getLogger(__name__)
 
 ACADEMIC_ORG_NORMALIZER = DICT_KEY_NORMALIZER(
     {
@@ -60,8 +63,10 @@ class RawCourseDetail(RawDictionary):
     campus: Optional[str]
 
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
-        self.units = RawUnits(table["Units"])
-        del table["Units"]
+        if "Units" in table:
+            self.units = RawUnits(table["Units"])
+            log.info("Scraped units: %s", self.units)
+            del table["Units"]
 
         super().__init__(
             CourseDetail,
@@ -112,7 +117,8 @@ class RawCourseDetail(RawDictionary):
     def push(self, **kwargs):
         cd = super().push(**kwargs)
 
-        cd.units = self.units.push()
-        cd.save()
+        if hasattr(self, "units"):
+            cd.units = self.units.push()
+            cd.save()
 
         return cd

@@ -106,7 +106,7 @@ def can_skip(driver: SpireDriver, offering: CourseOffering, spire_id: str, link_
             return False, "section is combined"
 
         status_icon = driver.find(
-            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG${link_number} > div > img", By.CSS_SELECTOR
+            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img", By.CSS_SELECTOR
         )
 
         src = status_icon.get_attribute("src")  # type: ignore
@@ -216,7 +216,7 @@ def _scrape_search_results(
         link_ids: list[str] = [
             e.get_property("id")
             for e in sections_table.find_elements(
-                By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG$']"
+                By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG\$']"
             )
         ]  # type: ignore
 
@@ -355,7 +355,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
         ]
 
     # Fetch subject option values
-    subject_select: WebElement = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
+    subject_select: WebElement = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT\$108\$")
     assert subject_select
     subject_values: list[tuple[str, str]] = get_option_values(subject_select)
 

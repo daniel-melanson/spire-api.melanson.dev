@@ -1,2 +1,2 @@
-rm -f ./logs/**/*.log
+rm -f ./logs/**/*.log*
 python ./src/manage.py scrape sections --quick
