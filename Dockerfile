@@ -24,6 +24,8 @@ RUN python -m pip install --upgrade pip; \
     python -m pip install pipenv; \
     /home/django/.local/bin/pipenv install --system --deploy;
 
+RUN python -m nltk.downloader punkt
+
 COPY ./src $APP_PATH/src
 
 WORKDIR $APP_PATH/src
