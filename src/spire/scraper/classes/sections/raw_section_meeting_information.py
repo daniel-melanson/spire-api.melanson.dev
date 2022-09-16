@@ -10,7 +10,7 @@ from spire.models import (
     SectionMeetingInformation,
     SectionMeetingSchedule,
 )
-from spire.scraper.classes.buildings.raw_building_room import RawBuildingRoom
+from spire.scraper.classes.buildings.raw_building import get_raw_building_room
 from spire.scraper.classes.shared import RawField, RawObject
 from spire.scraper.shared import assert_match
 
@@ -123,7 +123,7 @@ class RawSectionMeetingInformation(RawObject):
     def __init__(self, spire_id: str, table: dict[str, Any]) -> None:
         self.id = spire_id
 
-        self.room = RawBuildingRoom(table["room"])
+        self.room = get_raw_building_room(table["room"])
         log.info("Scraped building room:\n%s", self.room)
 
         self.instructors: list[RawInstructor] = table["instructors"]
@@ -137,8 +137,6 @@ class RawSectionMeetingInformation(RawObject):
         if days_and_times not in ("TBA"):
             self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
             log.info("Scraped meeting_dates:\n%s", self.meeting_dates)
-
-            
 
     def push(self, section: Section):
         mi = SectionMeetingInformation.objects.create(

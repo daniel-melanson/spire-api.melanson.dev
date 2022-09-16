@@ -1,16 +1,6 @@
-import json
-
 from django.core.management.base import BaseCommand
 
-from spire.models import Course, CourseDetail
-
-
-def get_or_set_default(table, key, default):
-    if key in table:
-        return table[key]
-    else:
-        table[key] = default
-        return default
+from spire.scraper.classes.buildings.raw_building import get_raw_building_room
 
 
 class Command(BaseCommand):
@@ -18,17 +8,21 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        group = {}
-        organization = {}
+        matched_out = open("./matched", "w")
+        unmatched_out = open("./unmatched", "w")
 
-        for course_detail in CourseDetail.objects.all():
-            subject = course_detail.course.subject
+        with open("./possible_rooms", "r") as f:
+            matched = 0
+            total = 0
+            for line in f:
+                line = line.strip()
+                total += 1
 
-            subject_groups = get_or_set_default(group, subject.id, set())
-            subject_organizations = get_or_set_default(organization, subject.id, set())
+                match = get_raw_building_room(line)
+                if not match.endswith("None"):
+                    matched += 1
 
-            subject_groups.add(course_detail.academic_group)
-            subject_organizations.add(course_detail.academic_organization)
+                print(match, file=matched_out if not match.endswith("None") else unmatched_out)
 
-        print(json.dumps({k: list(v) for k, v in group.items()}, indent=4))
-        print(json.dumps({k: list(v) for k, v in organization.items()}, indent=4))
+        print(matched / total, file=matched_out)
+        print((total - matched) / total, file=unmatched_out)

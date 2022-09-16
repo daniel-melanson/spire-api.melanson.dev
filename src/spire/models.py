@@ -60,11 +60,17 @@ _term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the t
 
 
 class Building(Model):
-    pass
+    id = AutoField(primary_key=True)
+    name = CharField(max_length=2**6, unique=True)
+    address = CharField(max_length=2**6, null=True)
 
 
 class BuildingRoom(Model):
-    pass
+    id = AutoField(primary_key=True)
+    building = ForeignKey(Building, on_delete=CASCADE, related_name="rooms")
+    number = CharField(max_length=2**3, null=True)
+    alt = CharField(max_length=2**5, unique=True)
+    raw = CharField(max_length=2**5)
 
 
 class Term(Model):
@@ -214,7 +220,7 @@ class Section(Model):
         return f"Section[{self.spire_id}](offering={self.offering})"
 
     class Meta:
-        ordering = ["id"]
+        ordering = ["offering", "spire_id"]
 
 
 class SectionDetail(Model):

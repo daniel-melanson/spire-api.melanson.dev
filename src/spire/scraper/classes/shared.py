@@ -81,9 +81,9 @@ class RawField(NamedTuple):
     k: str
     optional = True
     normalizers: list[Callable[[Any], Any]] = []
-    re: str = "."
-    min_len: int = 0
-    len: tuple[int, int] = (0, 10**5)
+    re: Optional[str] = None
+    min_len: Optional[int] = None
+    len: Optional[tuple[int, int]] = None
     assertions: list[Callable[[Any], bool]] = []
     choices: Optional[tuple[str, ...]] = None
 
