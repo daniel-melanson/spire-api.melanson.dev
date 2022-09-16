@@ -9,4 +9,4 @@ class BuildingSerializer(HyperlinkedModelSerializer):
 
     class Meta:
         model = Building
-        fields = ["url", "id", "title", "address", "rooms"]
+        fields = ["url", "id", "name", "address", "rooms"]

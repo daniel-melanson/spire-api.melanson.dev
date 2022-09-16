@@ -414,8 +414,8 @@ def match_building_and_room(s):
     if s.startswith(("Tent - ", "Off Campus")):
         return None
 
-    if re.match(r"(.+) Room ([A-Z]?-?\d{1,5}[A-Z]?)( Intl lng| Lounge)?$", s):
-        return s.split(" Room ")
+    if m := re.match(r"(.+) Room ([A-Z]?-?\d{1,5}[A-Z]?)( Intl lng| Lounge)?$", s):
+        return [m.group(1), m.group(2)]
     if m := re.match(r"(.+) Room( TBA|$)", s):
         return [m.group(1), None]
     if s.endswith(ACCEPTED_BUILDING_POSTFIXES):
