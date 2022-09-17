@@ -15,6 +15,7 @@ from spire.serializers.fields import (
     BaseFieldSerializer,
     BuildingRoomFieldSerializer,
     CourseFieldSerializer,
+    CourseUnitsFieldSerializer,
     SectionFieldSerializer,
     TermFieldSerializer,
 )
@@ -32,6 +33,7 @@ class SectionCourseOfferingFieldSerializer(BaseFieldSerializer):
 
 class SectionDetailSerializer(HyperlinkedModelSerializer):
     section = SectionFieldSerializer()
+    units = CourseUnitsFieldSerializer()
 
     class Meta:
         model = SectionDetail

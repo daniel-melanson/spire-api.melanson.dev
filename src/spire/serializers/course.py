@@ -4,6 +4,7 @@ from spire.models import Course, CourseDetail, CourseEnrollmentInformation, Cour
 from spire.serializers.fields import (
     CourseFieldSerializer,
     CourseOfferingFieldSerializer,
+    CourseUnitsFieldSerializer,
     SectionFieldSerializer,
     SubjectFieldSerializer,
     TermFieldSerializer,
@@ -12,7 +13,7 @@ from spire.serializers.fields import (
 
 class CourseDetailSerializer(HyperlinkedModelSerializer):
     course = CourseFieldSerializer()
-
+    units = CourseUnitsFieldSerializer()
     class Meta:
         model = CourseDetail
         fields = "__all__"

@@ -6,6 +6,7 @@ from spire.models import (
     BuildingRoom,
     Course,
     CourseOffering,
+    CourseUnits,
     Section,
     Subject,
     Term,
@@ -16,6 +17,12 @@ from spire.models import (
 class BaseFieldSerializer(HyperlinkedModelSerializer):
     def __init__(self, instance=None, data=..., **kwargs):
         super().__init__(instance, data, read_only=True, **kwargs)
+
+
+class CourseUnitsFieldSerializer(BaseFieldSerializer):
+    class Meta:
+        model = CourseUnits
+        fields = ["base", "min", "max"]
 
 
 class BuildingFieldSerializer(BaseFieldSerializer):
