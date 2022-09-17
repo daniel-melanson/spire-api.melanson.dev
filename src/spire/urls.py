@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from spire.views import (
     AcademicGroupViewSet,
+    BuildingRoomViewSet,
     BuildingViewSet,
     CourseDetailViewSet,
     CourseEnrollmentInformationViewSet,
@@ -26,6 +27,8 @@ router = DefaultRouter()
 
 
 router.register("buildings", BuildingViewSet, basename="building")
+router.register("building-rooms", BuildingRoomViewSet, basename="buildingroom")
+
 router.register("terms", TermViewSet, basename="term")
 router.register("term-events", TermEventViewSet, basename="termevent")
 
