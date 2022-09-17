@@ -50,9 +50,11 @@ class RawUnits(RawObject):
 
     def push(self):
         if self.base:
-            u, _ = CourseUnits.objects.get_or_create(base=self.base)
+            u, _ = CourseUnits.objects.get_or_create(base=self.base, defaults={"min": None, "max": None})
         else:
-            u, _ = CourseUnits.objects.get_or_create(min=self.min, max=self.max)
+            u, _ = CourseUnits.objects.get_or_create(min=self.min, max=self.max, defaults={"base": None})
+
+        return u
 
 
 class RawCourseDetail(RawDictionary):
