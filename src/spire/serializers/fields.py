@@ -73,4 +73,4 @@ class CourseOfferingFieldSerializer(BaseFieldSerializer):
 class SectionFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Section
-        fields = ["url", "id"]
+        fields = ["url", "spire_id"]

@@ -97,7 +97,8 @@ class SectionSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Section
         fields = [
-            "id",
+            "url",
+            "spire_id",
             "offering",
             "description",
             "overview",
