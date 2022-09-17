@@ -12,12 +12,10 @@ class RawCourseEnrollmentInformation(RawDictionary):
     course_attribute: Optional[str]
 
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
-        self.course_id = course_id
-
         super().__init__(
             CourseEnrollmentInformation,
+            course_id,
             table,
-            pk="course_id",
             fields=[
                 RawField(k="Enrollment Requirement", min_len=1),
                 RawField(k="Add Consent", min_len=1),

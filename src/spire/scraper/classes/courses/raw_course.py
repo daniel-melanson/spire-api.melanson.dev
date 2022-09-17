@@ -59,6 +59,7 @@ class RawCourse(RawObject):
 
         super().__init__(
             Course,
+            self.id,
             fields=[
                 RawField(k="id", re=COURSE_ID_REGEXP),
                 RawField(k="subject"),
