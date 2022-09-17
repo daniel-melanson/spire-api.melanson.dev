@@ -13,6 +13,7 @@ from spire.models import (
 )
 from spire.serializers.fields import (
     BaseFieldSerializer,
+    BuildingRoomFieldSerializer,
     CourseFieldSerializer,
     SectionFieldSerializer,
     TermFieldSerializer,
@@ -47,6 +48,7 @@ class SectionMeetingInformationSerializer(HyperlinkedModelSerializer):
     section = SectionFieldSerializer()
     schedule = SectionMeetingScheduleSerializer()
     instructors = InstructorSerializer(many=True)
+    room = BuildingRoomFieldSerializer()
 
     class Meta:
         model = SectionMeetingInformation

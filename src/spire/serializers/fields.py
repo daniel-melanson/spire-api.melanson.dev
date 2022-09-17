@@ -18,16 +18,18 @@ class BaseFieldSerializer(HyperlinkedModelSerializer):
         super().__init__(instance, data, read_only=True, **kwargs)
 
 
-class BuildingRoomFieldSerializer(BaseFieldSerializer):
-    class Meta:
-        model = BuildingRoom
-        fields = ["number", "alt"]
-
-
 class BuildingFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Building
         fields = ["url", "name", "address"]
+
+
+class BuildingRoomFieldSerializer(BaseFieldSerializer):
+    building = BuildingFieldSerializer()
+
+    class Meta:
+        model = BuildingRoom
+        fields = ["id", "url", "number", "alt", "building"]
 
 
 class TermFieldSerializer(BaseFieldSerializer):

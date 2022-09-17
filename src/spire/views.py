@@ -6,6 +6,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from spire.models import (
     AcademicGroup,
     Building,
+    BuildingRoom,
     Course,
     CourseDetail,
     CourseEnrollmentInformation,
@@ -23,7 +24,7 @@ from spire.models import (
     TermEvent,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
-from spire.serializers.building import BuildingSerializer
+from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
 from spire.serializers.course import (
     CourseDetailSerializer,
     CourseEnrollmentInformationSerializer,
@@ -53,6 +54,10 @@ class BaseViewSet(ReadOnlyModelViewSet):
 class BuildingViewSet(BaseViewSet):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
+
+class BuildingRoomViewSet(BaseViewSet):
+    queryset = BuildingRoom.objects.all()
+    serializer_class = BuildingRoomSerializer
 
 
 class TermViewSet(BaseViewSet):
