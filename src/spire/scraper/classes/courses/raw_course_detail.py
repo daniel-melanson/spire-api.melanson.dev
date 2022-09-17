@@ -49,7 +49,7 @@ class RawUnits(RawObject):
         super().__init__(CourseUnits, None, [RawField("base"), RawField("min"), RawField("max")])
 
     def push(self):
-        if self.base:
+        if self.base is not None:
             u, _ = CourseUnits.objects.get_or_create(base=self.base, defaults={"min": None, "max": None})
         else:
             u, _ = CourseUnits.objects.get_or_create(min=self.min, max=self.max, defaults={"base": None})
