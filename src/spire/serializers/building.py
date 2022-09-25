@@ -5,8 +5,6 @@ from spire.serializers.fields import BaseFieldSerializer, BuildingFieldSerialize
 
 
 class BRFSNoBuilding(BaseFieldSerializer):
-    building = BuildingFieldSerializer()
-
     class Meta:
         model = BuildingRoom
         fields = ["id", "url", "number", "alt"]
