@@ -42,7 +42,7 @@ class BuildingRoomFieldSerializer(BaseFieldSerializer):
 class TermFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Term
-        fields = ["id", "season", "year"]
+        fields = ["id", "season", "year", "ordinal"]
 
 
 class TermEventFieldSerializer(BaseFieldSerializer):

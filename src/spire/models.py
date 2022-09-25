@@ -316,7 +316,7 @@ class SectionMeetingInformation(Model):
     section = ForeignKey(Section, on_delete=CASCADE, related_name="meeting_information")
     room = ForeignKey(BuildingRoom, on_delete=SET_NULL, null=True, related_name="+")
     room_raw = CharField(max_length=2**6)
-    instructors = ManyToManyField(Instructor, "+")
+    instructors = ManyToManyField(Instructor, "sections")
 
     def __str__(self) -> str:
         return f"SectionMeetingInformation[{self.id}]"
