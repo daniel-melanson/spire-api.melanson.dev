@@ -1,4 +1,4 @@
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
 from spire.models import Course, CourseDetail, CourseEnrollmentInformation, CourseOffering
 from spire.serializers.fields import (
@@ -11,21 +11,18 @@ from spire.serializers.fields import (
 )
 
 
-class CourseDetailSerializer(HyperlinkedModelSerializer):
-    course = CourseFieldSerializer()
+class CourseDetailSerializer(ModelSerializer):
     units = CourseUnitsFieldSerializer()
     class Meta:
         model = CourseDetail
-        fields = "__all__"
+        exclude = ["course"]
 
 
-class CourseEnrollmentInformationSerializer(HyperlinkedModelSerializer):
-    course = CourseFieldSerializer()
+class CourseEnrollmentInformationSerializer(ModelSerializer):
 
     class Meta:
         model = CourseEnrollmentInformation
-        fields = "__all__"
-
+        exclude = ["course"]
 
 class CourseOfferingSerializer(HyperlinkedModelSerializer):
     course = CourseFieldSerializer()
@@ -56,6 +53,7 @@ class CourseSerializer(HyperlinkedModelSerializer):
         model = Course
         fields = [
             "id",
+            "url",
             "subject",
             "number",
             "title",

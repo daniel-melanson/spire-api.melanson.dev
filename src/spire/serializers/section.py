@@ -1,4 +1,4 @@
-from rest_framework.serializers import HyperlinkedModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
 
 from spire.models import (
     CourseOffering,
@@ -31,38 +31,35 @@ class SectionCourseOfferingFieldSerializer(BaseFieldSerializer):
         fields = ["url", "term", "course"]
 
 
-class SectionDetailSerializer(HyperlinkedModelSerializer):
-    section = SectionFieldSerializer()
+class SectionDetailSerializer(ModelSerializer):
     units = CourseUnitsFieldSerializer()
 
     class Meta:
         model = SectionDetail
-        fields = "__all__"
+        exclude = ["section"]
 
 
-class SectionMeetingScheduleSerializer(HyperlinkedModelSerializer):
+class SectionMeetingScheduleSerializer(ModelSerializer):
     class Meta:
         model = SectionMeetingSchedule
-        exclude = ["url"]
+        fields = ["days", "start_time", "end_time"]
 
 
-class SectionMeetingInformationSerializer(HyperlinkedModelSerializer):
-    section = SectionFieldSerializer()
+class SectionMeetingInformationSerializer(ModelSerializer):
     schedule = SectionMeetingScheduleSerializer()
     instructors = InstructorSerializer(many=True)
     room = BuildingRoomFieldSerializer()
 
     class Meta:
         model = SectionMeetingInformation
-        fields = "__all__"
+        exclude = ["section", "id"]
 
 
-class SectionAvailabilitySerializer(HyperlinkedModelSerializer):
-    section = SectionFieldSerializer()
+class SectionAvailabilitySerializer(ModelSerializer):
 
     class Meta:
         model = SectionAvailability
-        fields = "__all__"
+        exclude = ["section"]
 
 
 class SectionCombinedAvailabilitySerializer(HyperlinkedModelSerializer):
@@ -73,12 +70,11 @@ class SectionCombinedAvailabilitySerializer(HyperlinkedModelSerializer):
         fields = "__all__"
 
 
-class SectionRestrictionSerializer(HyperlinkedModelSerializer):
-    section = SectionFieldSerializer()
+class SectionRestrictionSerializer(ModelSerializer):
 
     class Meta:
         model = SectionRestriction
-        fields = "__all__"
+        exclude = ["section"]
 
 
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
@@ -104,11 +100,11 @@ class SectionSerializer(HyperlinkedModelSerializer):
             "offering",
             "description",
             "overview",
-            "_updated_at",
             "details",
             "offering",
             "details",
             "availability",
             "restrictions",
             "meeting_information",
+            "_updated_at",
         ]
