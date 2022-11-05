@@ -2,23 +2,17 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.filters import SearchFilter
 
 from spire.models import (
     AcademicGroup,
     Building,
     BuildingRoom,
     Course,
-    CourseDetail,
-    CourseEnrollmentInformation,
     CourseOffering,
     Instructor,
     Section,
-    SectionAvailability,
-    SectionCombinedAvailability,
     SectionCoverage,
-    SectionDetail,
-    SectionMeetingInformation,
-    SectionRestriction,
     Subject,
     Term,
     TermEvent,
@@ -26,19 +20,12 @@ from spire.models import (
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
 from spire.serializers.course import (
-    CourseDetailSerializer,
-    CourseEnrollmentInformationSerializer,
     CourseOfferingSerializer,
     CourseSerializer,
 )
 from spire.serializers.instructor import InstructorSerializer
 from spire.serializers.section import (
-    SectionAvailabilitySerializer,
-    SectionCombinedAvailabilitySerializer,
     SectionCoverageSerializer,
-    SectionDetailSerializer,
-    SectionMeetingInformationSerializer,
-    SectionRestrictionSerializer,
     SectionSerializer,
 )
 from spire.serializers.subject import SubjectSerializer
@@ -54,6 +41,9 @@ class BaseViewSet(ReadOnlyModelViewSet):
 class BuildingViewSet(BaseViewSet):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["name"]
+
 
 class BuildingRoomViewSet(BaseViewSet):
     queryset = BuildingRoom.objects.all()
@@ -73,26 +63,22 @@ class TermEventViewSet(BaseViewSet):
 class AcademicGroupViewSet(BaseViewSet):
     queryset = AcademicGroup.objects.all()
     serializer_class = AcademicGroupSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["title"]
 
 
 class SubjectViewSet(BaseViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["id", "name"]
 
 
 class CourseViewSet(BaseViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-
-
-class CourseDetailViewSet(BaseViewSet):
-    queryset = CourseDetail.objects.all()
-    serializer_class = CourseDetailSerializer
-
-
-class CourseEnrollmentInformationViewSet(BaseViewSet):
-    queryset = CourseEnrollmentInformation.objects.all()
-    serializer_class = CourseEnrollmentInformationSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["id", "name"]
 
 
 class CourseOfferingViewSet(BaseViewSet):
@@ -103,36 +89,13 @@ class CourseOfferingViewSet(BaseViewSet):
 class InstructorViewSet(BaseViewSet):
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["name"]
 
 
 class SectionViewSet(BaseViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
-
-
-class SectionDetailViewSet(BaseViewSet):
-    queryset = SectionDetail.objects.all()
-    serializer_class = SectionDetailSerializer
-
-
-class SectionAvailabilityViewSet(BaseViewSet):
-    queryset = SectionAvailability.objects.all()
-    serializer_class = SectionAvailabilitySerializer
-
-
-class SectionCombinedAvailabilityViewSet(BaseViewSet):
-    queryset = SectionCombinedAvailability.objects.all()
-    serializer_class = SectionCombinedAvailabilitySerializer
-
-
-class SectionRestrictionViewSet(BaseViewSet):
-    queryset = SectionRestriction.objects.all()
-    serializer_class = SectionRestrictionSerializer
-
-
-class SectionMeetingInformationViewSet(BaseViewSet):
-    queryset = SectionMeetingInformation.objects.all()
-    serializer_class = SectionMeetingInformationSerializer
 
 
 class CoverageViewSet(BaseViewSet):
