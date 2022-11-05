@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.utils.decorators import method_decorator
+from rest_framework.decorators import action
 from django.views.decorators.cache import cache_page
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.filters import SearchFilter
 
@@ -91,6 +93,13 @@ class InstructorViewSet(BaseViewSet):
     serializer_class = InstructorSerializer
     filter_backends = [SearchFilter]
     search_fields = ["name"]
+
+    @action(detail=True)
+    def sections(self, request, pk=None):
+        instructor = self.get_object()
+        section_list = Section.objects.filter(meeting_information__instructors__id=instructor.id)
+        serializer = SectionSerializer(section_list, many=True, context={"request": request})
+        return Response(serializer.data)
 
 
 class SectionViewSet(BaseViewSet):
