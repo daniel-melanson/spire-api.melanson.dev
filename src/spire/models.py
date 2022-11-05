@@ -68,6 +68,9 @@ class Building(Model):
     def __str__(self) -> str:
         return f"Building[{self.id}](name={self.name}, address={self.address})"
 
+    class Meta:
+        ordering = ["id"]
+
 
 class BuildingRoom(Model):
     id = AutoField(primary_key=True)
