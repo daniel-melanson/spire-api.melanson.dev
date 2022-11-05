@@ -124,6 +124,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_PERMISSION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
+    "DEFAULT_THROTTLE_CLASSES": ["spire.throttles.BlindRateThrottle"],
 }
 
 MINUTE = 60
@@ -193,25 +194,3 @@ if not DEBUG:
             "LOCATION": REDIS_URL,
         }
     }
-
-# Celery
-# https://docs.celeryproject.org/en/stable/userguide/configuration.html
-CELERY_broker_url = REDIS_URL
-result_backend = REDIS_URL
-# beat_schedule = {
-#     "scrape-courses": {
-#         "task": "spire.tasks.scrape",
-#         "schedule": crontab(minute=0, hour=0, day_of_week="*/14", day_of_month="*", month_of_year="*"),
-#         "args": ("ScrapeCoverage.SubjectsAndCourses", False),
-#     },
-#     "scrape-sections": {
-#         "task": "spire.tasks.scrape",
-#         "schedule": crontab(minute=0, hour=0, day_of_week="*/7", day_of_month="*", month_of_year="*"),
-#         "args": (ScrapeCoverage.Sections, False),
-#     },
-#     "quick-scrape-sections": {
-#         "task": "spire.tasks.scrape",
-#         "schedule": crontab(minute=0, hour="*/", day_of_week="*", day_of_month="*", month_of_year="*"),
-#         "args": (ScrapeCoverage.Sections, True),
-#     },
-# }
