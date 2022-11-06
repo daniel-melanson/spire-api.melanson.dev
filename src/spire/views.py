@@ -3,8 +3,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.response import Response
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from spire.models import (
     AcademicGroup,
@@ -88,12 +88,15 @@ class InstructorViewSet(BaseViewSet):
     filter_backends = [SearchFilter]
     search_fields = ["name"]
 
-    @action(detail=True, serializer_class=SectionSerializer)
+    @action(
+        detail=True,
+        serializer_class=SectionSerializer,
+    )
     def sections(self, request, pk=None):
         instructor = self.get_object()
         section_list = Section.objects.filter(meeting_information__instructors__id=instructor.id)
 
-        page  = self.paginate_queryset(section_list)
+        page = self.paginate_queryset(section_list)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)

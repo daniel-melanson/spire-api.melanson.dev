@@ -98,7 +98,7 @@ class Term(Model):
         return f"Term[{self.id}]"
 
     class Meta:
-        ordering = ["ordinal"]
+        ordering = ["-ordinal"]
         unique_together = [["year", "season"]]
 
 
