@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.utils.decorators import method_decorator
-from rest_framework.decorators import action
 from django.views.decorators.cache import cache_page
-from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.response import Response
 
 from spire.models import (
     AcademicGroup,
@@ -21,15 +21,9 @@ from spire.models import (
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
-from spire.serializers.course import (
-    CourseOfferingSerializer,
-    CourseSerializer,
-)
+from spire.serializers.course import CourseOfferingSerializer, CourseSerializer
 from spire.serializers.instructor import InstructorSerializer
-from spire.serializers.section import (
-    SectionCoverageSerializer,
-    SectionSerializer,
-)
+from spire.serializers.section import SectionCoverageSerializer, SectionSerializer
 from spire.serializers.subject import SubjectSerializer
 from spire.serializers.term import TermEventSerializer, TermSerializer
 
@@ -94,11 +88,17 @@ class InstructorViewSet(BaseViewSet):
     filter_backends = [SearchFilter]
     search_fields = ["name"]
 
-    @action(detail=True)
+    @action(detail=True, serializer_class=SectionSerializer)
     def sections(self, request, pk=None):
         instructor = self.get_object()
         section_list = Section.objects.filter(meeting_information__instructors__id=instructor.id)
-        serializer = SectionSerializer(section_list, many=True, context={"request": request})
+
+        page  = self.paginate_queryset(section_list)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(section_list, many=True)
         return Response(serializer.data)
 
 
