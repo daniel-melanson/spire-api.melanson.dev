@@ -67,14 +67,14 @@ class SubjectViewSet(BaseViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     filter_backends = [SearchFilter]
-    search_fields = ["id", "name"]
+    search_fields = ["id", "title"]
 
 
 class CourseViewSet(BaseViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     filter_backends = [SearchFilter]
-    search_fields = ["id", "name"]
+    search_fields = ["id", "title"]
 
 
 class CourseOfferingViewSet(BaseViewSet):
