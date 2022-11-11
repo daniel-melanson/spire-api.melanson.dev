@@ -69,7 +69,7 @@ class Building(Model):
         return f"Building[{self.id}](name={self.name}, address={self.address})"
 
     class Meta:
-        ordering = ["id"]
+        ordering = ["name"]
 
 
 class BuildingRoom(Model):
@@ -122,7 +122,7 @@ class AcademicGroup(Model):
         return f"AcademicGroup[{self.id}](title={self.title})"
 
     class Meta:
-        ordering = ["id"]
+        ordering = ["title"]
 
 
 class Subject(Model):
