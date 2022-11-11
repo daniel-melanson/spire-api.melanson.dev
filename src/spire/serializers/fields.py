@@ -66,7 +66,7 @@ class SubjectFieldSerializer(BaseFieldSerializer):
 class CourseFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Course
-        fields = ["id", "url"]
+        fields = ["id", "url", "title"]
 
 
 class CourseOfferingFieldSerializer(BaseFieldSerializer):
