@@ -28,7 +28,7 @@ class CourseUnitsFieldSerializer(BaseFieldSerializer):
 class BuildingFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Building
-        fields = ["url", "name", "address"]
+        fields = ["id", "name", "address"]
 
 
 class BuildingRoomFieldSerializer(BaseFieldSerializer):
@@ -42,7 +42,7 @@ class BuildingRoomFieldSerializer(BaseFieldSerializer):
 class TermFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Term
-        fields = ["id", "season", "year", "ordinal"]
+        fields = ["id", "url", "season", "year", "ordinal"]
 
 
 class TermEventFieldSerializer(BaseFieldSerializer):
@@ -54,19 +54,19 @@ class TermEventFieldSerializer(BaseFieldSerializer):
 class AcademicGroupFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = AcademicGroup
-        fields = ["url", "id", "title"]
+        fields = ["id", "url", "title"]
 
 
 class SubjectFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Subject
-        fields = ["url", "id", "title"]
+        fields = ["id", "url", "title"]
 
 
 class CourseFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Course
-        fields = ["url", "id"]
+        fields = ["id", "url"]
 
 
 class CourseOfferingFieldSerializer(BaseFieldSerializer):
@@ -74,10 +74,10 @@ class CourseOfferingFieldSerializer(BaseFieldSerializer):
 
     class Meta:
         model = CourseOffering
-        fields = ["url", "term"]
+        fields = ["id", "url", "term"]
 
 
 class SectionFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Section
-        fields = ["url", "spire_id"]
+        fields = ["id", "url", "spire_id"]

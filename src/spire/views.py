@@ -17,7 +17,6 @@ from spire.models import (
     SectionCoverage,
     Subject,
     Term,
-    TermEvent,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
@@ -25,7 +24,7 @@ from spire.serializers.course import CourseOfferingSerializer, CourseSerializer
 from spire.serializers.instructor import InstructorSerializer
 from spire.serializers.section import SectionCoverageSerializer, SectionSerializer
 from spire.serializers.subject import SubjectSerializer
-from spire.serializers.term import TermEventSerializer, TermSerializer
+from spire.serializers.term import TermSerializer
 
 
 class BaseViewSet(ReadOnlyModelViewSet):
@@ -49,11 +48,6 @@ class BuildingRoomViewSet(BaseViewSet):
 class TermViewSet(BaseViewSet):
     queryset = Term.objects.all()
     serializer_class = TermSerializer
-
-
-class TermEventViewSet(BaseViewSet):
-    queryset = TermEvent.objects.all()
-    serializer_class = TermEventSerializer
 
 
 class AcademicGroupViewSet(BaseViewSet):

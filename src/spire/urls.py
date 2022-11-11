@@ -23,7 +23,7 @@ router.register("buildings", BuildingViewSet, basename="building")
 router.register("building-rooms", BuildingRoomViewSet, basename="buildingroom")
 
 router.register("terms", TermViewSet, basename="term")
-router.register("term-events", TermEventViewSet, basename="termevent")
+# router.register("term-events", TermEventViewSet, basename="termevent")
 
 router.register("academic-groups", AcademicGroupViewSet, basename="academicgroup")
 

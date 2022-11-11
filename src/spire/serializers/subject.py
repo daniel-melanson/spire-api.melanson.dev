@@ -12,6 +12,7 @@ class SubjectSerializer(HyperlinkedModelSerializer):
         model = Subject
         fields = [
             "id",
+            "url",
             "title",
             "groups",
             "courses",
