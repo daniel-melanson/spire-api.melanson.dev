@@ -12,7 +12,7 @@ from spire.scraper.web import fetch_soup, get_tag_text
 log = logging.getLogger(__name__)
 
 
-SEASON_LIST = ["Spring", "Summer", "UWW Summer", "Fall", "Winter"]
+SEASON_LIST = ["Winter", "Spring", "Summer", "UWW Summer", "Fall"]
 
 
 def get_or_create_term(season: str, year: str):

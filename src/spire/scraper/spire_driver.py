@@ -34,7 +34,7 @@ class SpireDriver:
     def root_driver(self) -> WebDriver:
         return self._driver
 
-    def _switch(self):
+    def switch(self):
         log.debug("Switching focus...")
         if self._state == "default":
             self._wait.until(EC.frame_to_be_available_and_switch_to_it((By.NAME, "TargetContent")))
@@ -45,25 +45,26 @@ class SpireDriver:
 
         log.debug("Switched focus to: %s", self._state)
 
-    def navigate_to(self, page: str) -> None:
-        assert page in ("catalog", "search")
-        log.debug("Navigating to %s...", page)
+    # ! New spire has no navigation
+    # def navigate_to(self, page: str) -> None:
+    #     assert page in ("catalog", "search")
+    #     log.debug("Navigating to %s...", page)
 
-        if self._state != "default":
-            self._switch()
+    #     if self._state != "default":
+    #         self.switch()
 
-        self.click("pthnavbca_UM_COURSE_GUIDES", wait=False)
-        self.click(
-            "crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL",
-            wait=False,
-        )
-        self._switch()
+    #     self.click("pthnavbca_UM_COURSE_GUIDES", wait=False)
+    #     self.click(
+    #         "crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL",
+    #         wait=False,
+    #     )
+    #     self.switch()
 
-        self.wait_for_spire()
+    #     self.wait_for_spire()
 
-        assert ("Browse Course Catalog" if page == "catalog" else "Search for Classes") == self._driver.title
+    #     assert ("Browse Course Catalog" if page == "catalog" else "Search for Classes") == self._driver.title
 
-        log.debug("Navigated to %s.", page)
+    #     log.debug("Navigated to %s.", page)
 
     def click(self, selector: str, by: str = By.ID, wait: bool = True):
         element = self._wait.until(EC.element_to_be_clickable((by, selector)))

@@ -339,8 +339,6 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
 def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     log.info("Scraping sections...")
 
-    driver.navigate_to("search")
-
     total_timer = Timer()
     scraped_terms = 0
 
@@ -354,8 +352,10 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             if len(e.get_property("value")) > 0  # type: ignore
         ]
 
+    driver.switch()
+
     # Fetch subject option values
-    subject_select: WebElement = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT\$108\$")
+    subject_select: WebElement = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
     assert subject_select
     subject_values: list[tuple[str, str]] = get_option_values(subject_select)
 
