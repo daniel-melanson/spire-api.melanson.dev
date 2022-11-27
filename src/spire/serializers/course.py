@@ -1,4 +1,4 @@
-from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer
+from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, Serializer
 
 from spire.models import Course, CourseDetail, CourseEnrollmentInformation, CourseOffering
 from spire.serializers.fields import (
@@ -9,20 +9,22 @@ from spire.serializers.fields import (
     SubjectFieldSerializer,
     TermFieldSerializer,
 )
+from spire.serializers.instructor import InstructorSerializer
 
 
 class CourseDetailSerializer(ModelSerializer):
     units = CourseUnitsFieldSerializer()
+
     class Meta:
         model = CourseDetail
         exclude = ["course"]
 
 
 class CourseEnrollmentInformationSerializer(ModelSerializer):
-
     class Meta:
         model = CourseEnrollmentInformation
         exclude = ["course"]
+
 
 class CourseOfferingSerializer(HyperlinkedModelSerializer):
     course = CourseFieldSerializer()
@@ -63,3 +65,8 @@ class CourseSerializer(HyperlinkedModelSerializer):
             "offerings",
             "_updated_at",
         ]
+
+
+class CourseInstructorsSerializer(Serializer):
+    offering = CourseOfferingFieldSerializer()
+    instructors = InstructorSerializer(many=True)

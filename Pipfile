@@ -27,7 +27,8 @@ python_version = "3.10"
 
 [scripts]
 dev = "python src/manage.py runserver"
-scrape-sections = "python src/manage.py scrape sections"
+scrape-sections = "python src/manage.py scrape --quick sections"
+shell = "python src/manage.py shell"
 scrape-courses = "python src/manage.py scrape courses"
 scrape = "python src/manage.py scrape"
 makemigrations = "python src/manage.py makemigrations"

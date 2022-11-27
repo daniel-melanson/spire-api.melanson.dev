@@ -392,7 +392,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
                 case _:
                     assert False
 
-            if timezone.make_aware(end_date) < timezone.now():
+            if coverage.end_time and timezone.make_aware(end_date) < coverage.end_time:
                 log.info("Skipping the %s term, as information is static.", term)
                 continue
 

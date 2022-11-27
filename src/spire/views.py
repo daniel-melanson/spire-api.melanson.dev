@@ -15,12 +15,13 @@ from spire.models import (
     Instructor,
     Section,
     SectionCoverage,
+    SectionMeetingInformation,
     Subject,
     Term,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
-from spire.serializers.course import CourseOfferingSerializer, CourseSerializer
+from spire.serializers.course import CourseInstructorsSerializer, CourseOfferingSerializer, CourseSerializer
 from spire.serializers.instructor import InstructorSerializer
 from spire.serializers.section import SectionCoverageSerializer, SectionSerializer
 from spire.serializers.subject import SubjectSerializer
@@ -69,6 +70,44 @@ class CourseViewSet(BaseViewSet):
     serializer_class = CourseSerializer
     filter_backends = [SearchFilter]
     search_fields = ["id", "title"]
+
+    @action(
+        detail=True,
+        serializer_class=SectionSerializer,
+    )
+    def sections(self, request, pk=None):
+        course = self.get_object()
+        section_list = Section.objects.filter(offering__course__id=course.id)
+        page = self.paginate_queryset(section_list)
+        assert page
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    # TODO Paginate?
+    @action(
+        detail=True,
+        serializer_class=CourseInstructorsSerializer,
+    )
+    def instructors(self, request, pk=None):
+        course = self.get_object()
+        offerings = CourseOffering.objects.filter(course__id=course.id)
+        result_list = []
+        for offering in offerings:
+            meeting_entries = (
+                SectionMeetingInformation.objects.filter(section__offering__id=offering.id)
+                .prefetch_related("instructors")
+                .values("instructors")
+            )
+            instructors_list = list(map(lambda x: x["instructors"], meeting_entries))
+            result_list.append(
+                {
+                    "offering": offering,
+                    "instructors": Instructor.objects.filter(id__in=instructors_list),
+                }
+            )
+
+        serializer = self.get_serializer(result_list, many=True)
+        return Response(serializer.data)
 
 
 class CourseOfferingViewSet(BaseViewSet):
