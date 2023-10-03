@@ -13,7 +13,6 @@ selenium = "*"
 django-filter = "*"
 gunicorn = "*"
 whitenoise = "*"
-redis = "*"
 django-cors-headers = "*"
 unidecode = "*"
 bs4 = "*"
@@ -21,9 +20,6 @@ html5lib = "*"
 requests = "*"
 nltk = "*"
 numpy = "*"
-
-[requires]
-python_version = "3.11"
 
 [scripts]
 dev = "python src/manage.py runserver"

@@ -1,6 +1,3 @@
-from django.conf import settings
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
@@ -32,44 +29,38 @@ from spire.serializers.subject import SubjectSerializer
 from spire.serializers.term import TermSerializer
 
 
-class BaseViewSet(ReadOnlyModelViewSet):
-    @method_decorator(cache_page(settings.VIEW_CACHE_TTL))
-    def dispatch(self, *args, **kwargs):
-        return super(BaseViewSet, self).dispatch(*args, **kwargs)
-
-
-class BuildingViewSet(BaseViewSet):
+class BuildingViewSet(ReadOnlyModelViewSet):
     queryset = Building.objects.all()
     serializer_class = BuildingSerializer
     filter_backends = [SearchFilter]
     search_fields = ["name"]
 
 
-class BuildingRoomViewSet(BaseViewSet):
+class BuildingRoomViewSet(ReadOnlyModelViewSet):
     queryset = BuildingRoom.objects.all()
     serializer_class = BuildingRoomSerializer
 
 
-class TermViewSet(BaseViewSet):
+class TermViewSet(ReadOnlyModelViewSet):
     queryset = Term.objects.all()
     serializer_class = TermSerializer
 
 
-class AcademicGroupViewSet(BaseViewSet):
+class AcademicGroupViewSet(ReadOnlyModelViewSet):
     queryset = AcademicGroup.objects.all()
     serializer_class = AcademicGroupSerializer
     filter_backends = [SearchFilter]
     search_fields = ["title"]
 
 
-class SubjectViewSet(BaseViewSet):
+class SubjectViewSet(ReadOnlyModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     filter_backends = [SearchFilter]
     search_fields = ["id", "title"]
 
 
-class CourseViewSet(BaseViewSet):
+class CourseViewSet(ReadOnlyModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     filter_backends = [SearchFilter]
@@ -116,12 +107,12 @@ class CourseViewSet(BaseViewSet):
         return Response(serializer.data)
 
 
-class CourseOfferingViewSet(BaseViewSet):
+class CourseOfferingViewSet(ReadOnlyModelViewSet):
     queryset = CourseOffering.objects.all()
     serializer_class = CourseOfferingSerializer
 
 
-class InstructorViewSet(BaseViewSet):
+class InstructorViewSet(ReadOnlyModelViewSet):
     queryset = Instructor.objects.all()
     serializer_class = InstructorSerializer
     filter_backends = [SearchFilter]
@@ -146,11 +137,11 @@ class InstructorViewSet(BaseViewSet):
         return Response(serializer.data)
 
 
-class SectionViewSet(BaseViewSet):
+class SectionViewSet(ReadOnlyModelViewSet):
     queryset = Section.objects.all()
     serializer_class = SectionSerializer
 
 
-class CoverageViewSet(BaseViewSet):
+class CoverageViewSet(ReadOnlyModelViewSet):
     queryset = SectionCoverage.objects.all()
     serializer_class = SectionCoverageSerializer

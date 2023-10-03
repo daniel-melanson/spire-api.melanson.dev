@@ -51,10 +51,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.cache.UpdateCacheMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.cache.FetchFromCacheMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
@@ -127,11 +129,6 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": ["spire.throttles.BlindRateThrottle"],
 }
 
-MINUTE = 60
-HOUR = MINUTE * 60
-
-VIEW_CACHE_TTL = MINUTE if DEBUG else int(os.environ.get("VIEW_CACHE_TTL", 3 * HOUR))
-
 # spire.scraper
 
 SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)
@@ -187,10 +184,16 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
 # Caching
 # https://docs.djangoproject.com/en/4.0/topics/cache/
-if not DEBUG:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": REDIS_URL,
-        }
+
+MINUTE = 60
+HOUR = MINUTE * 60
+
+CACHE_MIDDLEWARE_SECONDS = (
+    MINUTE if DEBUG else int(os.environ.get("CACHE_MIDDLEWARE_SECONDS", 3 * HOUR))
+)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.LocMemCache",
     }
+}
