@@ -9,12 +9,12 @@ WORKDIR $APP_PATH
 RUN addgroup --system django; \
     adduser --system django --ingroup django;
 
-# RUN apt-get update; \
-#     apt-get install -y --no-install-recommends wget tar; \
-#     wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz; \
-#     tar -xf geckodriver.tar.gz; \
-#     mv geckodriver /usr/local/bin/; \
-#     rm geckodriver.tar.gz;
+RUN apt-get update; \
+    apt-get install -y --no-install-recommends wget tar; \
+    wget -O geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v0.31.0/geckodriver-v0.31.0-linux64.tar.gz; \
+    tar -xf geckodriver.tar.gz; \
+    mv geckodriver /usr/local/bin/; \
+    rm geckodriver.tar.gz;
 
 RUN chown -R django:django /home/django
 USER django
@@ -30,8 +30,4 @@ COPY ./src $APP_PATH/src
 
 WORKDIR $APP_PATH/src
 
-RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
-
-EXPOSE 8000
-
-CMD ["/home/django/.local/bin/gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]
+CMD ["python", "src/manage.py", "scrape", "sections"]

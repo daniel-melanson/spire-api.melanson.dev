@@ -1,0 +1,30 @@
+FROM python:3.11-slim-bullseye
+
+ENV PYTHONUNBUFFERED 1
+ENV APP_PATH=/home/django/app
+
+RUN mkdir -p $APP_PATH
+WORKDIR $APP_PATH
+
+RUN addgroup --system django; \
+    adduser --system django --ingroup django;
+
+RUN chown -R django:django /home/django
+USER django
+
+COPY Pipfile Pipfile.lock $APP_PATH
+RUN python -m pip install --upgrade pip; \
+    python -m pip install pipenv; \
+    /home/django/.local/bin/pipenv install --system --deploy;
+
+RUN python -m nltk.downloader punkt
+
+COPY ./src $APP_PATH/src
+
+WORKDIR $APP_PATH/src
+
+RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
+
+EXPOSE 8000
+
+CMD ["/home/django/.local/bin/gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]
