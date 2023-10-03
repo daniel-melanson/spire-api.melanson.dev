@@ -7,7 +7,12 @@ class Command(BaseCommand):
     help = "Does a clean scrape of all courses from the Spire course catalog."
 
     def add_arguments(self, parser):
-        parser.add_argument("coverage", nargs=1, type=str, choices=("total", "sections", "courses", "calendar"))
+        parser.add_argument(
+            "coverage",
+            nargs=1,
+            type=str,
+            choices=("total", "sections", "courses", "calendar"),
+        )
 
         parser.add_argument("--quick", action="store_true")
 

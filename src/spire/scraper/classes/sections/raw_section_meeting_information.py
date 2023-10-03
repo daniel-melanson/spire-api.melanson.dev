@@ -28,7 +28,11 @@ class RawInstructor(RawObject):
         super().__init__(
             Instructor,
             fields=[
-                RawField("name", min_len=4, normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x]),
+                RawField(
+                    "name",
+                    min_len=4,
+                    normalizers=[lambda x: "Staff" if x in ("staff", "TBD") else x],
+                ),
                 RawField("email"),
             ],
         )
@@ -50,7 +54,9 @@ class RawInstructor(RawObject):
         else:
             staff, created = Instructor.objects.get_or_create(name=self.name)
 
-        log.info("%s instructor %s from %s", "Created" if created else "Updated", staff, self)
+        log.info(
+            "%s instructor %s from %s", "Created" if created else "Updated", staff, self
+        )
 
         return staff
 
@@ -87,7 +93,9 @@ class RawSectionMeetingDates(RawObject):
         self.start = date(**start_kwargs)
         self.end = date(**end_kwargs)
 
-        super().__init__(SectionMeetingDates, None, [RawField("start"), RawField("end")])
+        super().__init__(
+            SectionMeetingDates, None, [RawField("start"), RawField("end")]
+        )
 
 
 class RawSectionMeetingSchedule(RawObject):
@@ -102,7 +110,15 @@ class RawSectionMeetingSchedule(RawObject):
 
         days = m.group("days")
 
-        for day in ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"):
+        for day in (
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+        ):
             if day[:2] in days:
                 self.days.append(day)
 

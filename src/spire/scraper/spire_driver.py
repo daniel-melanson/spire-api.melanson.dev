@@ -26,7 +26,9 @@ class SpireDriver:
 
         self._driver.get("https://www.spire.umass.edu")
 
-        self._wait.until(EC.element_to_be_clickable((By.NAME, "CourseCatalogLink"))).click()
+        self._wait.until(
+            EC.element_to_be_clickable((By.NAME, "CourseCatalogLink"))
+        ).click()
 
         self._state = "default"
 
@@ -37,7 +39,9 @@ class SpireDriver:
     def switch(self):
         log.debug("Switching focus...")
         if self._state == "default":
-            self._wait.until(EC.frame_to_be_available_and_switch_to_it((By.NAME, "TargetContent")))
+            self._wait.until(
+                EC.frame_to_be_available_and_switch_to_it((By.NAME, "TargetContent"))
+            )
             self._state = "iframe"
         elif self._state == "iframe":
             self._driver.switch_to.default_content()

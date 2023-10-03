@@ -11,7 +11,9 @@ class RawSectionRestriction(RawDictionary):
             table,
             [
                 RawField(k="Add Consent", min_len=1, normalizers=[STRIP_STR]),
-                RawField(k="Enrollment Requirements", min_len=1, normalizers=[STRIP_STR]),
+                RawField(
+                    k="Enrollment Requirements", min_len=1, normalizers=[STRIP_STR]
+                ),
                 RawField(k="Drop Consent", min_len=1, normalizers=[STRIP_STR]),
             ],
         )

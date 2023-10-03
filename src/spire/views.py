@@ -21,7 +21,11 @@ from spire.models import (
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
-from spire.serializers.course import CourseInstructorsSerializer, CourseOfferingSerializer, CourseSerializer
+from spire.serializers.course import (
+    CourseInstructorsSerializer,
+    CourseOfferingSerializer,
+    CourseSerializer,
+)
 from spire.serializers.instructor import InstructorSerializer
 from spire.serializers.section import SectionCoverageSerializer, SectionSerializer
 from spire.serializers.subject import SubjectSerializer
@@ -94,7 +98,9 @@ class CourseViewSet(BaseViewSet):
         result_list = []
         for offering in offerings:
             meeting_entries = (
-                SectionMeetingInformation.objects.filter(section__offering__id=offering.id)
+                SectionMeetingInformation.objects.filter(
+                    section__offering__id=offering.id
+                )
                 .prefetch_related("instructors")
                 .values("instructors")
             )
@@ -127,7 +133,9 @@ class InstructorViewSet(BaseViewSet):
     )
     def sections(self, request, pk=None):
         instructor = self.get_object()
-        section_list = Section.objects.filter(meeting_information__instructors__id=instructor.id)
+        section_list = Section.objects.filter(
+            meeting_information__instructors__id=instructor.id
+        )
 
         page = self.paginate_queryset(section_list)
         if page is not None:

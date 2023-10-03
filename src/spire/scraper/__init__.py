@@ -35,7 +35,11 @@ class ScrapeCoverage(Enum):
 def scrape(s, func, **kwargs):
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
-    if debug_versioned_cache is not None and settings.SCRAPER_DEBUG and debug_versioned_cache.type == s:
+    if (
+        debug_versioned_cache is not None
+        and settings.SCRAPER_DEBUG
+        and debug_versioned_cache.type == s
+    ):
         cache = debug_versioned_cache
     else:
         cache = VersionedCache(s)
@@ -49,7 +53,9 @@ def scrape(s, func, **kwargs):
             func(driver, cache, **kwargs)
             return
         except Exception as e:
-            log.exception("Encountered an unexpected exception while scraping %s: %s", s, e)
+            log.exception(
+                "Encountered an unexpected exception while scraping %s: %s", s, e
+            )
             retries += 1
 
             if settings.SCRAPER_DEBUG:
@@ -57,7 +63,9 @@ def scrape(s, func, **kwargs):
                 if not os.path.isdir("./logs/dump"):
                     os.mkdir("./logs/dump")
 
-                html_dump_path = os.path.join("./logs/dump", f"scrape-html-dump-{retries}-{start_date}.html")
+                html_dump_path = os.path.join(
+                    "./logs/dump", f"scrape-html-dump-{retries}-{start_date}.html"
+                )
                 with open(html_dump_path, "wb") as f:
                     f.write(sel_driver.page_source.encode("utf-8"))
 

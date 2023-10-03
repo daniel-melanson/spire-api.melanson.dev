@@ -3,7 +3,11 @@ import logging
 from spire.models import SectionDetail
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
 from spire.scraper.classes.courses.raw_course_detail import RawUnits
-from spire.scraper.classes.normalizers import DICT_KEY_NORMALIZER, NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR
+from spire.scraper.classes.normalizers import (
+    DICT_KEY_NORMALIZER,
+    NONE_STRING_TO_NONE_NORMALIZER,
+    STRIP_STR,
+)
 from spire.scraper.classes.shared import RawDictionary, RawField
 
 log = logging.getLogger(__name__)
@@ -25,7 +29,25 @@ def class_component_norm(x: str) -> list[str]:
     return l
 
 
-gened_set = set(["AL", "AT", "BS", "CW", "DG", "DU", "G", "HS", "I", "PS", "R1", "R2", "SB", "SI", "U"])
+gened_set = set(
+    [
+        "AL",
+        "AT",
+        "BS",
+        "CW",
+        "DG",
+        "DU",
+        "G",
+        "HS",
+        "I",
+        "PS",
+        "R1",
+        "R2",
+        "SB",
+        "SI",
+        "U",
+    ]
+)
 
 class_component_set = set(
     [
@@ -74,14 +96,23 @@ class RawSectionDetail(RawDictionary):
                 RawField(
                     k="Class Components",
                     normalizers=[class_component_norm],
-                    assertions=[NO_EMPTY_STRS_ASSERTION, lambda x: set(x).issubset(class_component_set)],
+                    assertions=[
+                        NO_EMPTY_STRS_ASSERTION,
+                        lambda x: set(x).issubset(class_component_set),
+                    ],
                 ),
-                RawField(k="Career", choices=("Undergraduate", "Graduate", "Non-Credit")),
+                RawField(
+                    k="Career", choices=("Undergraduate", "Graduate", "Non-Credit")
+                ),
                 RawField(k="Grading", min_len=1),
                 RawField(k="Topic", min_len=1),
                 RawField(
                     k="Gened",
-                    normalizers=[NONE_STRING_TO_NONE_NORMALIZER, STRIP_STR, lambda x: x.split(" ")],
+                    normalizers=[
+                        NONE_STRING_TO_NONE_NORMALIZER,
+                        STRIP_STR,
+                        lambda x: x.split(" "),
+                    ],
                     assertions=[lambda x: set(x).issubset(gened_set)],
                 ),
                 RawField(k="RAP/TAP/HLC", normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),

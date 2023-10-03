@@ -38,16 +38,24 @@ def _count_name_characters(s: str):
 
 def _scrape_meeting_instructor_list(sections_table, link_number: str):
     log.debug("Scraping meeting instructors...")
-    meeting_information_table = sections_table.find_element(By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number)
+    meeting_information_table = sections_table.find_element(
+        By.ID, "SSR_CLSRCH_MTG1$scroll$" + link_number
+    )
 
     meeting_instructor_list = []
 
-    for meeting_row in meeting_information_table.find_elements(By.CSS_SELECTOR, "tr[id^=trSSR_CLSRCH_MTG]"):
-        instructor_column = meeting_row.find_element(By.CSS_SELECTOR, "div[id^=win0divUM_DERIVED_SR_UM_HTML1")
+    for meeting_row in meeting_information_table.find_elements(
+        By.CSS_SELECTOR, "tr[id^=trSSR_CLSRCH_MTG]"
+    ):
+        instructor_column = meeting_row.find_element(
+            By.CSS_SELECTOR, "div[id^=win0divUM_DERIVED_SR_UM_HTML1"
+        )
 
         raw_instructor_text = instructor_column.text.strip()
         while "\n\n" in raw_instructor_text or "  " in raw_instructor_text:
-            raw_instructor_text = raw_instructor_text.replace("\n\n", "\n").replace("  ", " ")
+            raw_instructor_text = raw_instructor_text.replace("\n\n", "\n").replace(
+                "  ", " "
+            )
 
         log.debug("Scraping raw staff from %s", raw_instructor_text)
 
@@ -57,14 +65,18 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
         else:
             found_names = set()
 
-            for email_link in instructor_column.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']"):
+            for email_link in instructor_column.find_elements(
+                By.CSS_SELECTOR, "a[href^='mailto:']"
+            ):
                 href = email_link.get_property("href")
                 staff_name = email_link.text.strip()
                 if staff_name.endswith(","):
                     staff_name = staff_name[:-1]
 
                 staff_email = href[len("mailto:") :]
-                instructor_list.append(RawInstructor(name=staff_name, email=staff_email))
+                instructor_list.append(
+                    RawInstructor(name=staff_name, email=staff_email)
+                )
                 found_names.add(staff_name)
 
             log.debug("Scraping raw text...")
@@ -86,27 +98,43 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
                     instructor_list.append(RawInstructor(name=name, email=None))
 
             scraped_names = ", ".join(map(lambda x: x.name, instructor_list))
-            log.debug("Comparing name characters between '%s' and '%s'", scraped_names, raw_instructor_text)
+            log.debug(
+                "Comparing name characters between '%s' and '%s'",
+                scraped_names,
+                raw_instructor_text,
+            )
 
             assert (
-                abs(_count_name_characters(scraped_names) - _count_name_characters(raw_instructor_text)) == 0
+                abs(
+                    _count_name_characters(scraped_names)
+                    - _count_name_characters(raw_instructor_text)
+                )
+                == 0
             )
 
         meeting_instructor_list.append(instructor_list)
 
-    log.debug("Scraped meeting instructors: %s", [[str(r) for r in l] for l in meeting_instructor_list])
+    log.debug(
+        "Scraped meeting instructors: %s",
+        [[str(r) for r in l] for l in meeting_instructor_list],
+    )
     return meeting_instructor_list
 
 
-def can_skip(driver: SpireDriver, offering: CourseOffering, spire_id: str, link_number: str):
+def can_skip(
+    driver: SpireDriver, offering: CourseOffering, spire_id: str, link_number: str
+):
     try:
         section = Section.objects.get(spire_id=spire_id, offering=offering)
 
-        if SectionCombinedAvailability.objects.filter(individual_availability_id=section.id).first():
+        if SectionCombinedAvailability.objects.filter(
+            individual_availability_id=section.id
+        ).first():
             return False, "section is combined"
 
         status_icon = driver.find(
-            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img", By.CSS_SELECTOR
+            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img",
+            By.CSS_SELECTOR,
         )
 
         src = status_icon.get_attribute("src")  # type: ignore
@@ -137,7 +165,10 @@ def can_skip(driver: SpireDriver, offering: CourseOffering, spire_id: str, link_
         current_capacity = int(cc_elem.text)
 
         if section.availability.capacity != current_capacity:
-            return False, f"mismatched capacity, {section.availability.capacity} != {current_capacity}"
+            return (
+                False,
+                f"mismatched capacity, {section.availability.capacity} != {current_capacity}",
+            )
 
         return True, "OK"
     except Section.DoesNotExist:
@@ -145,7 +176,9 @@ def can_skip(driver: SpireDriver, offering: CourseOffering, spire_id: str, link_
 
 
 # Extremely rare cases
-COURSE_GROUP_OVERRIDES = {"FILM-ST  391SF": "FILM-ST  391SF   S-International SciFi Cinema"}
+COURSE_GROUP_OVERRIDES = {
+    "FILM-ST  391SF": "FILM-ST  391SF   S-International SciFi Cinema"
+}
 
 SPIRE_ID_OVERRIDES = {
     "-(62798)": "01-DIS(62798)",
@@ -158,7 +191,11 @@ SPIRE_ID_OVERRIDES = {
 
 
 def _scrape_search_results(
-    driver: SpireDriver, cache: VersionedCache, quick: bool, term: Term, subject: Subject
+    driver: SpireDriver,
+    cache: VersionedCache,
+    quick: bool,
+    term: Term,
+    subject: Subject,
 ):
     scraped_section_count = 0
     found_section_count = 0
@@ -194,14 +231,18 @@ def _scrape_search_results(
             },
         )
 
-        log.debug("Scraping sections for %s course: %s", "new" if created else "found", course)
+        log.debug(
+            "Scraping sections for %s course: %s", "new" if created else "found", course
+        )
 
         offering, created = CourseOffering.objects.get_or_create(
             course=course,
             term=term,
             defaults={
                 "subject": subject,
-                "alternative_title": course_title if course_title != course.title else None,
+                "alternative_title": course_title
+                if course_title != course.title
+                else None,
             },
         )
 
@@ -209,7 +250,10 @@ def _scrape_search_results(
 
         scraped_spire_ids_for_course = set()
 
-        section_table_id = "ACE_DERIVED_CLSRCH_GROUPBOX1$133$" + span_id[len("DERIVED_CLSRCH_DESCR200") :]
+        section_table_id = (
+            "ACE_DERIVED_CLSRCH_GROUPBOX1$133$"
+            + span_id[len("DERIVED_CLSRCH_DESCR200") :]
+        )
         sections_table = driver.find(section_table_id)
         assert sections_table
 
@@ -240,7 +284,9 @@ def _scrape_search_results(
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             if quick:
-                can_skip_section, reason = can_skip(driver, offering, spire_id, link_number)
+                can_skip_section, reason = can_skip(
+                    driver, offering, spire_id, link_number
+                )
                 if can_skip_section:
                     log.info("Skipping section: %s", spire_id)
                     continue
@@ -249,7 +295,9 @@ def _scrape_search_results(
 
             scraped_section_count += 1
 
-            log.info("Navigating to section page for %s section %s...", course_id, spire_id)
+            log.info(
+                "Navigating to section page for %s section %s...", course_id, spire_id
+            )
             driver.click(link_id)
 
             table_results = scrape_spire_tables(driver, "table.PSGROUPBOXWBO")
@@ -258,10 +306,16 @@ def _scrape_search_results(
             for row in driver.find_all("tr[id^='trSSR_CLSRCH_MTG$0_row']"):
                 meeting_info_list.append(
                     {
-                        "days_and_times": row.find_element(By.CSS_SELECTOR, "span[id^=MTG_SCHED]").text,
+                        "days_and_times": row.find_element(
+                            By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
+                        ).text,
                         "instructors": meeting_instructor_list.pop(),
-                        "room": row.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
-                        "meeting_dates": row.find_element(By.CSS_SELECTOR, "span[id^=MTG_DATE]").text,
+                        "room": row.find_element(
+                            By.CSS_SELECTOR, "span[id^=MTG_LOC]"
+                        ).text,
+                        "meeting_dates": row.find_element(
+                            By.CSS_SELECTOR, "span[id^=MTG_DATE]"
+                        ).text,
                     }
                 )
 
@@ -290,21 +344,30 @@ def _scrape_search_results(
             .exclude(spire_id__in=scraped_spire_ids_for_course)
             .delete()
         )
-        log.info("Dropped %s %s sections during %s that are no longer listed.", dropped, course_id, term)
+        log.info(
+            "Dropped %s %s sections during %s that are no longer listed.",
+            dropped,
+            course_id,
+            term,
+        )
 
     dropped, _ = (
         CourseOffering.objects.filter(subject=subject, term=term)
         .exclude(course__id__in=scraped_course_ids)
         .delete()
     )
-    log.info("Dropped %s %s course offerings during %s that are no longer listed.", dropped, subject.id, term)
+    log.info(
+        "Dropped %s %s course offerings during %s that are no longer listed.",
+        dropped,
+        subject.id,
+        term,
+    )
 
     return scraped_section_count, found_section_count
 
 
 def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
-
-    for (select_id, value) in [
+    for select_id, value in [
         ("UM_DERIVED_SA_UM_TERM_DESCR", term_id),
         ("CLASS_SRCH_WRK2_SUBJECT$108$", subject_id),
     ]:
@@ -355,12 +418,16 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     driver.switch()
 
     # Fetch subject option values
-    subject_select: WebElement = driver.wait_for_interaction(By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$")
+    subject_select: WebElement = driver.wait_for_interaction(
+        By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$"
+    )
     assert subject_select
     subject_values: list[tuple[str, str]] = get_option_values(subject_select)
 
     # Fetch term option values
-    term_select: WebElement = driver.wait_for_interaction(By.ID, "UM_DERIVED_SA_UM_TERM_DESCR")
+    term_select: WebElement = driver.wait_for_interaction(
+        By.ID, "UM_DERIVED_SA_UM_TERM_DESCR"
+    )
     assert term_select
     term_values: list[tuple[str, str]] = get_option_values(term_select)
 
@@ -400,7 +467,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
         term_timer = Timer()
 
         # For each subject
-        for (subject_id, subject_title) in cache.skip_once(subject_values, "subject"):
+        for subject_id, subject_title in cache.skip_once(subject_values, "subject"):
             cache.push("subject", (subject_id, subject_title))
             subject_timer = Timer()
 
@@ -410,7 +477,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             raw_subject = RawSubject(subject_id, subject_title)
             subject = raw_subject.push()
 
-            log.info("Searching for sections in subject %s during %s...", subject.id, term)
+            log.info(
+                "Searching for sections in subject %s during %s...", subject.id, term
+            )
             driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
 
             assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
@@ -418,7 +487,9 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
             if return_button:
-                scraped, found = _scrape_search_results(driver, cache, quick, term, subject)
+                scraped, found = _scrape_search_results(
+                    driver, cache, quick, term, subject
+                )
 
                 log.info(
                     "Scraped %s %s sections during %s in %s. Returning...",
@@ -432,14 +503,22 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
                     total_scraped += scraped
                     total_found += found
 
-                    log.info("Running skip percentage of: %.2f%%", (1 - (total_scraped / total_found)) * 100)
+                    log.info(
+                        "Running skip percentage of: %.2f%%",
+                        (1 - (total_scraped / total_found)) * 100,
+                    )
                 driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
             else:
                 error_message_span = driver.find("DERIVED_CLSMSG_ERROR_TEXT")
                 assert error_message_span
                 warning = error_message_span.text
-                if warning == "The search returns no results that match the criteria specified.":
-                    log.info("There are no %s section during %s. Skipping.", subject, term)
+                if (
+                    warning
+                    == "The search returns no results that match the criteria specified."
+                ):
+                    log.info(
+                        "There are no %s section during %s. Skipping.", subject, term
+                    )
                 else:
                     log.warning("Failed while searching: %s", error_message_span.text)
                     raise Exception(f"Unexpected search error: {warning}")
