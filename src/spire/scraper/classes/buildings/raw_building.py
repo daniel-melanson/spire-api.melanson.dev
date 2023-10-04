@@ -3,8 +3,6 @@ import re
 from difflib import get_close_matches
 from typing import Optional
 
-from nltk import word_tokenize
-
 from spire.models import Building, BuildingRoom
 from spire.scraper.classes.shared import (
     RawField,
@@ -707,7 +705,7 @@ def expand_text(s: str) -> str:
     s = clean_text(s.replace(".", " "))
 
     kept = []
-    for token in filter(lambda x: x not in (".", "(", ")"), word_tokenize(s)):
+    for token in filter(lambda x: x not in (".", "(", ")"), s.split(" ")):
         token_l = token.lower()
         if len(token) >= 3 and token_l.startswith("rm") and token[2].isdigit():
             kept.append("Room")
