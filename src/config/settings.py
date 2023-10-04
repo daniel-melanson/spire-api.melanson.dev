@@ -179,9 +179,6 @@ LOGGING = {
     },
 }
 
-# Redis
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
-
 # Caching
 # https://docs.djangoproject.com/en/4.0/topics/cache/
 
