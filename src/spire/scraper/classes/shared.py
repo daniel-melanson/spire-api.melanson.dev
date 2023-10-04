@@ -3,7 +3,6 @@ import re
 from functools import reduce
 from typing import Any, Callable, Iterable, NamedTuple, Optional, Union
 
-from django.db.models import Model
 from django.utils import timezone
 
 from spire.scraper.shared import assert_match
