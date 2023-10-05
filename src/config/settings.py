@@ -172,7 +172,9 @@ LOGGING = {
     },
     "loggers": {
         "spire.scraper": {
-            "handlers": ["scrape_handler", "scrape_debug_handler"],
+            "handlers": ["scrape_handler", "scrape_debug_handler"]
+            if DEBUG
+            else ["console"],
             "level": "DEBUG" if SCRAPER_DEBUG else "INFO",
             "propagate": False,
         },
