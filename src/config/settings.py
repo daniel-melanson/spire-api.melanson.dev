@@ -193,6 +193,6 @@ CACHE_MIDDLEWARE_SECONDS = (
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.LocMemCache",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
