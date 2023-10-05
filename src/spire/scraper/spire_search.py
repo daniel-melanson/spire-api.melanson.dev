@@ -133,7 +133,7 @@ def can_skip(
             return False, "section is combined"
 
         status_icon = driver.find(
-            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\${link_number} > div > img",
+            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\\${link_number} > div > img",
             By.CSS_SELECTOR,
         )
 
@@ -260,7 +260,7 @@ def _scrape_search_results(
         link_ids: list[str] = [
             e.get_property("id")
             for e in sections_table.find_elements(
-                By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG\$']"
+                By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG\\$']"
             )
         ]  # type: ignore
 

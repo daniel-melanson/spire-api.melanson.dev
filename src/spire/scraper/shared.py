@@ -60,7 +60,7 @@ def scrape_spire_field_value_table(
 
     matched_ids: set[str] = set()
 
-    table_id: str = table.get_property("id").replace("$", "\$")  # type: ignore
+    table_id: str = table.get_property("id").replace("$", "\\$")  # type: ignore
     for e in driver.find_all(f"#{table_id} > tbody > tr > td > div[id^=win0div]"):
         element_id: str = e.get_property("id")  # type: ignore
 
@@ -147,7 +147,7 @@ def scrape_spire_class_availability(driver: SpireDriver, table: WebElement):
 
         combined_sections = []
         for section in combined_table.find_elements(
-            By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\$0_row]"
+            By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\\$0_row]"
         ):
             combined_sections.append(section.text.strip())
 
@@ -183,7 +183,7 @@ TABLE_SCRAPERS: dict[str, Callable[[SpireDriver, WebElement], Any]] = {
 }
 
 TABLE_CONTENT_SELECTORS = {
-    "Class Details": "table[id^=ACE_\$ICField][class=PABACKGROUNDINVISIBLE]"
+    "Class Details": "table[id^=ACE_\\$ICField][class=PABACKGROUNDINVISIBLE]"
 }
 
 
