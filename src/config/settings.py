@@ -137,6 +137,15 @@ SCRAPER_SKIP_OLD_TERMS = get_bool_env("SCRAPER_SKIP_OLD_TERMS", True)
 
 # Logging
 
+
+def ensure_exists(directory_path):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+
+
+ensure_exists(os.path.join(BASE_DIR, "..", "logs", "info"))
+ensure_exists(os.path.join(BASE_DIR, "..", "logs", "debug"))
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -164,6 +173,7 @@ LOGGING = {
         },
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
     },
     "root": {
@@ -173,7 +183,7 @@ LOGGING = {
     "loggers": {
         "spire.scraper": {
             "handlers": ["scrape_handler", "scrape_debug_handler"]
-            if DEBUG
+            if SCRAPER_DEBUG
             else ["console"],
             "level": "DEBUG" if SCRAPER_DEBUG else "INFO",
             "propagate": False,

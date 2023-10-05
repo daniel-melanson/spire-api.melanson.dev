@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 class SpireDriver:
     def __init__(self):
+        log.info("Creating driver...")
         options = Options()
         options.headless = settings.SCRAPER_HEADLESS
         self._driver = WebDriver(options=options)
@@ -31,6 +32,7 @@ class SpireDriver:
         ).click()
 
         self._state = "default"
+        log.info("Driver created.")
 
     @property
     def root_driver(self) -> WebDriver:
@@ -49,7 +51,7 @@ class SpireDriver:
 
         log.debug("Switched focus to: %s", self._state)
 
-    # ! New spire has no navigation
+    # WARN New spire has no navigation
     # def navigate_to(self, page: str) -> None:
     #     assert page in ("catalog", "search")
     #     log.debug("Navigating to %s...", page)
