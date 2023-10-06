@@ -12,6 +12,12 @@ A list of schemas and endpoints can be found [here](https://spire-api.melanson.d
 
 ## Crawling Routine
 
+As of October 2023:
+
+-   Academic Calendar: Once a week
+-   Courses: Once every two weeks
+-   Sections (quick): Once a week
+
 **Requests to endpoints do not immediately query Spire and get the most up-to-date information.** Requests will query a database that is routinely updated. This means that the information in this database is not guaranteed to be accurate.
 
 `Section` and `Course` records have an included `_updated_at` field which document when their information was last updated.
@@ -20,15 +26,9 @@ The crawler implements a "quick scrape" feature, that will scrape section inform
 
 -   Section does not exist in database
 -   Section is combined with another section
--   Scraped status (open, closed, wait-listed) is different from what is stored
--   Scraped enrollment total (# of students in enrolled in a course) is different from what is stored
--   Scraped enrollment capacity (# of students allowed to enroll) is different from what is stored
-
-Scraping routine as of October 2023:
-
--   Academic Calendar: Once a week
--   Courses: Once every two weeks
--   Sections (quick): Once a week
+-   Section status (open, closed, wait-listed) is different from what is stored
+-   Section enrollment total (# of students in enrolled in a course) is different from what is stored
+-   Section enrollment capacity (# of students allowed to enroll) is different from what is stored
 
 ### Coverage
 
