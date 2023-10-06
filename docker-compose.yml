@@ -8,10 +8,10 @@ services:
     web:
         build: .
         depends_on:
-            - memcached
+            - cache
         command: python -m gunicorn -c python:config.gunicorn config.wsgi
         environment:
-            MEMCACHED_URL: memcached:11211
+            REDIS_URL: redis://cache:6379
         env_file:
             - .env
         healthcheck:
@@ -25,16 +25,16 @@ services:
         volumes:
             - static:/home/app/static
     # Caching backend used by the web app
-    memcached:
-        image: memcached:latest
+    cache:
+        image: redis:latest
         ports:
-            - 11211:11211
+            - 6379:6379
     # Web crawler
     scraper:
         build: .
         depends_on:
             - selenium
-        command: python ./src/manage.py scrape sections
+        command: python manage.py scrape sections
         environment:
             SELENIUM_SERVER_URL: http://selenium:4444
         env_file:

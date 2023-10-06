@@ -14,6 +14,6 @@ RUN python -m pip install --no-cache-dir pipenv; \
 
 COPY ./src $APP_PATH/src
 
-WORKDIR $APP_PATH
+WORKDIR $APP_PATH/src
 
-RUN SECRET_KEY=dummyvalue python ./src/manage.py collectstatic --no-input
+RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input

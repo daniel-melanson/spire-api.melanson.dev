@@ -19,7 +19,8 @@ bs4 = "*"
 html5lib = "*"
 requests = "*"
 numpy = "*"
-pymemcache = "*"
+redis = "*"
+hiredis = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"
