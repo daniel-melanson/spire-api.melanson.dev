@@ -19,6 +19,7 @@ bs4 = "*"
 html5lib = "*"
 requests = "*"
 numpy = "*"
+pymemcache = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"

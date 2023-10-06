@@ -17,7 +17,3 @@ COPY ./src $APP_PATH/src
 WORKDIR $APP_PATH
 
 RUN SECRET_KEY=dummyvalue python ./src/manage.py collectstatic --no-input
-
-EXPOSE 8000
-
-CMD ["python", "-m", "gunicorn", "-c", "python:config.gunicorn", "config.wsgi"]

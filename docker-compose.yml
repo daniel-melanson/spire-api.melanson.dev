@@ -1,0 +1,46 @@
+version: "3"
+
+volumes:
+    static:
+
+services:
+    # Web application
+    web:
+        build: .
+        depends_on:
+            - memcached
+        command: python -m gunicorn -c python:config.gunicorn config.wsgi
+        environment:
+            MEMCACHED_URL: memcached:11211
+        env_file:
+            - .env
+        healthcheck:
+            test: curl localhost:8000/up
+            interval: 60s
+            timeout: 3s
+            start_period: 5s
+            retries: 3
+        ports:
+            - 8000:8000
+        volumes:
+            - static:/home/app/static
+    # Caching backend used by the web app
+    memcached:
+        image: memcached:latest
+        ports:
+            - 11211:11211
+    # Web crawler
+    scraper:
+        build: .
+        depends_on:
+            - selenium
+        command: python ./src/manage.py scrape sections
+        environment:
+            SELENIUM_SERVER_URL: http://selenium:4444
+        env_file:
+            - .env
+    # Selenium server used by scraper
+    selenium:
+        image: selenium/standalone-firefox:latest
+        ports:
+            - 4444:4444

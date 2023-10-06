@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "71c5e18287ec962dd091b91f5c365f79bad0ea644b68ffe4b10bd312ec2a21f9"
+            "sha256": "5d7139562bf15d52e5d46c1f599d1c6286a9205587f768fc77fd2a275ec4ee40"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -282,6 +282,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.7'",
             "version": "==3.1.12"
+        },
+        "pymemcache": {
+            "hashes": [
+                "sha256:27bf9bd1bbc1e20f83633208620d56de50f14185055e49504f4f5e94e94aff94",
+                "sha256:f507bc20e0dc8d562f8df9d872107a278df049fa496805c1431b926f3ddd0eab"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.7'",
+            "version": "==4.0.0"
         },
         "pysocks": {
             "hashes": [

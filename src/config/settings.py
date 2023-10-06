@@ -138,8 +138,6 @@ SCRAPER = {
     "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
 }
 
-assert (not not SCRAPER["SELENIUM_SERVER_URL"]) ^ (not SCRAPER["HEADLESS"])
-
 # Logging
 
 
@@ -208,6 +206,7 @@ CACHE_MIDDLEWARE_SECONDS = (
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": os.environ.get("MEMCACHED_URL", "127.0.0.1:11211"),
     }
 }
