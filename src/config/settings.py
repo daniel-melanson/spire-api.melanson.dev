@@ -154,8 +154,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s - %(message)s",
-            "style": "%",
+            "()": "spire.formatters.ProcessTimeFormatter",
         },
     },
     "handlers": {
