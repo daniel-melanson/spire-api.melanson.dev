@@ -20,7 +20,7 @@ from spire.scraper.academic_calendar import get_or_create_term
 from spire.scraper.classes import RawCourse, RawInstructor, RawSection, RawSubject
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
 from spire.scraper.shared import assert_match, scrape_spire_tables
-from spire.scraper.spire_driver import SpireDriver
+from spire.scraper.spire_driver import SpireDriver, SpirePage
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
@@ -401,6 +401,8 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
 
 def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     log.info("Scraping sections...")
+
+    driver.navigate_to(SpirePage.ClassSearch)
 
     total_timer = Timer()
     scraped_terms = 0

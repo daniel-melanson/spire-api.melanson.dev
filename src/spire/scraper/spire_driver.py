@@ -1,6 +1,7 @@
 # type: ignore
 
 import logging
+from enum import Enum
 from typing import Union
 
 from django.conf import settings
@@ -15,6 +16,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 log = logging.getLogger(__name__)
+
+
+class SpirePage(Enum):
+    CourseCatalog = "browse course catalog"
+    ClassSearch = "search for classes"
 
 
 class SpireDriver:
@@ -57,26 +63,34 @@ class SpireDriver:
 
         log.debug("Switched focus to: %s", self._state)
 
-    # WARN New spire has no navigation
-    # def navigate_to(self, page: str) -> None:
-    #     assert page in ("catalog", "search")
-    #     log.debug("Navigating to %s...", page)
+    def navigate_to(self, page: SpirePage) -> None:
+        log.info("Navigating to %s...", page)
 
-    #     if self._state != "default":
-    #         self.switch()
+        if self._state != "default":
+            self.switch()
 
-    #     self.click("pthnavbca_UM_COURSE_GUIDES", wait=False)
-    #     self.click(
-    #         "crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL",
-    #         wait=False,
-    #     )
-    #     self.switch()
+        self.click("PT_GSEARCH_BTN", wait=False)
 
-    #     self.wait_for_spire()
+        search_input: WebElement = self.wait_for_interaction(By.ID, "PTS_KEYWORDS_GLB")
 
-    #     assert ("Browse Course Catalog" if page == "catalog" else "Search for Classes") == self._driver.title
+        search_input.clear()
+        search_input.send_keys(page.value)
+        
+        self.click("pthdrSrchHref")
 
-    #     log.debug("Navigated to %s.", page)
+        self.click("srchRsltUrl$0")
+
+        self.switch()
+
+        self.wait_for_spire()
+
+        assert self._driver.title == (
+            "Browse Course Catalog"
+            if page == SpirePage.CourseCatalog
+            else "Search for Classes"
+        )
+
+        log.info("Navigated to %s.", page)
 
     def click(self, selector: str, by: str = By.ID, wait: bool = True):
         element = self._wait.until(EC.element_to_be_clickable((by, selector)))

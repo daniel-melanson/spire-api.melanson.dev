@@ -8,7 +8,7 @@ from spire.scraper.timer import Timer
 
 from .classes import RawCourse, RawSubject
 from .shared import assert_match, scrape_spire_tables
-from .spire_driver import SpireDriver
+from .spire_driver import SpireDriver, SpirePage
 from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
     log.info("Scraping course catalog...")
 
-    driver.navigate_to("catalog")
+    driver.navigate_to(SpirePage.CourseCatalog)
 
     # For each uppercase letter; start at 65 (A) or cached value
     total_timer = Timer()
