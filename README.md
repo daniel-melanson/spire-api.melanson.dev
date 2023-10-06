@@ -34,7 +34,7 @@ The crawler implements a "quick scrape" feature, that will scrape section inform
 
 Every course (and subject) in the course catalog ("Browse Course Catalog") is scraped.
 
-Every section during or after the Fall 2018 term is scraped. But only sections that will reasonably be updated are scraped routinely. Meaning, once posted, terms are scraped routinely until they are considered over (Spring ends in June 1st, Summer ends in September 15th, Fall ends in January 1st, Winter ends in February 15th).
+Every section during or after the Fall 2018 term is scraped. But only sections that will reasonably be updated are scraped routinely. Meaning, once posted, terms are scraped until they are considered over (Spring ends in June 1st, Summer ends in September 15th, Fall ends in January 1st, Winter ends in February 15th).
 
 ## Inconsistencies
 
