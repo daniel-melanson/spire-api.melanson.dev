@@ -445,7 +445,7 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             defaults={"completed": False, "start_time": timezone.now()},
         )
 
-        if coverage.completed and settings.SCRAPER_SKIP_OLD_TERMS:
+        if coverage.completed and settings.SCRAPER["SKIP_OLD_TERMS"]:
             year = int(year)
             match season:
                 case "Fall":

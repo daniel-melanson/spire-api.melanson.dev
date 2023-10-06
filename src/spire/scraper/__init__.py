@@ -37,7 +37,7 @@ def scrape(s, func, **kwargs):
     driver = SpireDriver()
     if (
         debug_versioned_cache is not None
-        and settings.SCRAPER_DEBUG
+        and settings.SCRAPER["DEBUG"]
         and debug_versioned_cache.type == s
     ):
         cache = debug_versioned_cache
@@ -58,7 +58,7 @@ def scrape(s, func, **kwargs):
             )
             retries += 1
 
-            if settings.SCRAPER_DEBUG:
+            if settings.SCRAPER["DEBUG"]:
                 sel_driver = driver.root_driver
                 if not os.path.isdir("./logs/dump"):
                     os.mkdir("./logs/dump")

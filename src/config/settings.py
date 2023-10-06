@@ -131,9 +131,14 @@ REST_FRAMEWORK = {
 
 # spire.scraper
 
-SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)
-SCRAPER_HEADLESS = get_bool_env("SCRAPER_HEADLESS", True)
-SCRAPER_SKIP_OLD_TERMS = get_bool_env("SCRAPER_SKIP_OLD_TERMS", True)
+SCRAPER = {
+    "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
+    "DEBUG": get_bool_env("SCRAPER_DEBUG", False),
+    "HEADLESS": get_bool_env("SCRAPER_HEADLESS", True),
+    "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
+}
+
+assert (not not SCRAPER["SELENIUM_SERVER_URL"]) ^ (not SCRAPER["HEADLESS"])
 
 # Logging
 
@@ -183,9 +188,9 @@ LOGGING = {
     "loggers": {
         "spire.scraper": {
             "handlers": ["scrape_handler", "scrape_debug_handler"]
-            if SCRAPER_DEBUG
+            if SCRAPER["DEBUG"]
             else ["console"],
-            "level": "DEBUG" if SCRAPER_DEBUG else "INFO",
+            "level": "DEBUG" if SCRAPER["DEBUG"] else "INFO",
             "propagate": False,
         },
     },

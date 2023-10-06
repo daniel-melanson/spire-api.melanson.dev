@@ -5,6 +5,7 @@ from typing import Union
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -20,8 +21,13 @@ class SpireDriver:
     def __init__(self):
         log.info("Creating driver...")
         options = Options()
-        options.headless = settings.SCRAPER_HEADLESS
-        self._driver = WebDriver(options=options)
+        options.headless = settings.SCRAPER["HEADLESS"]
+
+        selenium_server_url = settings.SCRAPER["SELENIUM_SERVER_URL"]
+        if selenium_server_url:
+            self._driver = Remote(command_executor=selenium_server_url, options=options)
+        else:
+            self._driver = WebDriver(options=options)
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
 
