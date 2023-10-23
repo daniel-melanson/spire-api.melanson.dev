@@ -4,7 +4,9 @@ from typing import Optional
 from spire.models import Course, Subject
 from spire.patterns import COURSE_ID_NUM_REGEXP, COURSE_ID_REGEXP, COURSE_TITLE_REGEXP
 from spire.scraper.classes.courses.raw_course_detail import RawCourseDetail
-from spire.scraper.classes.courses.raw_course_enrollment_information import RawCourseEnrollmentInformation
+from spire.scraper.classes.courses.raw_course_enrollment_information import (
+    RawCourseEnrollmentInformation,
+)
 from spire.scraper.classes.groups.raw_academic_group import RawAcademicGroup
 from spire.scraper.classes.groups.raw_subject import SUBJECT_OVERRIDES
 from spire.scraper.classes.normalizers import (
@@ -54,8 +56,13 @@ class RawCourse(RawObject):
             log.info("Scraped academic group:\n%s", self._raw_group)
 
         if enrollment_information:
-            self.enrollment_information = RawCourseEnrollmentInformation(self.id, enrollment_information)
-            log.info("Scraped course enrollment information:\n%s", self.enrollment_information)
+            self.enrollment_information = RawCourseEnrollmentInformation(
+                self.id, enrollment_information
+            )
+            log.info(
+                "Scraped course enrollment information:\n%s",
+                self.enrollment_information,
+            )
 
         super().__init__(
             Course,
@@ -64,10 +71,18 @@ class RawCourse(RawObject):
                 RawField(k="id", re=COURSE_ID_REGEXP),
                 RawField(k="subject"),
                 RawField(k="number", re=COURSE_ID_NUM_REGEXP),
-                RawField(k="title", re=COURSE_TITLE_REGEXP, normalizers=[REPLACE_DOUBLE_SPACE]),
+                RawField(
+                    k="title",
+                    re=COURSE_TITLE_REGEXP,
+                    normalizers=[REPLACE_DOUBLE_SPACE],
+                ),
                 RawField(
                     k="description",
-                    normalizers=[STRIP_STR, EMPTY_TO_NONE, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
+                    normalizers=[
+                        STRIP_STR,
+                        EMPTY_TO_NONE,
+                        DESCRIPTION_NOT_AVAILABLE_TO_NONE,
+                    ],
                     min_len=5,
                 ),
             ],

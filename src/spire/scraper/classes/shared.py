@@ -3,7 +3,6 @@ import re
 from functools import reduce
 from typing import Any, Callable, Iterable, NamedTuple, Optional, Union
 
-from django.db.models import Model
 from django.utils import timezone
 
 from spire.scraper.shared import assert_match
@@ -21,7 +20,7 @@ def assert_dict_keys_subset(d: dict[str, Any], keys: Iterable[str]):
 
 def re_override_factory(*args: tuple[str, Any]) -> Callable[[str], str]:
     def f(x: str):
-        for (pattern, replace) in args:
+        for pattern, replace in args:
             if match := re.match(pattern, x):
                 if not isinstance(replace, str):
                     x = replace
@@ -34,7 +33,11 @@ def re_override_factory(*args: tuple[str, Any]) -> Callable[[str], str]:
 
                         (low, high) = replace_match.span(0)
                         old = len(replace)
-                        replace = replace[: offset + low] + inserting_text + replace[offset + high :]
+                        replace = (
+                            replace[: offset + low]
+                            + inserting_text
+                            + replace[offset + high :]
+                        )
                         offset += len(replace) - old
 
                     x = replace
@@ -47,7 +50,7 @@ def re_override_factory(*args: tuple[str, Any]) -> Callable[[str], str]:
 def key_override_factory(*args: Any) -> dict[str, Any]:
     d: dict[str, Any] = {}
 
-    for (key, value) in args:
+    for key, value in args:
         if isinstance(key, tuple):
             for sub_k in key:
                 d[sub_k] = value
@@ -104,14 +107,18 @@ class RawObject:
         for field in fields:
             k = to_camel_case(field.k)
             v = getattr(self, k, None)
-            log.debug("Normalizing and asserting %s into field %s.%s", v, model.__name__, k)
+            log.debug(
+                "Normalizing and asserting %s into field %s.%s", v, model.__name__, k
+            )
             if v is None:
                 assert field.optional
                 log.debug("Field not present, skipping.")
                 continue
 
             if field.normalizers:
-                v = reduce(lambda a, f: f(a) if a is not None else None, field.normalizers, v)
+                v = reduce(
+                    lambda a, f: f(a) if a is not None else None, field.normalizers, v
+                )
 
             if v is None:
                 log.debug("Field normalized to none, skipping.")
@@ -178,7 +185,9 @@ class RawObject:
             assert self.id is not None
             kwargs["id"] = self.id
 
-        object, created = self._model.objects.update_or_create(**kwargs, defaults=defaults)
+        object, created = self._model.objects.update_or_create(
+            **kwargs, defaults=defaults
+        )
 
         log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)  # type: ignore
 
@@ -186,7 +195,9 @@ class RawObject:
 
 
 class RawDictionary(RawObject):
-    def __init__(self, model: Any, id: str, table: dict[str, str], fields: list[RawField]) -> None:
+    def __init__(
+        self, model: Any, id: str, table: dict[str, str], fields: list[RawField]
+    ) -> None:
         assert_dict_keys_subset(table, map(lambda d: d.k, fields))
 
         for f in fields:

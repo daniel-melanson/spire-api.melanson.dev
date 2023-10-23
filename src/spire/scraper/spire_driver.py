@@ -1,10 +1,13 @@
 # type: ignore
 
 import logging
+from enum import Enum
 from typing import Union
+import time
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver import Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -16,19 +19,37 @@ from selenium.webdriver.support.wait import WebDriverWait
 log = logging.getLogger(__name__)
 
 
+class SpirePage(Enum):
+    CourseCatalog = "Browse Course Catalog"
+    ClassSearch = "Search for Classes"
+
+
 class SpireDriver:
     def __init__(self):
+        log.info("Creating driver...")
         options = Options()
-        options.headless = settings.SCRAPER_HEADLESS
-        self._driver = WebDriver(options=options)
+        options.headless = settings.SCRAPER["HEADLESS"]
+
+        selenium_server_url = settings.SCRAPER["SELENIUM_SERVER_URL"]
+        if selenium_server_url:
+            self._driver = Remote(command_executor=selenium_server_url, options=options)
+        else:
+            self._driver = WebDriver(options=options)
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
 
         self._driver.get("https://www.spire.umass.edu")
 
-        self._wait.until(EC.element_to_be_clickable((By.NAME, "CourseCatalogLink"))).click()
+        self._wait.until(
+            EC.element_to_be_clickable((By.NAME, "CourseCatalogLink"))
+        ).click()
+
+        self._wait.until(EC.title_is("Search for Classes"))
+
+        self.wait_for_spire()
 
         self._state = "default"
+        log.info("Driver created.")
 
     @property
     def root_driver(self) -> WebDriver:
@@ -37,7 +58,9 @@ class SpireDriver:
     def switch(self):
         log.debug("Switching focus...")
         if self._state == "default":
-            self._wait.until(EC.frame_to_be_available_and_switch_to_it((By.NAME, "TargetContent")))
+            self._wait.until(
+                EC.frame_to_be_available_and_switch_to_it((By.NAME, "TargetContent"))
+            )
             self._state = "iframe"
         elif self._state == "iframe":
             self._driver.switch_to.default_content()
@@ -45,32 +68,35 @@ class SpireDriver:
 
         log.debug("Switched focus to: %s", self._state)
 
-    # ! New spire has no navigation
-    # def navigate_to(self, page: str) -> None:
-    #     assert page in ("catalog", "search")
-    #     log.debug("Navigating to %s...", page)
-
+    # def navigate_to(self, page: SpirePage) -> None:
+    #     log.info("Navigating to %s...", page)
+    #
     #     if self._state != "default":
     #         self.switch()
-
-    #     self.click("pthnavbca_UM_COURSE_GUIDES", wait=False)
-    #     self.click(
-    #         "crefli_HC_SSS_BROWSE_CATLG_GBL4" if page == "catalog" else "crefli_HC_CLASS_SEARCH_GBL",
-    #         wait=False,
-    #     )
+    #
+    #     self.click("pthdr2search")
+    #
+    #     search_input: WebElement = self.wait_for_interaction(By.ID, "pthdr2srchedit")
+    #     search_input.clear()
+    #     search_input.send_keys(page.value.lower())
+    #
+    #     self.click("pthdrSrchHref")
+    #
     #     self.switch()
-
-    #     self.wait_for_spire()
-
-    #     assert ("Browse Course Catalog" if page == "catalog" else "Search for Classes") == self._driver.title
-
-    #     log.debug("Navigated to %s.", page)
+    #
+    #     self.click("#ICSetFieldPTSF_GLOBAL_SEARCH.TREECTLEVENT.S3")
+    #     self.click("srchRsltUrl$0")
+    #
+    #     self._wait.until(EC.title_is(page.value))
+    #
+    #     log.info("Navigated to %s.", page)
 
     def click(self, selector: str, by: str = By.ID, wait: bool = True):
         element = self._wait.until(EC.element_to_be_clickable((by, selector)))
 
         self.scroll_to(element)
         ActionChains(self._driver).move_to_element(element).click().perform()
+        log.debug("Clicked element %s: %s", by, selector)
 
         if wait:
             self.wait_for_spire()

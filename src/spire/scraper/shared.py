@@ -34,7 +34,9 @@ FIELD_VALUE_IDS = {
 
 
 def scrape_description(_, table: WebElement):
-    return "\n".join([e.text for e in table.find_elements(By.CSS_SELECTOR, "span")]).strip()
+    return "\n".join(
+        [e.text for e in table.find_elements(By.CSS_SELECTOR, "span")]
+    ).strip()
 
 
 def scrape_course_overview(driver: SpireDriver, _):
@@ -43,7 +45,9 @@ def scrape_course_overview(driver: SpireDriver, _):
     return text_area.text if text_area else "None"
 
 
-def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> dict[str, str]:
+def scrape_spire_field_value_table(
+    driver: SpireDriver, table: WebElement
+) -> dict[str, str]:
     log.debug("Scraping field-value pairs for table...")
 
     details: dict[str, str] = {}
@@ -56,7 +60,7 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> di
 
     matched_ids: set[str] = set()
 
-    table_id: str = table.get_property("id").replace("$", "\$")  # type: ignore
+    table_id: str = table.get_property("id").replace("$", "\\$")  # type: ignore
     for e in driver.find_all(f"#{table_id} > tbody > tr > td > div[id^=win0div]"):
         element_id: str = e.get_property("id")  # type: ignore
 
@@ -70,7 +74,9 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> di
         elif element_id == "win0div$ICField247$0":
             log.debug("Found RAP/TAP/HCL. Scraping...")
 
-            details["RAP/TAP/HLC"] = e.find_element(By.ID, "win0divUM_RAPTAP_CLSDT_UM_RAP_TAP$0").text
+            details["RAP/TAP/HLC"] = e.find_element(
+                By.ID, "win0divUM_RAPTAP_CLSDT_UM_RAP_TAP$0"
+            ).text
 
             log.debug("Adding detail: %s", ("RAP/TAP/HLC", details["RAP/TAP/HLC"]))
         elif element_id == "win0divUM_CAPS_WRK_UM_ENRL_CAP_CUR":
@@ -92,7 +98,7 @@ def scrape_spire_field_value_table(driver: SpireDriver, table: WebElement) -> di
     assert value_count == field_count
     log.debug("Scraped ids. Matching...")
 
-    for (field_id, field_title) in detail_fields:
+    for field_id, field_title in detail_fields:
         value_id: str
 
         if field_id in FIELD_VALUE_IDS:
@@ -140,7 +146,9 @@ def scrape_spire_class_availability(driver: SpireDriver, table: WebElement):
             return driver.wait_for_presence(By.ID, id).text
 
         combined_sections = []
-        for section in combined_table.find_elements(By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\$0_row]"):
+        for section in combined_table.find_elements(
+            By.CSS_SELECTOR, "tr[id^=trSCTN_CMBND\\$0_row]"
+        ):
             combined_sections.append(section.text.strip())
 
         return {
@@ -174,7 +182,9 @@ TABLE_SCRAPERS: dict[str, Callable[[SpireDriver, WebElement], Any]] = {
     "Class Availability": scrape_spire_class_availability,
 }
 
-TABLE_CONTENT_SELECTORS = {"Class Details": "table[id^=ACE_\$ICField][class=PABACKGROUNDINVISIBLE]"}
+TABLE_CONTENT_SELECTORS = {
+    "Class Details": "table[id^=ACE_\\$ICField][class=PABACKGROUNDINVISIBLE]"
+}
 
 
 def scrape_spire_tables(driver: SpireDriver, table_selector: str):
@@ -197,13 +207,19 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
         assert table_name not in scraped_table_names
         scraped_table_names.add(table_name)
 
-        table_content_selector = TABLE_CONTENT_SELECTORS.get(table_name, "table.PSGROUPBOX")
+        table_content_selector = TABLE_CONTENT_SELECTORS.get(
+            table_name, "table.PSGROUPBOX"
+        )
         if table_name in TABLE_SCRAPERS:
             for table_content in table.find_elements(By.CSS_SELECTOR, table_content_selector):  # type: ignore
                 if table_name not in table_results:
-                    table_results[table_name] = TABLE_SCRAPERS[table_name](driver, table_content)
+                    table_results[table_name] = TABLE_SCRAPERS[table_name](
+                        driver, table_content
+                    )
                 else:
-                    additional_content = TABLE_SCRAPERS[table_name](driver, table_content)
+                    additional_content = TABLE_SCRAPERS[table_name](
+                        driver, table_content
+                    )
 
                     if isinstance(additional_content, dict):
                         for k, v in additional_content.items():
@@ -212,7 +228,9 @@ def scrape_spire_tables(driver: SpireDriver, table_selector: str):
                     elif additional_content is not None:
                         table_results[table_name] += "\n" + additional_content
 
-            log.debug("Scraped table: %s(%s)", table_label.text, table_results[table_name])
+            log.debug(
+                "Scraped table: %s(%s)", table_label.text, table_results[table_name]
+            )
         else:
             log.error(
                 "No handler for table: %s(%s)",

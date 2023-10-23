@@ -8,14 +8,16 @@ from spire.scraper.timer import Timer
 
 from .classes import RawCourse, RawSubject
 from .shared import assert_match, scrape_spire_tables
-from .spire_driver import SpireDriver
+from .spire_driver import SpireDriver, SpirePage
 from .versioned_cache import VersionedCache
 
 log = logging.getLogger(__name__)
 
 
 def _scrape_course_page(driver: SpireDriver, subject: Subject) -> RawCourse:
-    title_element: WebElement = driver.wait_for_presence(By.ID, "DERIVED_CRSECAT_DESCR200")
+    title_element: WebElement = driver.wait_for_presence(
+        By.ID, "DERIVED_CRSECAT_DESCR200"
+    )
 
     raw_title = title_element.text
 
@@ -41,7 +43,9 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
     subject_timer = Timer()
 
     # For each course in the subject list
-    for link_id in cache.skip_once(driver.find_all_ids("a[id^=CRSE_NBR]"), "course_link_id"):
+    for link_id in cache.skip_once(
+        driver.find_all_ids("a[id^=CRSE_NBR]"), "course_link_id"
+    ):
         log.debug("Clicking course page link: %s...", link_id)
         driver.click(link_id)
         log.debug("Arrived at course page.")
@@ -65,11 +69,11 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
     log.info("Scraping course catalog...")
 
-    driver.navigate_to("catalog")
+    # driver.navigate_to(SpirePage.CourseCatalog)
 
     # For each uppercase letter; start at 65 (A) or cached value
     total_timer = Timer()
-    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1): # type: ignore
+    for ascii_code in range(cache.get("subject_group_ascii", ord("A")), ord("Z") + 1):  # type: ignore
         letter = chr(ascii_code)
         if letter in ("Q", "V", "X", "Z"):
             continue
@@ -93,7 +97,9 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
 
             # Match title
             subject_title = subject_link.text
-            subject_match = assert_match(r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title)
+            subject_match = assert_match(
+                r"(?P<id>\S+)\s+-\s+(?P<title>.+)", subject_title
+            )
             scraped_subject = RawSubject(
                 id=subject_match.group("id"),
                 title=subject_match.group("title"),

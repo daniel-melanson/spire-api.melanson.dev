@@ -17,7 +17,7 @@ from pathlib import Path
 
 def get_bool_env(key, default=False):
     if key in os.environ:
-        return strtobool(os.environ[key])
+        return strtobool(os.environ[key].lower())
 
     return default
 
@@ -51,10 +51,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.cache.UpdateCacheMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.cache.FetchFromCacheMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
@@ -127,26 +129,32 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_CLASSES": ["spire.throttles.BlindRateThrottle"],
 }
 
-MINUTE = 60
-HOUR = MINUTE * 60
-
-VIEW_CACHE_TTL = MINUTE if DEBUG else int(os.environ.get("VIEW_CACHE_TTL", 3 * HOUR))
-
 # spire.scraper
 
-SCRAPER_DEBUG = get_bool_env("SCRAPER_DEBUG", False)
-SCRAPER_HEADLESS = get_bool_env("SCRAPER_HEADLESS", True)
-SCRAPER_SKIP_OLD_TERMS = get_bool_env("SCRAPER_SKIP_OLD_TERMS", True)
+SCRAPER = {
+    "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
+    "DEBUG": get_bool_env("SCRAPER_DEBUG", False),
+    "HEADLESS": get_bool_env("SCRAPER_HEADLESS", True),
+    "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
+}
 
 # Logging
+
+
+def ensure_exists(directory_path):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+
+
+ensure_exists(os.path.join(BASE_DIR, "..", "logs", "info"))
+ensure_exists(os.path.join(BASE_DIR, "..", "logs", "debug"))
 
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s - %(message)s",
-            "style": "%",
+            "()": "spire.formatters.ProcessTimeFormatter",
         },
     },
     "handlers": {
@@ -167,6 +175,7 @@ LOGGING = {
         },
         "console": {
             "class": "logging.StreamHandler",
+            "formatter": "verbose",
         },
     },
     "root": {
@@ -175,22 +184,28 @@ LOGGING = {
     },
     "loggers": {
         "spire.scraper": {
-            "handlers": ["scrape_handler", "scrape_debug_handler"],
-            "level": "DEBUG" if SCRAPER_DEBUG else "INFO",
+            "handlers": ["scrape_handler", "scrape_debug_handler"]
+            if SCRAPER["DEBUG"]
+            else ["console"],
+            "level": "DEBUG" if SCRAPER["DEBUG"] else "INFO",
             "propagate": False,
         },
     },
 }
 
-# Redis
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
-
 # Caching
 # https://docs.djangoproject.com/en/4.0/topics/cache/
-if not DEBUG:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.redis.RedisCache",
-            "LOCATION": REDIS_URL,
-        }
+
+MINUTE = 60
+HOUR = MINUTE * 60
+
+CACHE_MIDDLEWARE_SECONDS = (
+    MINUTE if DEBUG else int(os.environ.get("CACHE_MIDDLEWARE_SECONDS", 3 * HOUR))
+)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"),
     }
+}

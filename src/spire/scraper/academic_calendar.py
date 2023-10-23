@@ -52,7 +52,8 @@ def scrape_academic_schedule():
 
             log.debug("Scraping term events: %s", semester_title)
             match = re.match(
-                r"((University|UWW \(CPE\)) )?(Spring|Summer|Fall|Winter) (\d{4})", semester_title
+                r"((University|UWW \(CPE\)) )?(Spring|Summer|Fall|Winter) (\d{4})",
+                semester_title,
             )
             if not match:
                 log.debug("Header '%s' does not match, skipping.", semester_title)
@@ -89,17 +90,23 @@ def scrape_academic_schedule():
                 event_month = event_match.group(3)
                 event_day = event_match.group(4)
 
-                log.debug("Scraped event: %s %s - %s", event_month, event_day, event_desc)
+                log.debug(
+                    "Scraped event: %s %s - %s", event_month, event_day, event_desc
+                )
 
                 adjusted_year = int(year)
                 if season == "winter" and event_month in ("January", "February"):
                     adjusted_year += 1
                     log.info("Adjusted year to %s", adjusted_year)
 
-                event_date = date(adjusted_year, MONTH_NUMBERS[event_month], int(event_day))
+                event_date = date(
+                    adjusted_year, MONTH_NUMBERS[event_month], int(event_day)
+                )
 
                 if re.match(
-                    "First day of classes - Session One" if is_uww else "First day of classes",
+                    "First day of classes - Session One"
+                    if is_uww
+                    else "First day of classes",
                     event_desc,
                     re.I,
                 ):
@@ -123,7 +130,9 @@ def scrape_academic_schedule():
             with transaction.atomic():
                 dropped, _ = TermEvent.objects.filter(term=term).delete()
                 log.debug(
-                    "Dropped %s TermEvents in preparation to push %s new ones.", dropped, len(event_list)
+                    "Dropped %s TermEvents in preparation to push %s new ones.",
+                    dropped,
+                    len(event_list),
                 )
 
                 pushed_list = TermEvent.objects.bulk_create(event_list)

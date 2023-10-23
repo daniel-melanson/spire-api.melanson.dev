@@ -32,7 +32,10 @@ def section_list_normalizer(lst):
             spire_id = SECTION_ID_OVERRIDES[f"-({m.group(1)})"]
         else:
             # COMP-LIT 391SF-01AC DIS (50749): S-International SciFi Cinema
-            m = assert_match(r"\S+\s+\S+-(?P<id>\S+)\s+(?P<type>\S+)\s+\((?P<number>\d+)\).+", section)
+            m = assert_match(
+                r"\S+\s+\S+-(?P<id>\S+)\s+(?P<type>\S+)\s+\((?P<number>\d+)\).+",
+                section,
+            )
 
             spire_id = f"{m.group('id')}-{m.group('type')}({m.group('number')})"
 
@@ -47,7 +50,10 @@ class RawCombinedSectionAvailability(RawDictionary):
             SectionCombinedAvailability,
             spire_id,
             table,
-            [RawField(k="Sections", normalizers=[section_list_normalizer]), *AVAILABILITY_FIELDS],
+            [
+                RawField(k="Sections", normalizers=[section_list_normalizer]),
+                *AVAILABILITY_FIELDS,
+            ],
         )
 
 

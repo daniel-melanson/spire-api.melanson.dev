@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = "*"
-psycopg2-binary = "*"
+psycopg = "*"
 djangorestframework = "*"
 pyyaml = "*"
 uritemplate = "*"
@@ -13,17 +13,14 @@ selenium = "*"
 django-filter = "*"
 gunicorn = "*"
 whitenoise = "*"
-redis = "*"
 django-cors-headers = "*"
 unidecode = "*"
 bs4 = "*"
 html5lib = "*"
 requests = "*"
-nltk = "*"
 numpy = "*"
-
-[requires]
-python_version = "3.11"
+redis = "*"
+hiredis = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"

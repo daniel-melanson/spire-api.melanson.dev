@@ -6,7 +6,10 @@ GROUP_OVERRIDES = key_override_factory(
     ("College of Humanities&Fine Art", "College of Humanities & Fine Art"),
     ("Stockbridge School", "Stockbridge School of Agriculture"),
     ("College of Social & Behav. Sci", "College of Social & Behavioral Sciences"),
-    ("College of Info & Computer Sci", "Manning College of Information & Computer Sciences"),
+    (
+        "College of Info & Computer Sci",
+        "Manning College of Information & Computer Sciences",
+    ),
     ("College of Natural Sci. & Math", "College of Natural Sciences"),
     (
         (

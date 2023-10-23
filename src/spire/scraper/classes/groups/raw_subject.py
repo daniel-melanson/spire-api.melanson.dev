@@ -1,6 +1,11 @@
 from spire.models import Subject
 from spire.patterns import SUBJECT_ID_REGEXP, SUBJECT_TITLE_REGEXP
-from spire.scraper.classes.shared import RawField, RawObject, clean_id, key_override_factory
+from spire.scraper.classes.shared import (
+    RawField,
+    RawObject,
+    clean_id,
+    key_override_factory,
+)
 
 SUBJECT_OVERRIDES = key_override_factory(
     ("BDIC", ("BDIC", "Bachelors Degree with Individualized Concentration")),

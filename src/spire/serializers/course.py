@@ -1,6 +1,15 @@
-from rest_framework.serializers import HyperlinkedModelSerializer, ModelSerializer, Serializer
+from rest_framework.serializers import (
+    HyperlinkedModelSerializer,
+    ModelSerializer,
+    Serializer,
+)
 
-from spire.models import Course, CourseDetail, CourseEnrollmentInformation, CourseOffering
+from spire.models import (
+    Course,
+    CourseDetail,
+    CourseEnrollmentInformation,
+    CourseOffering,
+)
 from spire.serializers.fields import (
     CourseFieldSerializer,
     CourseOfferingFieldSerializer,

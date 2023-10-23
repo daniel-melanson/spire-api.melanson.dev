@@ -47,9 +47,11 @@ DESCRIPTION_NOT_AVAILABLE_TO_NONE: Callable[[str], Optional[str]] = (
 )
 
 
-def NORMALIZER_FOR_DICT(normalizer: Callable[[Any], Any]) -> Callable[[dict[Any, Any]], dict[Any, Any]]:
+def NORMALIZER_FOR_DICT(
+    normalizer: Callable[[Any], Any]
+) -> Callable[[dict[Any, Any]], dict[Any, Any]]:
     def f(x: dict[Any, Any]):
-        for (k, v) in x.items():
+        for k, v in x.items():
             x[k] = normalizer(v)
 
         return x

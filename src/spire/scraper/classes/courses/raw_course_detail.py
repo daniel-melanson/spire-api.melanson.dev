@@ -3,8 +3,15 @@ from typing import Optional
 
 from spire.models import CourseDetail, CourseUnits
 from spire.scraper.classes.assertions import NO_EMPTY_STRS_ASSERTION
-from spire.scraper.classes.groups.raw_academic_group import ACADEMIC_GROUP_NORMALIZER, GROUP_OVERRIDES
-from spire.scraper.classes.normalizers import COURSE_CREDIT_NORMALIZER, DICT_KEY_NORMALIZER, SPLIT_NEWLINE
+from spire.scraper.classes.groups.raw_academic_group import (
+    ACADEMIC_GROUP_NORMALIZER,
+    GROUP_OVERRIDES,
+)
+from spire.scraper.classes.normalizers import (
+    COURSE_CREDIT_NORMALIZER,
+    DICT_KEY_NORMALIZER,
+    SPLIT_NEWLINE,
+)
 from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
 
 log = logging.getLogger(__name__)
@@ -46,13 +53,19 @@ class RawUnits(RawObject):
             self.max = None
             self.base = float(credits)
 
-        super().__init__(CourseUnits, None, [RawField("base"), RawField("min"), RawField("max")])
+        super().__init__(
+            CourseUnits, None, [RawField("base"), RawField("min"), RawField("max")]
+        )
 
     def push(self):
         if self.base is not None:
-            u, _ = CourseUnits.objects.get_or_create(base=self.base, defaults={"min": None, "max": None})
+            u, _ = CourseUnits.objects.get_or_create(
+                base=self.base, defaults={"min": None, "max": None}
+            )
         else:
-            u, _ = CourseUnits.objects.get_or_create(min=self.min, max=self.max, defaults={"base": None})
+            u, _ = CourseUnits.objects.get_or_create(
+                min=self.min, max=self.max, defaults={"base": None}
+            )
 
         return u
 
@@ -81,7 +94,9 @@ class RawCourseDetail(RawDictionary):
                     min_len=1,
                     normalizers=[
                         DICT_KEY_NORMALIZER(
-                            {"Grad Ltr Grading, with options": "Graduate Letter Grading, with options"}
+                            {
+                                "Grad Ltr Grading, with options": "Graduate Letter Grading, with options"
+                            }
                         )
                     ],
                 ),

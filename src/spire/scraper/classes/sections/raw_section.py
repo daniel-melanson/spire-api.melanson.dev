@@ -11,9 +11,13 @@ from spire.scraper.classes.normalizers import (
     NONE_STRING_TO_NONE_NORMALIZER,
     STRIP_STR,
 )
-from spire.scraper.classes.sections.raw_section_availability import RawSectionAvailability
+from spire.scraper.classes.sections.raw_section_availability import (
+    RawSectionAvailability,
+)
 from spire.scraper.classes.sections.raw_section_detail import RawSectionDetail
-from spire.scraper.classes.sections.raw_section_meeting_information import RawSectionMeetingInformation
+from spire.scraper.classes.sections.raw_section_meeting_information import (
+    RawSectionMeetingInformation,
+)
 from spire.scraper.classes.sections.raw_section_restriction import RawSectionRestriction
 from spire.scraper.classes.shared import RawField, RawObject
 from spire.scraper.shared import assert_match
@@ -73,7 +77,9 @@ class RawSection(RawObject):
                     normalizers=[STRIP_STR, DESCRIPTION_NOT_AVAILABLE_TO_NONE],
                     min_len=5,
                 ),
-                RawField("overview", min_len=5, normalizers=[NONE_STRING_TO_NONE_NORMALIZER]),
+                RawField(
+                    "overview", min_len=5, normalizers=[NONE_STRING_TO_NONE_NORMALIZER]
+                ),
             ],
         )
 
@@ -95,7 +101,9 @@ class RawSection(RawObject):
                 self.restrictions.push(section=section)
             self.availability.push(section=section)
 
-            dropped, _ = SectionMeetingInformation.objects.filter(section_id=section.id).delete()
+            dropped, _ = SectionMeetingInformation.objects.filter(
+                section_id=section.id
+            ).delete()
 
             log.debug(
                 "Dropped %s MeetingInformation records in preparation to push %s new ones.",

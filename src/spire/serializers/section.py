@@ -56,7 +56,6 @@ class SectionMeetingInformationSerializer(ModelSerializer):
 
 
 class SectionAvailabilitySerializer(ModelSerializer):
-
     class Meta:
         model = SectionAvailability
         exclude = ["section"]
@@ -71,7 +70,6 @@ class SectionCombinedAvailabilitySerializer(HyperlinkedModelSerializer):
 
 
 class SectionRestrictionSerializer(ModelSerializer):
-
     class Meta:
         model = SectionRestriction
         exclude = ["section"]

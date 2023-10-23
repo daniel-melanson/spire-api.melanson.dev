@@ -38,7 +38,9 @@ def re_validator_factory(r: str, msg: str):
     return RegexValidator(regex=r, message=msg)
 
 
-_course_id_validator = re_validator_factory(COURSE_ID_REGEXP, "must be a course ID (match course ID RegExp)")
+_course_id_validator = re_validator_factory(
+    COURSE_ID_REGEXP, "must be a course ID (match course ID RegExp)"
+)
 
 _course_id_number_validator = re_validator_factory(
     COURSE_ID_NUM_REGEXP,
@@ -49,15 +51,21 @@ _course_title_validator = re_validator_factory(
     COURSE_TITLE_REGEXP, "must be a course title (match course title RegExp)"
 )
 
-_subject_id_validator = re_validator_factory(SUBJECT_ID_REGEXP, "must be a  title (match subject id RegExp)")
+_subject_id_validator = re_validator_factory(
+    SUBJECT_ID_REGEXP, "must be a  title (match subject id RegExp)"
+)
 
 _subject_title_validator = re_validator_factory(
     SUBJECT_TITLE_REGEXP, "must be a title (match subject title RegExp)"
 )
 
-_section_id_validator = re_validator_factory(SECTION_ID_REGEXP, "must be a section id (match the id RegExp")
+_section_id_validator = re_validator_factory(
+    SECTION_ID_REGEXP, "must be a section id (match the id RegExp"
+)
 
-_term_validator = re_validator_factory(TERM_REGEXP, "must be a term (match the term RegExp)")
+_term_validator = re_validator_factory(
+    TERM_REGEXP, "must be a term (match the term RegExp)"
+)
 
 
 class Building(Model):
@@ -132,7 +140,9 @@ class Subject(Model):
         primary_key=True,
         validators=[_subject_id_validator],
     )
-    title = CharField(max_length=2**6, unique=True, validators=[_subject_title_validator])
+    title = CharField(
+        max_length=2**6, unique=True, validators=[_subject_title_validator]
+    )
     groups = ManyToManyField(AcademicGroup, related_name="subjects")
 
     def __str__(self):
@@ -143,7 +153,9 @@ class Subject(Model):
 
 
 class Course(Model):
-    id = CharField(max_length=2**5, primary_key=True, validators=[_course_id_validator])
+    id = CharField(
+        max_length=2**5, primary_key=True, validators=[_course_id_validator]
+    )
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="courses")
     number = CharField(max_length=2**4, validators=[_course_id_number_validator])
     title = CharField(max_length=2**8, validators=[_course_title_validator])
@@ -168,7 +180,9 @@ class CourseUnits(Model):
 
 
 class CourseDetail(Model):
-    course = OneToOneField(Course, on_delete=CASCADE, primary_key=True, related_name="details")
+    course = OneToOneField(
+        Course, on_delete=CASCADE, primary_key=True, related_name="details"
+    )
     career = CharField(null=True, max_length=2**5)
     units = ForeignKey(CourseUnits, on_delete=SET_NULL, related_name="+", null=True)
     grading_basis = CharField(null=True, max_length=2**6)
@@ -210,9 +224,7 @@ class CourseOffering(Model):
     term = ForeignKey(Term, on_delete=CASCADE, related_name="+")
 
     def __str__(self):
-        return (
-            f"CourseOffering[{self.id}](term={self.term}, subject={self.subject.id}, course={self.course.id})"
-        )
+        return f"CourseOffering[{self.id}](term={self.term}, subject={self.subject.id}, course={self.course.id})"
 
     class Meta:
         ordering = ["term", "course"]
@@ -247,7 +259,9 @@ class Section(Model):
 
 
 class SectionDetail(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="details")
+    section = OneToOneField(
+        Section, on_delete=CASCADE, primary_key=True, related_name="details"
+    )
     status = CharField(null=True, max_length=2**6)
     class_number = IntegerField()
     session = CharField(null=True, max_length=2**6)
@@ -267,7 +281,9 @@ class SectionDetail(Model):
 
 
 class SectionAvailability(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="availability")
+    section = OneToOneField(
+        Section, on_delete=CASCADE, primary_key=True, related_name="availability"
+    )
     capacity = IntegerField()
     enrollment_total = IntegerField()
     available_seats = IntegerField()
@@ -284,7 +300,10 @@ class SectionAvailability(Model):
 
 class SectionCombinedAvailability(Model):
     individual_availability = OneToOneField(
-        SectionAvailability, on_delete=CASCADE, primary_key=True, related_name="combined_availability"
+        SectionAvailability,
+        on_delete=CASCADE,
+        primary_key=True,
+        related_name="combined_availability",
     )
     sections = JSONField()
     capacity = IntegerField()
@@ -302,7 +321,9 @@ class SectionCombinedAvailability(Model):
 
 
 class SectionRestriction(Model):
-    section = OneToOneField(Section, on_delete=CASCADE, primary_key=True, related_name="restrictions")
+    section = OneToOneField(
+        Section, on_delete=CASCADE, primary_key=True, related_name="restrictions"
+    )
     drop_consent = CharField(null=True, max_length=2**12)
     enrollment_requirements = CharField(null=True, max_length=2**12)
     add_consent = CharField(null=True, max_length=2**12)
@@ -341,7 +362,10 @@ class SectionMeetingDates(Model):
 
 class SectionMeetingSchedule(Model):
     meeting_information = OneToOneField(
-        SectionMeetingInformation, primary_key=True, on_delete=CASCADE, related_name="schedule"
+        SectionMeetingInformation,
+        primary_key=True,
+        on_delete=CASCADE,
+        related_name="schedule",
     )
     days = JSONField()
     start_time = TimeField()
