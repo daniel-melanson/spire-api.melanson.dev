@@ -9,6 +9,7 @@ services:
         build: .
         depends_on:
             - cache
+        working_dir: /app/src
         command: python -m gunicorn -c python:config.gunicorn config.wsgi
         environment:
             REDIS_URL: redis://cache:6379
@@ -34,7 +35,8 @@ services:
         build: .
         depends_on:
             - selenium
-        command: python manage.py scrape sections
+        working_dir: /app/src
+        command: python manage.py scrape total --quick
         environment:
             SELENIUM_SERVER_URL: http://selenium:4444
         env_file:
