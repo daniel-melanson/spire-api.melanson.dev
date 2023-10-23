@@ -402,7 +402,7 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
 def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     log.info("Scraping sections...")
 
-    driver.navigate_to(SpirePage.ClassSearch)
+    # driver.navigate_to(SpirePage.ClassSearch)
 
     total_timer = Timer()
     scraped_terms = 0

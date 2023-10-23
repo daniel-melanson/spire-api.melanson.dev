@@ -69,7 +69,7 @@ def _scrape_subject_list(driver: SpireDriver, cache: VersionedCache, subject: Su
 def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
     log.info("Scraping course catalog...")
 
-    driver.navigate_to(SpirePage.CourseCatalog)
+    # driver.navigate_to(SpirePage.CourseCatalog)
 
     # For each uppercase letter; start at 65 (A) or cached value
     total_timer = Timer()

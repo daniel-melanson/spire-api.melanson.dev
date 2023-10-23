@@ -105,11 +105,11 @@ def scrape_data(coverage: ScrapeCoverage, quick=False):
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Calendar:
         scrape_academic_schedule()
 
-    if (
-        coverage == ScrapeCoverage.Total
-        or coverage == ScrapeCoverage.SubjectsAndCourses
-    ):
-        scrape("course catalog", scrape_catalog)
+    # if (
+    #     coverage == ScrapeCoverage.Total
+    #     or coverage == ScrapeCoverage.SubjectsAndCourses
+    # ):
+    #     scrape("course catalog", scrape_catalog)
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
         scrape("course sections", scrape_sections, quick=quick)

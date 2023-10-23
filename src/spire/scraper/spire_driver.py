@@ -3,6 +3,7 @@
 import logging
 from enum import Enum
 from typing import Union
+import time
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
@@ -19,8 +20,8 @@ log = logging.getLogger(__name__)
 
 
 class SpirePage(Enum):
-    CourseCatalog = "browse course catalog"
-    ClassSearch = "search for classes"
+    CourseCatalog = "Browse Course Catalog"
+    ClassSearch = "Search for Classes"
 
 
 class SpireDriver:
@@ -43,6 +44,10 @@ class SpireDriver:
             EC.element_to_be_clickable((By.NAME, "CourseCatalogLink"))
         ).click()
 
+        self._wait.until(EC.title_is("Search for Classes"))
+
+        self.wait_for_spire()
+
         self._state = "default"
         log.info("Driver created.")
 
@@ -63,40 +68,35 @@ class SpireDriver:
 
         log.debug("Switched focus to: %s", self._state)
 
-    def navigate_to(self, page: SpirePage) -> None:
-        log.info("Navigating to %s...", page)
-
-        if self._state != "default":
-            self.switch()
-
-        self.click("PT_GSEARCH_BTN", wait=False)
-
-        search_input: WebElement = self.wait_for_interaction(By.ID, "PTS_KEYWORDS_GLB")
-
-        search_input.clear()
-        search_input.send_keys(page.value)
-        
-        self.click("pthdrSrchHref")
-
-        self.click("srchRsltUrl$0")
-
-        self.switch()
-
-        self.wait_for_spire()
-
-        assert self._driver.title == (
-            "Browse Course Catalog"
-            if page == SpirePage.CourseCatalog
-            else "Search for Classes"
-        )
-
-        log.info("Navigated to %s.", page)
+    # def navigate_to(self, page: SpirePage) -> None:
+    #     log.info("Navigating to %s...", page)
+    #
+    #     if self._state != "default":
+    #         self.switch()
+    #
+    #     self.click("pthdr2search")
+    #
+    #     search_input: WebElement = self.wait_for_interaction(By.ID, "pthdr2srchedit")
+    #     search_input.clear()
+    #     search_input.send_keys(page.value.lower())
+    #
+    #     self.click("pthdrSrchHref")
+    #
+    #     self.switch()
+    #
+    #     self.click("#ICSetFieldPTSF_GLOBAL_SEARCH.TREECTLEVENT.S3")
+    #     self.click("srchRsltUrl$0")
+    #
+    #     self._wait.until(EC.title_is(page.value))
+    #
+    #     log.info("Navigated to %s.", page)
 
     def click(self, selector: str, by: str = By.ID, wait: bool = True):
         element = self._wait.until(EC.element_to_be_clickable((by, selector)))
 
         self.scroll_to(element)
         ActionChains(self._driver).move_to_element(element).click().perform()
+        log.debug("Clicked element %s: %s", by, selector)
 
         if wait:
             self.wait_for_spire()

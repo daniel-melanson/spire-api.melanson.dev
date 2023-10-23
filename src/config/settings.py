@@ -17,7 +17,7 @@ from pathlib import Path
 
 def get_bool_env(key, default=False):
     if key in os.environ:
-        return strtobool(os.environ[key])
+        return strtobool(os.environ[key].lower())
 
     return default
 
