@@ -488,7 +488,7 @@ def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
     return scraped, found
 
 
-def scrape_sections(
+def scrape_all_sections(
     driver: SpireDriver, cache: VersionedCache, quick=False, subject_regex=r".+"
 ):
     log.info("Scraping sections...")

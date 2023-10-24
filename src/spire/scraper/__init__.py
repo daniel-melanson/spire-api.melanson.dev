@@ -10,7 +10,7 @@ from django.conf import settings
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
-from spire.scraper.spire_search import scrape_sections
+from spire.scraper.spire_search import scrape_all_sections
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
@@ -112,6 +112,6 @@ def scrape_data(coverage: ScrapeCoverage, quick=False):
     #     scrape("course catalog", scrape_catalog)
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
-        scrape("course sections", scrape_sections, quick=quick)
+        scrape("course sections", scrape_all_sections, quick=quick)
 
     log.info("Scraped data from spire in %s", scrape_timer)

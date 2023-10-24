@@ -248,7 +248,7 @@ class Section(Model):
     spire_id = CharField(max_length=2**5, validators=[_section_id_validator])
     offering = ForeignKey(CourseOffering, on_delete=CASCADE, related_name="sections")
     description = CharField(max_length=2**12, null=True)
-    overview = CharField(max_length=2**15, null=True)
+    overview = CharField(max_length=2**16, null=True)
     _updated_at = DateTimeField()
 
     def __str__(self):
