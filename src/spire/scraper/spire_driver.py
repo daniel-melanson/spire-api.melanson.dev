@@ -1,9 +1,9 @@
 # type: ignore
 
 import logging
+import time
 from enum import Enum
 from typing import Union
-import time
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
