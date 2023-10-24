@@ -10,7 +10,7 @@ from django.conf import settings
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
-from spire.scraper.spire_search import scrape_all_sections
+from spire.scraper.spire_search import scrape_all_terms, scrape_single_term
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
@@ -51,6 +51,7 @@ def scrape(s, func, **kwargs):
             if not cache.is_empty:
                 log.info("Scraping %s with cache: %s", s, cache)
 
+            driver.switch()
             func(driver, cache, **kwargs)
             return
         except Exception as e:
@@ -96,7 +97,11 @@ def scrape(s, func, **kwargs):
             driver = SpireDriver()
 
 
-def scrape_data(coverage: ScrapeCoverage, quick=False):
+def scrape_data(coverage: ScrapeCoverage, **kwargs):
+    distributed = kwargs.get("distributed", False)
+    quick = kwargs.get("quick", False)
+    term = kwargs.get("term", None)
+
     log.info("Scraping data from spire...")
     log.info("Scrape coverage: %s", coverage)
 
@@ -112,6 +117,19 @@ def scrape_data(coverage: ScrapeCoverage, quick=False):
     #     scrape("course catalog", scrape_catalog)
 
     if coverage == ScrapeCoverage.Total or coverage == ScrapeCoverage.Sections:
-        scrape("course sections", scrape_all_sections, quick=quick)
+        if term:
+            scrape(
+                "course sections",
+                scrape_single_term,
+                season=term[0],
+                year=term[1],
+                quick=quick
+            )
+        else:
+            scrape(
+                "course sections",
+                scrape_all_terms,
+                quick=quick,
+            )
 
     log.info("Scraped data from spire in %s", scrape_timer)

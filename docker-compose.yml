@@ -36,7 +36,7 @@ services:
         depends_on:
             - selenium
         working_dir: /app/src
-        command: python manage.py scrape total --quick
+        command: python manage.py scrape --quick --term Fall 2023 all
         environment:
             SELENIUM_SERVER_URL: http://selenium:4444
         env_file:

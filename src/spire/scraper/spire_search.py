@@ -16,11 +16,10 @@ from spire.models import (
     Subject,
     Term,
 )
-from spire.scraper.academic_calendar import get_or_create_term
 from spire.scraper.classes import RawCourse, RawInstructor, RawSection, RawSubject
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
-from spire.scraper.shared import assert_match, scrape_spire_tables
-from spire.scraper.spire_driver import SpireDriver, SpirePage
+from spire.scraper.shared import assert_match, scrape_spire_tables, get_or_create_term
+from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
@@ -399,10 +398,10 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
         driver.wait_for_spire()
 
 
-def _get_select_values(driver: SpireDriver):
-    def get_option_values(select: WebElement) -> list[tuple[str, str]]:
+def _get_select_options(driver: SpireDriver):
+    def get_option_values(select: WebElement, f=None) -> list[tuple[str, str]]:
         return [
-            (e.get_property("value"), e.text)
+            (e.get_property("value"), f(e.text) if f else e.text)
             for e in select.find_elements(By.CSS_SELECTOR, "option")
             if len(e.get_property("value")) > 0  # type: ignore
         ]
@@ -412,16 +411,21 @@ def _get_select_values(driver: SpireDriver):
         By.ID, "CLASS_SRCH_WRK2_SUBJECT$108$"
     )
     assert subject_select
-    subject_values: list[tuple[str, str]] = get_option_values(subject_select)
+    subject_options: list[tuple[str, str]] = get_option_values(subject_select)
 
     # Fetch term option values
     term_select: WebElement = driver.wait_for_interaction(
         By.ID, "UM_DERIVED_SA_UM_TERM_DESCR"
     )
     assert term_select
-    term_values: list[tuple[str, str]] = get_option_values(term_select)
 
-    return (term_values, subject_values)
+    def swap(s: str):
+        [year, season] = s.split(" ")
+        return f"{season} {year}"
+
+    term_options: list[tuple[str, str]] = get_option_values(term_select, f=swap)
+
+    return (term_options, subject_options)
 
 
 def _should_skip_term(coverage):
@@ -488,70 +492,91 @@ def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
     return scraped, found
 
 
-def scrape_all_sections(
-    driver: SpireDriver, cache: VersionedCache, quick=False, subject_regex=r".+"
+def _scrape_term(
+    driver: SpireDriver,
+    cache: VersionedCache,
+    term,
+    term_value,
+    subject_options,
+    quick=False,
 ):
-    log.info("Scraping sections...")
-
-    # driver.navigate_to(SpirePage.ClassSearch)
-
-    total_timer = Timer()
-    scraped_terms = 0
-
     # For running skip percentage
     total_scraped = 0
     total_found = 0
 
-    driver.switch()
+    # Establish coverage entry
+    coverage, _ = SectionCoverage.objects.get_or_create(
+        term=term,
+        defaults={"completed": False, "start_time": timezone.now()},
+    )
 
-    (term_values, subject_values) = _get_select_values(driver)
+    if _should_skip_term(coverage):
+        return
+
+    log.info("Scraping sections during %s...", term)
+    timer = Timer()
+
+    # For each subject
+    for subject_value, subject_title in cache.skip_once(subject_options, "subject"):
+        cache.push("subject", (subject_value, subject_title))
+
+        # Initialize and search for subject during term
+        _initialize_query(driver, term_value, subject_value)
+
+        raw_subject = RawSubject(subject_value, subject_title)
+        subject = raw_subject.push()
+
+        # Execute search
+        scraped, found = _search_query(driver, cache, term, subject, quick=quick)
+
+        if quick:
+            total_scraped += scraped
+            total_found += found
+
+            log.info(
+                "Running skip percentage of: %.2f%% per term",
+                (1 - (total_scraped / total_found)) * 100,
+            )
+
+    coverage.completed = True
+    coverage.end_time = timezone.now()
+    coverage.save()
+
+    log.info("Scraped sections for the %s term in %s.", term, timer)
+
+
+def scrape_single_term(
+    driver: SpireDriver, cache: VersionedCache, season, year, **kwargs
+) -> None:
+    term = get_or_create_term(season, year)
+    log.info("Scraping sections for single term %s...", term.id)
+
+    (term_options, subject_options) = _get_select_options(driver)
+
+    term_value = [v for (v, id) in term_options if term.id == id][0]
+
+    _scrape_term(driver, cache, term, term_value, subject_options, **kwargs)
+    log.info("Scraped sections for single term %s...", term.id)
+
+
+def scrape_all_terms(driver: SpireDriver, cache: VersionedCache, **options):
+    log.info("Scraping sections for all terms...")
+
+    total_timer = Timer()
+    scraped_terms = 0
+
+    (term_options, subject_options) = _get_select_options(driver)
 
     # For each term, 5 academic years from the most recently posted year
     for term_offset in range(cache.get("term_offset", 4 * 2 - 1), -1, -1):  # type: ignore
         cache.push("term_offset", term_offset)
 
-        (term_id, flipped_term) = term_values[term_offset]
-        [year, season] = flipped_term.split(" ")
+        (term_option, term_id) = term_options[term_offset]
+        [season, year] = term_id.split(" ")
         term = get_or_create_term(season, year)
 
-        # Establish coverage entry
-        coverage, _ = SectionCoverage.objects.get_or_create(
-            term=term,
-            defaults={"completed": False, "start_time": timezone.now()},
-        )
+        _scrape_term(driver, cache, term, term_option, subject_options, **options)
 
-        if _should_skip_term(coverage):
-            continue
-
-        log.info("Scraping sections during %s...", term)
-        term_timer = Timer()
-
-        # For each subject
-        for subject_id, subject_title in cache.skip_once(subject_values, "subject"):
-            cache.push("subject", (subject_id, subject_title))
-
-            # Initialize and search for subject during term
-            _initialize_query(driver, term_id, subject_id)
-
-            raw_subject = RawSubject(subject_id, subject_title)
-            subject = raw_subject.push()
-
-            # Execute search
-            scraped, found = _search_query(driver, cache, term, subject, quick=quick)
-
-            if quick:
-                total_scraped += scraped
-                total_found += found
-
-                log.info(
-                    "Running skip percentage of: %.2f%%",
-                    (1 - (total_scraped / total_found)) * 100,
-                )
-
-        coverage.completed = True
-        coverage.end_time = timezone.now()
-        coverage.save()
-
-        log.info("Scraped sections for the %s term in %s.", term, term_timer)
+        scraped_terms += 1
 
     log.info("Scraped %s terms in %s.", scraped_terms, total_timer)

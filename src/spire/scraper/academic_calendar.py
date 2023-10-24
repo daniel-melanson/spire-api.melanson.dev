@@ -8,32 +8,9 @@ from django.db import transaction
 
 from spire.models import Term, TermEvent
 from spire.scraper.web import fetch_soup, get_tag_text
+from spire.scraper.shared import SEASON_LIST, get_or_create_term
 
 log = logging.getLogger(__name__)
-
-
-SEASON_LIST = ["Winter", "Spring", "Summer", "UWW Summer", "Fall"]
-
-
-def get_or_create_term(season: str, year: str):
-    log.debug("Making or finding term: %s %s", season, year)
-
-    assert type(season) is str and season in SEASON_LIST
-    assert 2000 <= int(year) <= 2100
-
-    term_id = f"{season} {year}"
-
-    term, _ = Term.objects.get_or_create(
-        id=term_id,
-        defaults={
-            "ordinal": int(str(year) + str(SEASON_LIST.index(season))),
-            "season": season,
-            "year": year,
-        },
-    )
-
-    return term
-
 
 MONTH_NUMBERS = {name: i for i, name in enumerate(calendar.month_name)}
 

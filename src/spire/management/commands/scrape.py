@@ -8,17 +8,29 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "coverage",
-            nargs=1,
-            type=str,
-            choices=("total", "sections", "courses", "calendar"),
+            "--distributed",
+            action="store_true",
+            help="Whether the section scraper should run in distributed mode.",
+        )
+
+        parser.add_argument(
+            "--term", type=str, nargs=2, help="A specific term of sections to scrape."
         )
 
         parser.add_argument("--quick", action="store_true")
 
+        parser.add_argument(
+            "coverage",
+            nargs=1,
+            type=str,
+            default="all",
+            choices=("all", "sections", "courses", "calendar"),
+            help="The data the scraper should scrape.",
+        )
+
     def handle(self, *args, **options):
         match options["coverage"][0]:
-            case "total":
+            case "all":
                 enum = ScrapeCoverage.Total
             case "sections":
                 enum = ScrapeCoverage.Sections
@@ -29,4 +41,5 @@ class Command(BaseCommand):
             case _:
                 raise CommandError("Unexpected coverage option.")
 
-        scrape_data(enum, quick=options["quick"])
+        del options["coverage"]
+        scrape_data(enum, **options)

@@ -5,6 +5,8 @@ from typing import Any, Callable, Union
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
+from spire.models import Term
+
 from .spire_driver import SpireDriver
 
 log = logging.getLogger(__name__)
@@ -15,6 +17,29 @@ def assert_match(r: str, s: str, search: bool = False):
     str_match = re.fullmatch(r, s) if not search else re.search(r, s)
     assert str_match
     return str_match
+
+
+SEASON_LIST = ["Winter", "Spring", "Summer", "UWW Summer", "Fall"]
+
+
+def get_or_create_term(season: str, year: str):
+    log.debug("Making or finding term: %s %s", season, year)
+
+    assert isinstance(season, str) and season in SEASON_LIST
+    assert isinstance(year, str) and 2000 <= int(year) <= 2100
+
+    term_id = f"{season} {year}"
+
+    term, _ = Term.objects.get_or_create(
+        id=term_id,
+        defaults={
+            "ordinal": int(str(year) + str(SEASON_LIST.index(season))),
+            "season": season,
+            "year": year,
+        },
+    )
+
+    return term
 
 
 FIELD_VALUE_IDS = {
