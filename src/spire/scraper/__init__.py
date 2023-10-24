@@ -8,10 +8,14 @@ from time import sleep
 from django.conf import settings
 
 from spire.scraper.academic_calendar import scrape_academic_schedule
-from spire.scraper.spire_catalog import scrape_catalog
 from spire.scraper.spire_driver import SpireDriver
-from spire.scraper.spire_search import scrape_all_terms, scrape_single_term
+from spire.scraper.spire_search import (
+    scrape_all_terms,
+    scrape_single_term,
+    ScrapeContext,
+)
 from spire.scraper.timer import Timer
+from spire.scraper.stats import Stats
 from spire.scraper.versioned_cache import VersionedCache
 
 try:
@@ -34,6 +38,7 @@ class ScrapeCoverage(Enum):
 
 
 def scrape(s, func, **kwargs):
+    stats = Stats()
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
     driver = SpireDriver()
     if (
@@ -52,7 +57,7 @@ def scrape(s, func, **kwargs):
                 log.info("Scraping %s with cache: %s", s, cache)
 
             driver.switch()
-            func(driver, cache, **kwargs)
+            func(ScrapeContext(driver, cache, stats), **kwargs)
             return
         except Exception as e:
             log.exception(
@@ -123,7 +128,7 @@ def scrape_data(coverage: ScrapeCoverage, **kwargs):
                 scrape_single_term,
                 season=term[0],
                 year=term[1],
-                quick=quick
+                quick=quick,
             )
         else:
             scrape(

@@ -22,8 +22,16 @@ from spire.scraper.shared import assert_match, scrape_spire_tables, get_or_creat
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
+from typing import NamedTuple
+from spire.scraper.stats import Stats
 
 log = logging.getLogger(__name__)
+
+
+class ScrapeContext(NamedTuple):
+    driver: SpireDriver
+    cache: VersionedCache
+    stats: Stats
 
 
 def _count_name_characters(s: str):
@@ -124,9 +132,9 @@ def _can_skip(
     driver: SpireDriver, offering: CourseOffering, spire_id: str, link_number: str
 ):
     try:
-        section = Section.objects.get(spire_id=spire_id, offering=offering)
+        section = Section.objects.get(spire_id=spire_id, offering=offering)  # type: ignore
 
-        if SectionCombinedAvailability.objects.filter(
+        if SectionCombinedAvailability.objects.filter(  # type: ignore
             individual_availability_id=section.id
         ).first():
             return False, "section is combined"
@@ -136,7 +144,7 @@ def _can_skip(
             By.CSS_SELECTOR,
         )
 
-        src = status_icon.get_attribute("src")  # type: ignore
+        src: str = status_icon.get_attribute("src")  # type: ignore
         if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif"):
             current_status = "Wait List"
         elif src.endswith("PS_CS_STATUS_OPEN_ICN_1.gif"):
@@ -170,7 +178,7 @@ def _can_skip(
             )
 
         return True, "OK"
-    except Section.DoesNotExist:
+    except Section.DoesNotExist:  # type: ignore
         return False, "does not exist"
 
 
@@ -190,14 +198,13 @@ SPIRE_ID_OVERRIDES = {
 
 
 def _scrape_search_results(
-    driver: SpireDriver,
-    cache: VersionedCache,
+    context: ScrapeContext,
     term: Term,
     subject: Subject,
     quick=False,
 ):
-    scraped_section_count = 0
-    found_section_count = 0
+    driver = context.driver
+    cache = context.cache
 
     scraped_course_ids = set()
     for span_id in cache.skip_once(
@@ -219,7 +226,7 @@ def _scrape_search_results(
         scraped_course_ids.add(course_id)
         course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
 
-        course, created = Course.objects.get_or_create(
+        course, created = Course.objects.get_or_create(  # type: ignore
             id=course_id,
             defaults={
                 "subject": subject,
@@ -234,7 +241,7 @@ def _scrape_search_results(
             "Scraping sections for %s course: %s", "new" if created else "found", course
         )
 
-        offering, created = CourseOffering.objects.get_or_create(
+        offering, created = CourseOffering.objects.get_or_create(  # type: ignore
             course=course,
             term=term,
             defaults={
@@ -263,7 +270,7 @@ def _scrape_search_results(
             )
         ]  # type: ignore
 
-        found_section_count += len(link_ids)
+        context.stats.increment("sections_found", len(link_ids))
 
         for link_id in link_ids:
             link = driver.find(link_id)
@@ -287,14 +294,14 @@ def _scrape_search_results(
                     driver, offering, spire_id, link_number
                 )
                 if can_skip_section:
-                    log.info("Skipping section: %s", spire_id)
+                    log.debug("Skipping section: %s", spire_id)
                     continue
                 else:
-                    log.info("Not skipping section: %s - %s", spire_id, reason)
+                    log.debug("Not skipping section: %s - %s", spire_id, reason)
 
-            scraped_section_count += 1
+            context.stats.increment("sections_scraped")
 
-            log.info(
+            log.debug(
                 "Navigating to section page for %s section %s...", course_id, spire_id
             )
             driver.click(link_id)
@@ -330,39 +337,40 @@ def _scrape_search_results(
 
             log.info("Scraped section:\n%s", section)
 
-            log.info("Clicking return then pushing...")
+            log.debug("Clicking return then pushing...")
             driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
 
             section.push(offering)
 
             driver.wait_for_spire()
-            log.info("Returned to search results for %s durning %s.", subject, term)
+            log.debug("Returned to search results for %s durning %s.", subject, term)
 
         dropped, _ = (
-            Section.objects.filter(offering__course=course, offering__term=term)
+            Section.objects.filter(offering__course=course, offering__term=term)  # type: ignore
             .exclude(spire_id__in=scraped_spire_ids_for_course)
             .delete()
         )
-        log.info(
-            "Dropped %s %s sections during %s that are no longer listed.",
-            dropped,
-            course_id,
-            term,
-        )
+        if dropped > 0:
+            log.info(
+                "Dropped %s %s sections during %s that are no longer listed.",
+                dropped,
+                course_id,
+                term,
+            )
 
     dropped, _ = (
-        CourseOffering.objects.filter(subject=subject, term=term)
+        CourseOffering.objects.filter(subject=subject, term=term)  # type: ignore
         .exclude(course__id__in=scraped_course_ids)
         .delete()
     )
-    log.info(
-        "Dropped %s %s course offerings during %s that are no longer listed.",
-        dropped,
-        subject.id,
-        term,
-    )
 
-    return scraped_section_count, found_section_count
+    if dropped > 0:
+        log.info(
+            "Dropped %s %s course offerings during %s that are no longer listed.",
+            dropped,
+            subject.id,
+            term,
+        )
 
 
 def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
@@ -380,7 +388,10 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
 
         driver.wait_for_spire()
 
-    number_select = Select(driver.find("CLASS_SRCH_WRK2_SSR_EXACT_MATCH1"))
+    select_element = driver.find("CLASS_SRCH_WRK2_SSR_EXACT_MATCH1")
+    assert select_element
+
+    number_select = Select(select_element)
     number_select.select_by_visible_text("greater than or equal to")
     driver.wait_for_spire()
 
@@ -429,7 +440,6 @@ def _get_select_options(driver: SpireDriver):
 
 
 def _should_skip_term(coverage):
-    return False
     if coverage.completed and settings.SCRAPER["SKIP_OLD_TERMS"]:
         year = coverage.term.year
         season = coverage.term.season
@@ -455,7 +465,9 @@ def _should_skip_term(coverage):
     return False
 
 
-def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
+def _search_query(context: ScrapeContext, term, subject, quick=False):
+    driver = context.driver
+
     log.info("Searching for sections in subject %s during %s...", subject.id, term)
     subject_timer = Timer()
     driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
@@ -477,11 +489,11 @@ def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
             log.warning("Failed while searching: %s", error_message_span.text)
             raise Exception(f"Unexpected search error: {warning}")
 
-    scraped, found = _scrape_search_results(driver, cache, term, subject, quick=quick)
+    _scrape_search_results(context, term, subject, quick=quick)
 
     log.info(
         "Scraped %s %s sections during %s in %s. Returning...",
-        scraped,
+        context.stats.get("sections_scraped"),
         subject,
         term,
         subject_timer,
@@ -489,23 +501,16 @@ def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
 
     driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
 
-    return scraped, found
-
 
 def _scrape_term(
-    driver: SpireDriver,
-    cache: VersionedCache,
+    context: ScrapeContext,
     term,
     term_value,
     subject_options,
     quick=False,
 ):
-    # For running skip percentage
-    total_scraped = 0
-    total_found = 0
-
     # Establish coverage entry
-    coverage, _ = SectionCoverage.objects.get_or_create(
+    coverage, _ = SectionCoverage.objects.get_or_create(  # type: ignore
         term=term,
         defaults={"completed": False, "start_time": timezone.now()},
     )
@@ -517,25 +522,27 @@ def _scrape_term(
     timer = Timer()
 
     # For each subject
-    for subject_value, subject_title in cache.skip_once(subject_options, "subject"):
-        cache.push("subject", (subject_value, subject_title))
+    for subject_value, subject_title in context.cache.skip_once(
+        subject_options, "subject"
+    ):
+        context.cache.push("subject", (subject_value, subject_title))
 
         # Initialize and search for subject during term
-        _initialize_query(driver, term_value, subject_value)
+        _initialize_query(context.driver, term_value, subject_value)
 
         raw_subject = RawSubject(subject_value, subject_title)
         subject = raw_subject.push()
 
         # Execute search
-        scraped, found = _search_query(driver, cache, term, subject, quick=quick)
+        _search_query(context, term, subject, quick=quick)
 
         if quick:
-            total_scraped += scraped
-            total_found += found
+            sections_scraped = context.stats.get("sections_scraped")
+            sections_found = context.stats.get("sections_found")
 
             log.info(
                 "Running skip percentage of: %.2f%% per term",
-                (1 - (total_scraped / total_found)) * 100,
+                (1 - (sections_scraped / sections_found)) * 100,
             )
 
     coverage.completed = True
@@ -545,38 +552,35 @@ def _scrape_term(
     log.info("Scraped sections for the %s term in %s.", term, timer)
 
 
-def scrape_single_term(
-    driver: SpireDriver, cache: VersionedCache, season, year, **kwargs
-) -> None:
+def scrape_single_term(context: ScrapeContext, season, year, **kwargs) -> None:
     term = get_or_create_term(season, year)
     log.info("Scraping sections for single term %s...", term.id)
 
-    (term_options, subject_options) = _get_select_options(driver)
+    (term_options, subject_options) = _get_select_options(context.driver)
 
     term_value = [v for (v, id) in term_options if term.id == id][0]
 
-    _scrape_term(driver, cache, term, term_value, subject_options, **kwargs)
+    _scrape_term(context, term, term_value, subject_options, **kwargs)
     log.info("Scraped sections for single term %s...", term.id)
 
 
-def scrape_all_terms(driver: SpireDriver, cache: VersionedCache, **options):
+def scrape_all_terms(context: ScrapeContext, **options):
     log.info("Scraping sections for all terms...")
 
     total_timer = Timer()
-    scraped_terms = 0
 
-    (term_options, subject_options) = _get_select_options(driver)
+    (term_options, subject_options) = _get_select_options(context.driver)
 
     # For each term, 5 academic years from the most recently posted year
-    for term_offset in range(cache.get("term_offset", 4 * 2 - 1), -1, -1):  # type: ignore
-        cache.push("term_offset", term_offset)
+    for term_offset in range(context.cache.get("term_offset", 4 * 2 - 1), -1, -1):  # type: ignore
+        context.cache.push("term_offset", term_offset)
 
         (term_option, term_id) = term_options[term_offset]
         [season, year] = term_id.split(" ")
         term = get_or_create_term(season, year)
 
-        _scrape_term(driver, cache, term, term_option, subject_options, **options)
+        _scrape_term(context, term, term_option, subject_options, **options)
 
-        scraped_terms += 1
+        context.stats.increment("terms_scraped")
 
-    log.info("Scraped %s terms in %s.", scraped_terms, total_timer)
+    log.info("Scraped %s terms in %s.", context.stats.get("terms_scraped"), total_timer)
