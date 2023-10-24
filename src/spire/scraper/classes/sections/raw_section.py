@@ -47,7 +47,7 @@ class RawSection(RawObject):
         self.spire_id = spire_id
 
         self.details = RawSectionDetail(self.spire_id, details)
-        log.info("Scraped section detail:\n%s", self.details)
+        log.debug("Scraped section detail:\n%s", self.details)
 
         self.meeting_information = [
             RawSectionMeetingInformation(self.spire_id, x) for x in meeting_information
@@ -59,10 +59,10 @@ class RawSection(RawObject):
 
         if restrictions:
             self.restrictions = RawSectionRestriction(self.spire_id, restrictions)
-            log.info("Scraped section restrictions:\n%s", self.restrictions)
+            log.debug("Scraped section restrictions:\n%s", self.restrictions)
 
         self.availability = RawSectionAvailability(self.spire_id, availability)
-        log.info("Scraped section availability:\n%s", self.availability)
+        log.debug("Scraped section availability:\n%s", self.availability)
 
         self.description = description
         self.overview = overview

@@ -65,7 +65,7 @@ class RawSectionAvailability(RawDictionary):
             self.combined_availability = RawCombinedSectionAvailability(
                 spire_id, table["Combined Availability"]
             )
-            log.info("Scraped combined availability:\n%s", self.combined_availability)
+            log.debug("Scraped combined availability:\n%s", self.combined_availability)
             super().__init__(
                 SectionAvailability,
                 spire_id,

@@ -80,7 +80,7 @@ class RawCourseDetail(RawDictionary):
     def __init__(self, course_id: str, table: dict[str, str]) -> None:
         if "Units" in table:
             self.units = RawUnits(table["Units"])
-            log.info("Scraped units: %s", self.units)
+            log.debug("Scraped units: %s", self.units)
             del table["Units"]
 
         super().__init__(

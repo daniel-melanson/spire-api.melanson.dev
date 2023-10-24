@@ -138,7 +138,7 @@ class RawSectionMeetingSchedule(RawObject):
 class RawSectionMeetingInformation(RawObject):
     def __init__(self, spire_id: str, table: dict[str, Any]) -> None:
         self.room = get_raw_building_room(table["room"])
-        log.info("Scraped building room:\n%s", self.room)
+        log.debug("Scraped building room:\n%s", self.room)
 
         self.room_raw = table["room"]
 
@@ -148,11 +148,11 @@ class RawSectionMeetingInformation(RawObject):
         days_and_times = table["days_and_times"]
         if days_and_times not in ("TBA", "TBA 1:00AM - 1:00AM"):
             self.schedule = RawSectionMeetingSchedule(days_and_times)
-            log.info("Scraped meeting schedule:\n%s", self.schedule)
+            log.debug("Scraped meeting schedule:\n%s", self.schedule)
 
         if days_and_times not in ("TBA"):
             self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
-            log.info("Scraped meeting_dates:\n%s", self.meeting_dates)
+            log.debug("Scraped meeting_dates:\n%s", self.meeting_dates)
 
         super().__init__(
             SectionMeetingInformation,

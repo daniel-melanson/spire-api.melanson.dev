@@ -189,7 +189,7 @@ class RawObject:
             **kwargs, defaults=defaults
         )
 
-        log.info("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)  # type: ignore
+        log.debug("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)  # type: ignore
 
         return object
 

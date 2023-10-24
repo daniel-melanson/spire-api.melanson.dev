@@ -49,11 +49,11 @@ class RawCourse(RawObject):
         self.description = description
 
         self.details = RawCourseDetail(self.id, details)
-        log.info("Scraped course detail:\n%s", self.details)
+        log.debug("Scraped course detail:\n%s", self.details)
 
         if self.details.academic_group is not None:
             self._raw_group = RawAcademicGroup(self.details.academic_group)
-            log.info("Scraped academic group:\n%s", self._raw_group)
+            log.debug("Scraped academic group:\n%s", self._raw_group)
 
         if enrollment_information:
             self.enrollment_information = RawCourseEnrollmentInformation(
