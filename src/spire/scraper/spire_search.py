@@ -121,7 +121,7 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
     return meeting_instructor_list
 
 
-def can_skip(
+def _can_skip(
     driver: SpireDriver, offering: CourseOffering, spire_id: str, link_number: str
 ):
     try:
@@ -193,9 +193,9 @@ SPIRE_ID_OVERRIDES = {
 def _scrape_search_results(
     driver: SpireDriver,
     cache: VersionedCache,
-    quick: bool,
     term: Term,
     subject: Subject,
+    quick=False,
 ):
     scraped_section_count = 0
     found_section_count = 0
@@ -284,7 +284,7 @@ def _scrape_search_results(
             log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
             if quick:
-                can_skip_section, reason = can_skip(
+                can_skip_section, reason = _can_skip(
                     driver, offering, spire_id, link_number
                 )
                 if can_skip_section:
@@ -399,25 +399,13 @@ def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):
         driver.wait_for_spire()
 
 
-def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
-    log.info("Scraping sections...")
-
-    # driver.navigate_to(SpirePage.ClassSearch)
-
-    total_timer = Timer()
-    scraped_terms = 0
-
-    total_scraped = 0
-    total_found = 0
-
+def _get_select_values(driver: SpireDriver):
     def get_option_values(select: WebElement) -> list[tuple[str, str]]:
         return [
             (e.get_property("value"), e.text)
             for e in select.find_elements(By.CSS_SELECTOR, "option")
             if len(e.get_property("value")) > 0  # type: ignore
         ]
-
-    driver.switch()
 
     # Fetch subject option values
     subject_select: WebElement = driver.wait_for_interaction(
@@ -433,8 +421,93 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
     assert term_select
     term_values: list[tuple[str, str]] = get_option_values(term_select)
 
+    return (term_values, subject_values)
+
+
+def _should_skip_term(coverage):
+    return False
+    if coverage.completed and settings.SCRAPER["SKIP_OLD_TERMS"]:
+        year = coverage.term.year
+        season = coverage.term.season
+
+        match season:
+            case "Fall":
+                end_date = datetime(year=year + 1, month=1, day=1)
+            case "Winter":
+                end_date = datetime(year=year + 1, month=2, day=15)
+            case "Spring":
+                end_date = datetime(year=year, month=6, day=1)
+            case "Summer":
+                end_date = datetime(year=year, month=9, day=15)
+            case _:
+                assert False
+
+        if coverage.end_time and timezone.make_aware(end_date) < coverage.end_time:
+            log.info(
+                "Skipping the %s term, as information is static.", coverage.term.id
+            )
+            return True
+
+    return False
+
+
+def _search_query(driver: SpireDriver, cache, term, subject, quick=False):
+    log.info("Searching for sections in subject %s during %s...", subject.id, term)
+    subject_timer = Timer()
+    driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
+
+    assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
+    return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
+
+    if not return_button:
+        error_message_span = driver.find("DERIVED_CLSMSG_ERROR_TEXT")
+        assert error_message_span
+        warning = error_message_span.text
+        if (
+            warning
+            == "The search returns no results that match the criteria specified."
+        ):
+            log.info("There are no %s section during %s. Skipping.", subject, term)
+            return (0, 0)
+        else:
+            log.warning("Failed while searching: %s", error_message_span.text)
+            raise Exception(f"Unexpected search error: {warning}")
+
+    scraped, found = _scrape_search_results(driver, cache, term, subject, quick=quick)
+
+    log.info(
+        "Scraped %s %s sections during %s in %s. Returning...",
+        scraped,
+        subject,
+        term,
+        subject_timer,
+    )
+
+    driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
+
+    return scraped, found
+
+
+def scrape_sections(
+    driver: SpireDriver, cache: VersionedCache, quick=False, subject_regex=r".+"
+):
+    log.info("Scraping sections...")
+
+    # driver.navigate_to(SpirePage.ClassSearch)
+
+    total_timer = Timer()
+    scraped_terms = 0
+
+    # For running skip percentage
+    total_scraped = 0
+    total_found = 0
+
+    driver.switch()
+
+    (term_values, subject_values) = _get_select_values(driver)
+
     # For each term, 5 academic years from the most recently posted year
-    for term_offset in range(cache.get("term_offset", 4 * 5 - 1), -1, -1):  # type: ignore
+    for term_offset in range(cache.get("term_offset", 4 * 2 - 1), -1, -1):  # type: ignore
         cache.push("term_offset", term_offset)
 
         (term_id, flipped_term) = term_values[term_offset]
@@ -447,23 +520,8 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             defaults={"completed": False, "start_time": timezone.now()},
         )
 
-        if coverage.completed and settings.SCRAPER["SKIP_OLD_TERMS"]:
-            year = int(year)
-            match season:
-                case "Fall":
-                    end_date = datetime(year=year + 1, month=1, day=1)
-                case "Winter":
-                    end_date = datetime(year=year + 1, month=2, day=15)
-                case "Spring":
-                    end_date = datetime(year=year, month=6, day=1)
-                case "Summer":
-                    end_date = datetime(year=year, month=9, day=15)
-                case _:
-                    assert False
-
-            if coverage.end_time and timezone.make_aware(end_date) < coverage.end_time:
-                log.info("Skipping the %s term, as information is static.", term)
-                continue
+        if _should_skip_term(coverage):
+            continue
 
         log.info("Scraping sections during %s...", term)
         term_timer = Timer()
@@ -471,7 +529,6 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
         # For each subject
         for subject_id, subject_title in cache.skip_once(subject_values, "subject"):
             cache.push("subject", (subject_id, subject_title))
-            subject_timer = Timer()
 
             # Initialize and search for subject during term
             _initialize_query(driver, term_id, subject_id)
@@ -479,51 +536,17 @@ def scrape_sections(driver: SpireDriver, cache: VersionedCache, quick=False):
             raw_subject = RawSubject(subject_id, subject_title)
             subject = raw_subject.push()
 
-            log.info(
-                "Searching for sections in subject %s during %s...", subject.id, term
-            )
-            driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
+            # Execute search
+            scraped, found = _search_query(driver, cache, term, subject, quick=quick)
 
-            assert driver.find("win0divDERIVED_CLSRCH_SSR_CLASS_LBLlbl")
-
-            return_button = driver.find("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
-
-            if return_button:
-                scraped, found = _scrape_search_results(
-                    driver, cache, quick, term, subject
-                )
+            if quick:
+                total_scraped += scraped
+                total_found += found
 
                 log.info(
-                    "Scraped %s %s sections during %s in %s. Returning...",
-                    scraped,
-                    subject,
-                    term,
-                    subject_timer,
+                    "Running skip percentage of: %.2f%%",
+                    (1 - (total_scraped / total_found)) * 100,
                 )
-
-                if quick:
-                    total_scraped += scraped
-                    total_found += found
-
-                    log.info(
-                        "Running skip percentage of: %.2f%%",
-                        (1 - (total_scraped / total_found)) * 100,
-                    )
-                driver.click("CLASS_SRCH_WRK2_SSR_PB_NEW_SEARCH")
-            else:
-                error_message_span = driver.find("DERIVED_CLSMSG_ERROR_TEXT")
-                assert error_message_span
-                warning = error_message_span.text
-                if (
-                    warning
-                    == "The search returns no results that match the criteria specified."
-                ):
-                    log.info(
-                        "There are no %s section during %s. Skipping.", subject, term
-                    )
-                else:
-                    log.warning("Failed while searching: %s", error_message_span.text)
-                    raise Exception(f"Unexpected search error: {warning}")
 
         coverage.completed = True
         coverage.end_time = timezone.now()
