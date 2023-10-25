@@ -164,7 +164,7 @@ class RawSectionMeetingInformation(RawObject):
         mi = SectionMeetingInformation.objects.create(
             section=section, room=self.room.push(), room_raw=self.room_raw
         )
-        log.info("Created SectionMeetingInformation: %s", mi)
+        log.debug("Created SectionMeetingInformation: %s", mi)
 
         if hasattr(self, "schedule"):
             self.schedule.push(meeting_information=mi)

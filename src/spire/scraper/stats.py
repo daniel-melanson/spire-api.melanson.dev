@@ -3,7 +3,7 @@ class Stats:
         self._stats = {}
 
     def get(self, key: str):
-        return self._stats[key]
+        return self._stats.get(key, 0)
 
     def increment(self, key: str, by=1):
         if key not in self._stats:

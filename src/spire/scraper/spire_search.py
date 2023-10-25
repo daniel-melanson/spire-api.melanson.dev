@@ -197,6 +197,151 @@ SPIRE_ID_OVERRIDES = {
 }
 
 
+def _scrape_section(
+    context: ScrapeContext, offering, section_table_id: str, link_id: str, quick: bool
+):
+    driver = context.driver
+    link = driver.find(link_id)
+    assert link
+
+    t = link.text.strip()
+    spire_id = SPIRE_ID_OVERRIDES.get(t, t)
+
+    log.debug("Scraping section %s during %s...", spire_id, offering.term.id)
+
+    link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
+    meeting_instructor_list = _scrape_meeting_instructor_list(
+        driver.find(section_table_id), link_number
+    )
+    log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
+
+    if quick:
+        can_skip_section, reason = _can_skip(driver, offering, spire_id, link_number)
+        if can_skip_section:
+            log.debug("Skipping section: %s", spire_id)
+            return None
+        else:
+            log.debug("Not skipping section: %s - %s", spire_id, reason)
+
+    context.stats.increment("sections_scraped")
+
+    log.debug(
+        "Navigating to section page for %s section %s...", offering.course.id, spire_id
+    )
+    driver.click(link_id)
+
+    log.info("Scraping section page for %s - %s...", offering.course.id, spire_id)
+
+    table_results = scrape_spire_tables(driver, "table.PSGROUPBOXWBO")
+
+    meeting_info_list = []
+    for row in driver.find_all("tr[id^='trSSR_CLSRCH_MTG$0_row']"):
+        meeting_info_list.append(
+            {
+                "days_and_times": row.find_element(
+                    By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
+                ).text,
+                "instructors": meeting_instructor_list.pop(),
+                "room": row.find_element(By.CSS_SELECTOR, "span[id^=MTG_LOC]").text,
+                "meeting_dates": row.find_element(
+                    By.CSS_SELECTOR, "span[id^=MTG_DATE]"
+                ).text,
+            }
+        )
+
+    section = RawSection(
+        spire_id=spire_id,
+        details=table_results["Class Details"],
+        meeting_information=meeting_info_list,
+        restrictions=table_results.get("RESTRICTIONS & NOTES", None),
+        availability=table_results["Class Availability"],
+        description=table_results.get("Description", None),
+        overview=table_results.get("Class Overview", None),
+    )
+
+    log.info("Scraped section:\n%s", section)
+
+    log.debug("Clicking return then pushing...")
+    driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
+
+    section.push(offering)
+
+    driver.wait_for_spire()
+    log.debug(
+        "Returned to search results for %s durning %s.",
+        offering.course.subject.id,
+        offering.term.id,
+    )
+
+    return section
+
+
+def _scrape_course_offering(context: ScrapeContext, term, subject, span_id):
+    span = context.driver.find(span_id)
+    assert span
+
+    title_match = assert_match(
+        r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
+        COURSE_GROUP_OVERRIDES.get(span.text, span.text),
+    )
+
+    course_id, _, number = RawCourse.get_course_id(
+        title_match.group("subject_id"), title_match.group("course_number")
+    )
+
+    course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
+
+    course, created = Course.objects.get_or_create(  # type: ignore
+        id=course_id,
+        defaults={
+            "subject": subject,
+            "number": number,
+            "title": course_title,
+            "description": None,
+            "_updated_at": timezone.now(),
+        },
+    )
+
+    log.info(
+        "Scraping sections for %s %s during %s",
+        "new" if created else "found",
+        course,
+        term.id,
+    )
+
+    offering, created = CourseOffering.objects.get_or_create(  # type: ignore
+        course=course,
+        term=term,
+        defaults={
+            "subject": subject,
+            "alternative_title": course_title if course_title != course.title else None,
+        },
+    )
+
+    log.debug("%s course offering: %s", "Created" if created else "Got", offering)
+
+    return offering, created
+
+
+def _scrape_section_link_ids(driver: SpireDriver, section_table_id: str) -> list[str]:
+    sections_table = driver.find(section_table_id)
+    assert sections_table
+
+    return [
+        e.get_property("id")
+        for e in sections_table.find_elements(
+            By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG\\$']"
+        )
+    ]  # type: ignore
+
+
+def _drop_unfound(model, filter, exclude, log_message):
+    dropped, _ = model.objects.filter(**filter).exclude(**exclude).delete()
+
+    if dropped > 0:
+        log.info(log_message, dropped, model.__name__)
+
+
 def _scrape_search_results(
     context: ScrapeContext,
     term: Term,
@@ -207,170 +352,52 @@ def _scrape_search_results(
     cache = context.cache
 
     scraped_course_ids = set()
+
+    #  For each course span, which represents a course offering
     for span_id in cache.skip_once(
         driver.find_all_ids("span[id^=DERIVED_CLSRCH_DESCR200]"), "course_span_id"
     ):
         cache.push("course_span_id", span_id)
 
-        span = driver.find(span_id)
-        assert span
-
-        title_match = assert_match(
-            r"(?P<subject_id>\S+)\s+(?P<course_number>\S+)\s+(?P<course_title>.+)",
-            COURSE_GROUP_OVERRIDES.get(span.text, span.text),
-        )
-
-        course_id, _, number = RawCourse.get_course_id(
-            title_match.group("subject_id"), title_match.group("course_number")
-        )
-        scraped_course_ids.add(course_id)
-        course_title = REPLACE_DOUBLE_SPACE(title_match.group("course_title").strip())
-
-        course, created = Course.objects.get_or_create(  # type: ignore
-            id=course_id,
-            defaults={
-                "subject": subject,
-                "number": number,
-                "title": course_title,
-                "description": None,
-                "_updated_at": timezone.now(),
-            },
-        )
-
-        log.debug(
-            "Scraping sections for %s course: %s", "new" if created else "found", course
-        )
-
-        offering, created = CourseOffering.objects.get_or_create(  # type: ignore
-            course=course,
-            term=term,
-            defaults={
-                "subject": subject,
-                "alternative_title": course_title
-                if course_title != course.title
-                else None,
-            },
-        )
-
-        log.debug("%s course offering: %s", "Created" if created else "Got", offering)
+        # Get corresponding offering and course
+        offering, course = _scrape_course_offering(context, term, subject, span_id)
+        scraped_course_ids.add(course.id)
 
         scraped_spire_ids_for_course = set()
 
+        # table that lists all sections for a course
         section_table_id = (
             "ACE_DERIVED_CLSRCH_GROUPBOX1$133$"
             + span_id[len("DERIVED_CLSRCH_DESCR200") :]
         )
-        sections_table = driver.find(section_table_id)
-        assert sections_table
 
-        link_ids: list[str] = [
-            e.get_property("id")
-            for e in sections_table.find_elements(
-                By.CSS_SELECTOR, "a[id^='DERIVED_CLSRCH_SSR_CLASSNAME_LONG\\$']"
-            )
-        ]  # type: ignore
+        # Get all section links for that course
+        link_ids = _scrape_section_link_ids(driver, section_table_id)
 
         context.stats.increment("sections_found", len(link_ids))
 
+        # For each section link id
         for link_id in link_ids:
-            link = driver.find(link_id)
-            assert link
-
-            t = link.text.strip()
-            spire_id = SPIRE_ID_OVERRIDES.get(t, t)
-
-            scraped_spire_ids_for_course.add(spire_id)
-
-            log.debug("Scraping section %s during %s...", spire_id, term.id)
-
-            link_number = link_id[len("DERIVED_CLSRCH_SSR_CLASSNAME_LONG$") :]
-            meeting_instructor_list = _scrape_meeting_instructor_list(
-                driver.find(section_table_id), link_number
-            )
-            log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
-
-            if quick:
-                can_skip_section, reason = _can_skip(
-                    driver, offering, spire_id, link_number
-                )
-                if can_skip_section:
-                    log.debug("Skipping section: %s", spire_id)
-                    continue
-                else:
-                    log.debug("Not skipping section: %s - %s", spire_id, reason)
-
-            context.stats.increment("sections_scraped")
-
-            log.debug(
-                "Navigating to section page for %s section %s...", course_id, spire_id
-            )
-            driver.click(link_id)
-
-            table_results = scrape_spire_tables(driver, "table.PSGROUPBOXWBO")
-
-            meeting_info_list = []
-            for row in driver.find_all("tr[id^='trSSR_CLSRCH_MTG$0_row']"):
-                meeting_info_list.append(
-                    {
-                        "days_and_times": row.find_element(
-                            By.CSS_SELECTOR, "span[id^=MTG_SCHED]"
-                        ).text,
-                        "instructors": meeting_instructor_list.pop(),
-                        "room": row.find_element(
-                            By.CSS_SELECTOR, "span[id^=MTG_LOC]"
-                        ).text,
-                        "meeting_dates": row.find_element(
-                            By.CSS_SELECTOR, "span[id^=MTG_DATE]"
-                        ).text,
-                    }
-                )
-
-            section = RawSection(
-                spire_id=spire_id,
-                details=table_results["Class Details"],
-                meeting_information=meeting_info_list,
-                restrictions=table_results.get("RESTRICTIONS & NOTES", None),
-                availability=table_results["Class Availability"],
-                description=table_results.get("Description", None),
-                overview=table_results.get("Class Overview", None),
+            section = _scrape_section(
+                context, offering, section_table_id, link_id, quick=quick
             )
 
-            log.info("Scraped section:\n%s", section)
+            if section:
+                scraped_spire_ids_for_course.add(section.spire_id)
 
-            log.debug("Clicking return then pushing...")
-            driver.click("CLASS_SRCH_WRK2_SSR_PB_BACK", wait=False)
-
-            section.push(offering)
-
-            driver.wait_for_spire()
-            log.debug("Returned to search results for %s durning %s.", subject, term)
-
-        dropped, _ = (
-            Section.objects.filter(offering__course=course, offering__term=term)  # type: ignore
-            .exclude(spire_id__in=scraped_spire_ids_for_course)
-            .delete()
+        _drop_unfound(
+            Section,
+            {"offering__term": term, "offering__course": course},
+            {"spire_id__in": scraped_spire_ids_for_course},
+            f"Dropped %d {course.id} sections during {term.id} that are no longer listed.",
         )
-        if dropped > 0:
-            log.info(
-                "Dropped %s %s sections during %s that are no longer listed.",
-                dropped,
-                course_id,
-                term,
-            )
 
-    dropped, _ = (
-        CourseOffering.objects.filter(subject=subject, term=term)  # type: ignore
-        .exclude(course__id__in=scraped_course_ids)
-        .delete()
+    _drop_unfound(
+        CourseOffering,
+        {"subject": subject, "term": term},
+        {"course__id__in": scraped_course_ids},
+        f"Dropped %d {subject.id} course offerings during {term.id} that are no longer listed.",
     )
-
-    if dropped > 0:
-        log.info(
-            "Dropped %s %s course offerings during %s that are no longer listed.",
-            dropped,
-            subject.id,
-            term,
-        )
 
 
 def _initialize_query(driver: SpireDriver, term_id: str, subject_id: str):

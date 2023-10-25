@@ -52,7 +52,7 @@ class RawSection(RawObject):
         self.meeting_information = [
             RawSectionMeetingInformation(self.spire_id, x) for x in meeting_information
         ]
-        log.info(
+        log.debug(
             "Scraped section meeting information: [\n%s]",
             "\n".join([str(x) for x in self.meeting_information]),
         )
