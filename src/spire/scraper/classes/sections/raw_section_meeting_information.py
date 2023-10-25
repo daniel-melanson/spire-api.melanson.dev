@@ -100,11 +100,10 @@ class RawSectionMeetingDates(RawObject):
 
 class RawSectionMeetingSchedule(RawObject):
     def __init__(self, days_and_times) -> None:
-        m = re.fullmatch(
+        m = assert_match(
             r"(?P<days>(Mo|Tu|We|Th|Fr|Sa|Su){1,6}) (?P<start_time>\d\d?:\d\d)(?P<start_m>AM|PM) - (?P<end_time>\d\d?:\d\d)(?P<end_m>AM|PM)",
             days_and_times,
         )
-        assert m
 
         self.days = []
 
@@ -146,11 +145,12 @@ class RawSectionMeetingInformation(RawObject):
         assert len(self.instructors) > 0
 
         days_and_times = table["days_and_times"]
-        if days_and_times not in ("TBA", "TBA 1:00AM - 1:00AM"):
+        log.debug("Processing date and time: %s", days_and_times)
+        if days_and_times.lower() not in ("tba", "tba 1:00am - 1:00am", "n/a"):
             self.schedule = RawSectionMeetingSchedule(days_and_times)
             log.debug("Scraped meeting schedule:\n%s", self.schedule)
 
-        if days_and_times not in ("TBA"):
+        if days_and_times.lower() not in ("tba", "n/a"):
             self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
             log.debug("Scraped meeting_dates:\n%s", self.meeting_dates)
 

@@ -1,17 +1,15 @@
 # type: ignore
 
 import logging
-import time
 from enum import Enum
 from typing import Union
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver import Remote
+from selenium.webdriver import Remote, Firefox
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
@@ -27,14 +25,12 @@ class SpirePage(Enum):
 class SpireDriver:
     def __init__(self):
         log.info("Creating driver...")
-        options = Options()
-        options.headless = settings.SCRAPER["HEADLESS"]
 
         selenium_server_url = settings.SCRAPER["SELENIUM_SERVER_URL"]
         if selenium_server_url:
-            self._driver = Remote(command_executor=selenium_server_url, options=options)
+            self._driver = Remote(command_executor=selenium_server_url)
         else:
-            self._driver = WebDriver(options=options)
+            self._driver = Firefox()
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
 
@@ -52,7 +48,7 @@ class SpireDriver:
         log.info("Driver created.")
 
     @property
-    def root_driver(self) -> WebDriver:
+    def root_driver(self) -> Firefox:
         return self._driver
 
     def switch(self):

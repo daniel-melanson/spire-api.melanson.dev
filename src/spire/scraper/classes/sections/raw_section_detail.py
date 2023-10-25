@@ -61,6 +61,7 @@ class_component_set = set(
         "Seminar",
         "Studio/Skills",
         "Online",
+        "Flex Option",
     ]
 )
 

@@ -527,7 +527,7 @@ def _scrape_term(
     ):
         context.cache.push("subject", (subject_value, subject_title))
 
-        # Initialize and search for subject during term
+        # Initialize and search for subject durn/aing term
         _initialize_query(context.driver, term_value, subject_value)
 
         raw_subject = RawSubject(subject_value, subject_title)
