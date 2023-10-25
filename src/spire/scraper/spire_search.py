@@ -128,58 +128,51 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
     return meeting_instructor_list
 
 
-def _can_skip(
-    driver: SpireDriver, offering: CourseOffering, spire_id: str, link_number: str
-):
-    try:
-        section = Section.objects.get(spire_id=spire_id, offering=offering)  # type: ignore
+def _can_skip(driver: SpireDriver, section: Section, link_number: str):
+    if SectionCombinedAvailability.objects.filter(  # type: ignore
+        individual_availability_id=section.id
+    ).first():
+        return False, "section is combined"
 
-        if SectionCombinedAvailability.objects.filter(  # type: ignore
-            individual_availability_id=section.id
-        ).first():
-            return False, "section is combined"
+    status_icon = driver.find(
+        f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\\${link_number} > div > img",
+        By.CSS_SELECTOR,
+    )
 
-        status_icon = driver.find(
-            f"#win0divDERIVED_CLSRCH_SSR_STATUS_LONG\\${link_number} > div > img",
-            By.CSS_SELECTOR,
+    src: str = status_icon.get_attribute("src")  # type: ignore
+    if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif"):
+        current_status = "Wait List"
+    elif src.endswith("PS_CS_STATUS_OPEN_ICN_1.gif"):
+        current_status = "Open"
+    elif src.endswith("PS_CS_STATUS_CLOSED_ICN_1.gif"):
+        current_status = "Closed"
+    else:
+        log.debug(
+            "Uncaught image src: %s",
+        )
+        assert False
+
+    if section.details.status != current_status:
+        return False, "mismatched status"
+
+    ce_elem = driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number)
+    assert ce_elem
+    current_enrollment = int(ce_elem.text)
+
+    if section.availability.enrollment_total != current_enrollment:
+        return False, "mismatched enrollment total"
+
+    cc_elem = driver.find("UM_DERIVED_SR_ENRL_CAP$" + link_number)
+    assert cc_elem
+    current_capacity = int(cc_elem.text)
+
+    if section.availability.capacity != current_capacity:
+        return (
+            False,
+            f"mismatched capacity, {section.availability.capacity} != {current_capacity}",
         )
 
-        src: str = status_icon.get_attribute("src")  # type: ignore
-        if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif"):
-            current_status = "Wait List"
-        elif src.endswith("PS_CS_STATUS_OPEN_ICN_1.gif"):
-            current_status = "Open"
-        elif src.endswith("PS_CS_STATUS_CLOSED_ICN_1.gif"):
-            current_status = "Closed"
-        else:
-            log.debug(
-                "Uncaught image src: %s",
-            )
-            assert False
-
-        if section.details.status != current_status:
-            return False, "mismatched status"
-
-        ce_elem = driver.find("UM_DERIVED_SR_ENRL_TOT$" + link_number)
-        assert ce_elem
-        current_enrollment = int(ce_elem.text)
-
-        if section.availability.enrollment_total != current_enrollment:
-            return False, "mismatched enrollment total"
-
-        cc_elem = driver.find("UM_DERIVED_SR_ENRL_CAP$" + link_number)
-        assert cc_elem
-        current_capacity = int(cc_elem.text)
-
-        if section.availability.capacity != current_capacity:
-            return (
-                False,
-                f"mismatched capacity, {section.availability.capacity} != {current_capacity}",
-            )
-
-        return True, "OK"
-    except Section.DoesNotExist:  # type: ignore
-        return False, "does not exist"
+    return True, "OK"
 
 
 # Extremely rare cases
@@ -215,11 +208,16 @@ def _scrape_section(
     )
     log.debug("Scraped meeting instructor list: %s", meeting_instructor_list)
 
-    if quick:
-        can_skip_section, reason = _can_skip(driver, offering, spire_id, link_number)
+    try:
+        section = Section.objects.get(spire_id=spire_id, offering=offering)  # type: ignore
+    except Section.DoesNotExist:
+        section = None
+
+    if section and quick:
+        can_skip_section, reason = _can_skip(driver, section, link_number)
         if can_skip_section:
             log.debug("Skipping section: %s", spire_id)
-            return None
+            return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)
 
@@ -320,7 +318,7 @@ def _scrape_course_offering(context: ScrapeContext, term, subject, span_id):
 
     log.debug("%s course offering: %s", "Created" if created else "Got", offering)
 
-    return offering, created
+    return offering, course
 
 
 def _scrape_section_link_ids(driver: SpireDriver, section_table_id: str) -> list[str]:
@@ -339,7 +337,7 @@ def _drop_unfound(model, filter, exclude, log_message):
     dropped, _ = model.objects.filter(**filter).exclude(**exclude).delete()
 
     if dropped > 0:
-        log.info(log_message, dropped, model.__name__)
+        log.info(log_message, dropped)
 
 
 def _scrape_search_results(
@@ -382,8 +380,7 @@ def _scrape_search_results(
                 context, offering, section_table_id, link_id, quick=quick
             )
 
-            if section:
-                scraped_spire_ids_for_course.add(section.spire_id)
+            scraped_spire_ids_for_course.add(section.spire_id)
 
         _drop_unfound(
             Section,
