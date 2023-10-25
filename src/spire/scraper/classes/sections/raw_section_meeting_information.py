@@ -54,7 +54,7 @@ class RawInstructor(RawObject):
         else:
             staff, created = Instructor.objects.get_or_create(name=self.name)
 
-        log.info(
+        log.debug(
             "%s instructor %s from %s", "Created" if created else "Updated", staff, self
         )
 

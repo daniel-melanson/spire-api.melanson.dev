@@ -216,10 +216,14 @@ def _scrape_section(
     if section and quick:
         can_skip_section, reason = _can_skip(driver, section, link_number)
         if can_skip_section:
-            log.debug("Skipping section: %s", spire_id)
+            log.info("Skipping %s", section)
             return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)
+    elif not quick:
+        reason = "not quick"
+    else:
+        reason = "does not exist"
 
     context.stats.increment("sections_scraped")
 
@@ -228,7 +232,13 @@ def _scrape_section(
     )
     driver.click(link_id)
 
-    log.info("Scraping section page for %s - %s...", offering.course.id, spire_id)
+    log.info(
+        "Scraping section page for %s - %s during %s (%s)...",
+        offering.course.id,
+        spire_id,
+        offering.term.id,
+        reason,
+    )
 
     table_results = scrape_spire_tables(driver, "table.PSGROUPBOXWBO")
 
@@ -301,7 +311,7 @@ def _scrape_course_offering(context: ScrapeContext, term, subject, span_id):
     )
 
     log.info(
-        "Scraping sections for %s %s during %s",
+        "Scraping sections for %s %s during %s...",
         "new" if created else "found",
         course,
         term.id,
@@ -387,6 +397,13 @@ def _scrape_search_results(
             {"offering__term": term, "offering__course": course},
             {"spire_id__in": scraped_spire_ids_for_course},
             f"Dropped %d {course.id} sections during {term.id} that are no longer listed.",
+        )
+
+        log.info(
+            "Scraped %d %s sections during %s.",
+            len(scraped_spire_ids_for_course),
+            course,
+            term.id,
         )
 
     _drop_unfound(
@@ -492,7 +509,7 @@ def _should_skip_term(coverage):
 def _search_query(context: ScrapeContext, term, subject, quick=False):
     driver = context.driver
 
-    log.info("Searching for sections in subject %s during %s...", subject.id, term)
+    log.info("Searching for sections in %s during %s...", subject, term.id)
     subject_timer = Timer()
     driver.click("CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH")
 
@@ -508,7 +525,7 @@ def _search_query(context: ScrapeContext, term, subject, quick=False):
             == "The search returns no results that match the criteria specified."
         ):
             log.info("There are no %s section during %s. Skipping.", subject, term)
-            return (0, 0)
+            return
         else:
             log.warning("Failed while searching: %s", error_message_span.text)
             raise Exception(f"Unexpected search error: {warning}")
@@ -540,9 +557,10 @@ def _scrape_term(
     )
 
     if _should_skip_term(coverage):
+        log.info("Skipping the %s term, as information is static.", term.id)
         return
 
-    log.info("Scraping sections during %s...", term)
+    log.info("Scraping sections during %s...", term.id)
     timer = Timer()
 
     # For each subject
@@ -565,7 +583,7 @@ def _scrape_term(
             sections_found = context.stats.get("sections_found")
 
             log.info(
-                "Running skip percentage of: %.2f%% per term",
+                "Running skip percentage of: %.2f%%",
                 (1 - (sections_scraped / sections_found)) * 100,
             )
 
@@ -573,7 +591,7 @@ def _scrape_term(
     coverage.end_time = timezone.now()
     coverage.save()
 
-    log.info("Scraped sections for the %s term in %s.", term, timer)
+    log.info("Scraped sections during %s in %s.", term, timer)
 
 
 def scrape_single_term(context: ScrapeContext, season, year, **kwargs) -> None:
@@ -585,13 +603,13 @@ def scrape_single_term(context: ScrapeContext, season, year, **kwargs) -> None:
     term_value = [v for (v, id) in term_options if term.id == id][0]
 
     _scrape_term(context, term, term_value, subject_options, **kwargs)
-    log.info("Scraped sections for single term %s...", term.id)
+    log.info("Scraped sections for single term %s.", term.id)
 
 
 def scrape_all_terms(context: ScrapeContext, **options):
     log.info("Scraping sections for all terms...")
 
-    total_timer = Timer()
+    timer = Timer()
 
     (term_options, subject_options) = _get_select_options(context.driver)
 
@@ -607,4 +625,4 @@ def scrape_all_terms(context: ScrapeContext, **options):
 
         context.stats.increment("terms_scraped")
 
-    log.info("Scraped %s terms in %s.", context.stats.get("terms_scraped"), total_timer)
+    log.info("Scraped %s terms in %s.", context.stats.get("terms_scraped"), timer)
