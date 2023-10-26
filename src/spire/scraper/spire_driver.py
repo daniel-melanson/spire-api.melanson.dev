@@ -28,9 +28,11 @@ class SpireDriver:
 
         selenium_server_url = settings.SCRAPER["SELENIUM_SERVER_URL"]
         if selenium_server_url:
-            self._driver = Remote(command_executor=selenium_server_url)
+            self._driver = Remote(
+                command_executor=selenium_server_url, options=Options()
+            )
         else:
-            self._driver = Firefox()
+            self._driver = Firefox(options=Options())
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
 
@@ -111,7 +113,11 @@ class SpireDriver:
 
     def wait_for_spire(self) -> None:
         log.debug("Waiting for spire...")
-        self._wait.until_not(EC.visibility_of_element_located((By.ID, "processing")))
+        self._wait.until_not(
+            EC.text_to_be_present_in_element_attribute(
+                (By.CSS_SELECTOR, "body.PSPAGE"), "style", "none"
+            )
+        )
 
     def find(self, id: str, by: str = By.ID) -> Union[WebElement, None]:
         try:

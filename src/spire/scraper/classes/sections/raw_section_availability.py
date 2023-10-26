@@ -2,8 +2,8 @@ import logging
 import re
 from typing import Any
 
-from spire.models import Section, SectionAvailability, SectionCombinedAvailability
-from spire.scraper.classes.shared import RawDictionary, RawField
+from spire.models import Section, SectionAvailability, SectionCombinedCapacity
+from spire.scraper.classes.shared import RawDictionary, RawField, RawObject
 from spire.scraper.shared import assert_match
 
 log = logging.getLogger(__name__)
@@ -44,17 +44,64 @@ def section_list_normalizer(lst):
     return sections
 
 
-class RawCombinedSectionAvailability(RawDictionary):
-    def __init__(self, spire_id: str, table: dict[str, str]) -> None:
-        super().__init__(
-            SectionCombinedAvailability,
-            spire_id,
-            table,
-            [
-                RawField(k="Sections", normalizers=[section_list_normalizer]),
-                *AVAILABILITY_FIELDS,
-            ],
-        )
+def _get_combined_capacity(sections, term, defaults):
+    log.debug("Searching for a combined capacity with %s during %s", sections, term.id)
+    for sprie_id in sections:
+        try:
+            section = Section.objects.get(offering__term=term, spire_id=sprie_id)
+
+            availability = section.availability
+            if availability and availability.combined_capacity:
+                log.debug("Found combined capacity")
+                combined_capacity = availability.combined_capacity
+
+                combined_capacity.capacity = defaults["capacity"]
+                combined_capacity.wait_list_capacity = defaults["wait_list_capacity"]
+                combined_capacity.nso_enrollment_capacity = defaults[
+                    "nso_enrollment_capacity"
+                ]
+                combined_capacity.save()
+
+                return combined_capacity
+        except Section.DoesNotExist:  # type: ignore
+            continue
+
+    log.debug("No combined capacity found, returning")
+    return SectionCombinedCapacity.objects.create(**defaults)
+
+
+class RawSectionCombinedCapacity:
+    def __init__(self, table: dict[str, str]) -> None:
+        self.sections = table["Sections"]
+        self.capacity = table["Capacity"]
+        self.wait_list_capacity = table["Wait List Capacity"]
+        self.nso_enrollment_capacity = table.get("NSO Enrollment Capacity", None)
+
+    def push(self, individual_availability: SectionAvailability):
+        if individual_availability.combined_capacity:
+            combined_capacity = individual_availability.combined_capacity
+
+            combined_capacity.capacity = self.capacity
+            combined_capacity.wait_list_capacity = self.wait_list_capacity
+            combined_capacity.nso_enrollment_capacity = self.nso_enrollment_capacity
+
+            combined_capacity.save()
+        else:
+            section = individual_availability.section
+
+            individual_availability.combined_capacity = _get_combined_capacity(
+                term=section.offering.term,
+                sections=self.sections,
+                defaults={
+                    "capacity": self.capacity,
+                    "wait_list_capacity": self.wait_list_capacity,
+                    "nso_enrollment_capacity": self.nso_enrollment_capacity,
+                },
+            )
+
+            log.debug("Updated %s", individual_availability.combined_capacity)
+
+            individual_availability.save()
 
 
 class RawSectionAvailability(RawDictionary):
@@ -62,10 +109,10 @@ class RawSectionAvailability(RawDictionary):
         self._is_combined = "Individual Availability" in table
 
         if self._is_combined:
-            self.combined_availability = RawCombinedSectionAvailability(
-                spire_id, table["Combined Availability"]
+            self.combined_capacity = RawSectionCombinedCapacity(
+                table["Combined Availability"]
             )
-            log.debug("Scraped combined availability:\n%s", self.combined_availability)
+            log.debug("Scraped combined capacity:\n%s", self.combined_capacity)
             super().__init__(
                 SectionAvailability,
                 spire_id,
@@ -91,4 +138,4 @@ class RawSectionAvailability(RawDictionary):
         availability = super().push(section=section)
 
         if self._is_combined:
-            self.combined_availability.push(individual_availability=availability)
+            self.combined_capacity.push(individual_availability=availability)

@@ -78,7 +78,7 @@ def scrape(s, func, **kwargs):
 
             cache.commit()
             log.debug("Cache updated to: %s", cache)
-            with open("./src/spire/scraper/debug_cache.py", "w") as f:
+            with open("./src/spire/scraper/debug_cache.py", "w+") as f:
                 f.write(
                     dedent(
                         f"""

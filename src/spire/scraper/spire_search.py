@@ -129,9 +129,7 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
 
 
 def _can_skip(driver: SpireDriver, section: Section, link_number: str):
-    if SectionCombinedAvailability.objects.filter(  # type: ignore
-        individual_availability_id=section.id
-    ).first():
+    if driver.find(f"win0divDERIVED_CLSRCH_CMB_SCT_DTL_PB\\${link_number}"):
         return False, "section is combined"
 
     status_icon = driver.find(
@@ -172,7 +170,7 @@ def _can_skip(driver: SpireDriver, section: Section, link_number: str):
             f"mismatched capacity, {section.availability.capacity} != {current_capacity}",
         )
 
-    return True, "OK"
+    return True, "passed all checks"
 
 
 # Extremely rare cases
@@ -216,7 +214,7 @@ def _scrape_section(
     if section and quick:
         can_skip_section, reason = _can_skip(driver, section, link_number)
         if can_skip_section:
-            log.info("Skipping %s", section)
+            log.info("Skipping %s - %s", section, reason)
             return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)

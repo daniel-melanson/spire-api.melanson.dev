@@ -5,6 +5,7 @@ from spire.models import (
     Section,
     SectionAvailability,
     SectionCombinedAvailability,
+    SectionCombinedCapacity,
     SectionCoverage,
     SectionDetail,
     SectionMeetingInformation,
@@ -55,18 +56,29 @@ class SectionMeetingInformationSerializer(ModelSerializer):
         exclude = ["section", "id"]
 
 
-class SectionAvailabilitySerializer(ModelSerializer):
-    class Meta:
-        model = SectionAvailability
-        exclude = ["section"]
-
-
-class SectionCombinedAvailabilitySerializer(HyperlinkedModelSerializer):
+class SectionAvailabilityFieldSerializer(ModelSerializer):
     section = SectionFieldSerializer()
 
     class Meta:
-        model = SectionCombinedAvailability
+        model = SectionAvailability
         fields = "__all__"
+
+
+class SectionCombinedCapacitySerializer(ModelSerializer):
+    section = SectionFieldSerializer()
+    individual_availabilities = SectionAvailabilityFieldSerializer(many=True)
+
+    class Meta:
+        model = SectionCombinedCapacity
+        exclude = ["id"]
+
+
+class SectionAvailabilitySerializer(ModelSerializer):
+    combined_capacity = SectionCombinedCapacitySerializer()
+
+    class Meta:
+        model = SectionAvailability
+        exclude = ["section"]
 
 
 class SectionRestrictionSerializer(ModelSerializer):

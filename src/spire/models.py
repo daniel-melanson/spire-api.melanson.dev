@@ -17,6 +17,7 @@ from django.db.models import (
     OneToOneField,
     TimeField,
 )
+from django.db.models.fields import PositiveIntegerField
 
 from spire.patterns import (
     COURSE_ID_NUM_REGEXP,
@@ -97,8 +98,8 @@ class BuildingRoom(Model):
 class Term(Model):
     id = CharField(primary_key=True, validators=[_term_validator], max_length=2**5)
     season = CharField(max_length=2**4)
-    year = IntegerField()
-    ordinal = IntegerField()
+    year = PositiveIntegerField()
+    ordinal = PositiveIntegerField()
     start_date = DateField(default=None, null=True)
     end_date = DateField(default=None, null=True)
 
@@ -280,16 +281,36 @@ class SectionDetail(Model):
         ordering = ["section"]
 
 
+class SectionCombinedCapacity(Model):
+    id = AutoField(primary_key=True)
+    capacity = PositiveIntegerField()
+    wait_list_capacity = PositiveIntegerField()
+    nso_enrollment_capacity = PositiveIntegerField(null=True, default=None)
+
+    def __str__(self) -> str:
+        return f"SectionCombinedCapacity[{self.id}]"
+
+    class Meta:
+        ordering = ["id"]
+
+
 class SectionAvailability(Model):
     section = OneToOneField(
         Section, on_delete=CASCADE, primary_key=True, related_name="availability"
     )
-    capacity = IntegerField()
-    enrollment_total = IntegerField()
-    available_seats = IntegerField()
-    wait_list_capacity = IntegerField()
-    wait_list_total = IntegerField()
-    nso_enrollment_capacity = IntegerField(null=True, default=None)
+    capacity = PositiveIntegerField()
+    enrollment_total = PositiveIntegerField()
+    available_seats = PositiveIntegerField()
+    wait_list_capacity = PositiveIntegerField()
+    wait_list_total = PositiveIntegerField()
+    nso_enrollment_capacity = PositiveIntegerField(null=True, default=None)
+    combined_capacity = ForeignKey(
+        SectionCombinedCapacity,
+        on_delete=SET_NULL,
+        null=True,
+        default=None,
+        related_name="individual_availabilities",
+    )
 
     def __str__(self) -> str:
         return f"SectionAvailability[{self.section.id}]"
