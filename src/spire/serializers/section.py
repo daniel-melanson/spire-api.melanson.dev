@@ -89,11 +89,10 @@ class SectionRestrictionSerializer(ModelSerializer):
 
 class SectionCoverageSerializer(HyperlinkedModelSerializer):
     term = TermFieldSerializer()
-    subjects = SubjectSectionCoverageField(many=True)
 
     class Meta:
         model = SectionCoverage
-        fields = ["term", "completed", "subjects"]
+        fields = ["term", "completed"]
 
 
 class SectionSerializer(HyperlinkedModelSerializer):
