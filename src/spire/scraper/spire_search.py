@@ -12,10 +12,10 @@ from spire.models import (
     Course,
     CourseOffering,
     Section,
+    SectionCoverage,
     Subject,
     SubjectSectionCoverage,
     Term,
-    SectionCoverage,
 )
 from spire.scraper.classes import RawCourse, RawInstructor, RawSection, RawSubject
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE

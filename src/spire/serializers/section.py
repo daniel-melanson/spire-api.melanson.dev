@@ -5,11 +5,11 @@ from spire.models import (
     Section,
     SectionAvailability,
     SectionCombinedCapacity,
+    SectionCoverage,
     SectionDetail,
     SectionMeetingInformation,
     SectionMeetingSchedule,
     SectionRestriction,
-    SectionCoverage,
 )
 from spire.serializers.fields import (
     BaseFieldSerializer,
