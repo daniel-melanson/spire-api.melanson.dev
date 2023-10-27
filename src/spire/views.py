@@ -11,10 +11,10 @@ from spire.models import (
     CourseOffering,
     Instructor,
     Section,
-    SectionCoverage,
     SectionMeetingInformation,
     Subject,
     Term,
+    SectionCoverage,
 )
 from spire.serializers.academic_group import AcademicGroupSerializer
 from spire.serializers.building import BuildingRoomSerializer, BuildingSerializer
@@ -24,7 +24,7 @@ from spire.serializers.course import (
     CourseSerializer,
 )
 from spire.serializers.instructor import InstructorSerializer
-from spire.serializers.section import SectionCoverageSerializer, SectionSerializer
+from spire.serializers.section import SectionSerializer, SectionCoverageSerializer
 from spire.serializers.subject import SubjectSerializer
 from spire.serializers.term import TermSerializer
 

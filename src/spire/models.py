@@ -402,8 +402,23 @@ class SectionMeetingSchedule(Model):
 class SectionCoverage(Model):
     term = OneToOneField(Term, primary_key=True, on_delete=CASCADE)
     completed = BooleanField(default=False)
+    updated_at = DateTimeField(null=True)
+
+    class Meta:
+        ordering = ["term"]
+
+
+class SubjectSectionCoverage(Model):
+    id = AutoField(primary_key=True)
+    term_coverage = ForeignKey(
+        SectionCoverage, on_delete=CASCADE, related_name="subjects"
+    )
+    subject = ForeignKey(Subject, on_delete=CASCADE, related_name="+")
+    completed = BooleanField(default=False)
+    updated_at = DateTimeField(null=True)
     start_time = DateTimeField()
     end_time = DateTimeField(null=True)
 
     class Meta:
-        ordering = ["term"]
+        ordering = ["term_coverage", "subject"]
+        unique_together = ["term_coverage", "subject"]

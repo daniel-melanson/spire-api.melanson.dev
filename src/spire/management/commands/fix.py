@@ -2,10 +2,10 @@ from django.core.management.base import BaseCommand
 
 from spire.models import (
     CourseDetail,
+    Section,
+    SectionAvailability,
     SectionCombinedAvailability,
     SectionCombinedCapacity,
-    SectionAvailability,
-    Section,
 )
 
 

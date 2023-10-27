@@ -9,6 +9,7 @@ from spire.models import (
     CourseUnits,
     Section,
     Subject,
+    SubjectSectionCoverage,
     Term,
     TermEvent,
 )
@@ -81,3 +82,11 @@ class SectionFieldSerializer(BaseFieldSerializer):
     class Meta:
         model = Section
         fields = ["id", "url", "spire_id"]
+
+
+class SubjectSectionCoverageField(BaseFieldSerializer):
+    subject = SubjectFieldSerializer()
+
+    class Meta:
+        model = SubjectSectionCoverage
+        fields = ["subject", "completed", "updated_at", "start_time", "end_time"]

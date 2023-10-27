@@ -6,7 +6,7 @@ from typing import Union
 
 from django.conf import settings
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver import Remote, Firefox
+from selenium.webdriver import Firefox, Remote
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options

@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import NamedTuple
 
 from django.conf import settings
 from django.utils import timezone
@@ -11,19 +12,18 @@ from spire.models import (
     Course,
     CourseOffering,
     Section,
-    SectionCombinedAvailability,
-    SectionCoverage,
     Subject,
+    SubjectSectionCoverage,
     Term,
+    SectionCoverage,
 )
 from spire.scraper.classes import RawCourse, RawInstructor, RawSection, RawSubject
 from spire.scraper.classes.normalizers import REPLACE_DOUBLE_SPACE
-from spire.scraper.shared import assert_match, scrape_spire_tables, get_or_create_term
+from spire.scraper.shared import assert_match, get_or_create_term, scrape_spire_tables
 from spire.scraper.spire_driver import SpireDriver
+from spire.scraper.stats import Stats
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
-from typing import NamedTuple
-from spire.scraper.stats import Stats
 
 log = logging.getLogger(__name__)
 
@@ -495,7 +495,7 @@ def _should_skip_term(coverage):
             case _:
                 assert False
 
-        if coverage.end_time and timezone.make_aware(end_date) < coverage.end_time:
+        if coverage.updated_at and timezone.make_aware(end_date) < coverage.updated_at:
             log.info(
                 "Skipping the %s term, as information is static.", coverage.term.id
             )
@@ -547,11 +547,14 @@ def _scrape_term(
     term_value,
     subject_options,
     quick=False,
+    subject_range=("A", "Z"),
 ):
-    # Establish coverage entry
+    (subject_range_low, subject_range_high) = subject_range
+
+    # Get term coverage entry
     coverage, _ = SectionCoverage.objects.get_or_create(  # type: ignore
         term=term,
-        defaults={"completed": False, "start_time": timezone.now()},
+        defaults={"completed": False},
     )
 
     if _should_skip_term(coverage):
@@ -565,16 +568,35 @@ def _scrape_term(
     for subject_value, subject_title in context.cache.skip_once(
         subject_options, "subject"
     ):
+        subject_letter = subject_title[0].upper()
+        if subject_range_low > subject_letter or subject_letter > subject_range_high:
+            log.info("Skipping %s, as it is out of range.", subject_title)
+            continue
+
         context.cache.push("subject", (subject_value, subject_title))
 
-        # Initialize and search for subject durn/aing term
+        # Initialize and search for terrm and subject
         _initialize_query(context.driver, term_value, subject_value)
 
         raw_subject = RawSubject(subject_value, subject_title)
         subject = raw_subject.push()
 
+        # Get subject term coverage
+        subject_coverage, _ = SubjectSectionCoverage.objects.get_or_create(  # type: ignore
+            term_coverage=coverage,
+            subject=subject,
+            defaults={"completed": False, "start_time": timezone.now()},
+        )
+
         # Execute search
         _search_query(context, term, subject, quick=quick)
+
+        if subject_coverage.end_time is None:
+            subject_coverage.end_time = timezone.now()
+
+        subject_coverage.updated_at = timezone.now()
+        subject_coverage.completed = True
+        subject_coverage.save()
 
         if quick:
             sections_scraped = context.stats.get("sections_scraped")
@@ -585,9 +607,10 @@ def _scrape_term(
                 (1 - (sections_scraped / sections_found)) * 100,
             )
 
-    coverage.completed = True
-    coverage.end_time = timezone.now()
-    coverage.save()
+    # Check if term coverage should be complete
+    if coverage.subjects.count() == Subject.objects.count():
+        coverage.completed = True
+        coverage.save()
 
     log.info("Scraped sections during %s in %s.", term, timer)
 
@@ -611,8 +634,13 @@ def scrape_all_terms(context: ScrapeContext, **options):
 
     (term_options, subject_options) = _get_select_options(context.driver)
 
-    # For each term, 5 academic years from the most recently posted year
-    for term_offset in range(context.cache.get("term_offset", 4 * 2 - 1), -1, -1):  # type: ignore
+    # Choosing an eariler term may work, but data irregularites are not covered:
+    # - Data may not not be expanded correctly
+    # - Data may not match expected formats
+    fall_2018_offset = term_options.index(("1187", "Fall 2018"))
+
+    # For each term since Fall 2018
+    for term_offset in range(context.cache.get("term_offset", fall_2018_offset), -1, -1):  # type: ignore
         context.cache.push("term_offset", term_offset)
 
         (term_option, term_id) = term_options[term_offset]

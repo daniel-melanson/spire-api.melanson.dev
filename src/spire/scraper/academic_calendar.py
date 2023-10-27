@@ -7,8 +7,8 @@ from bs4 import Tag
 from django.db import transaction
 
 from spire.models import Term, TermEvent
-from spire.scraper.web import fetch_soup, get_tag_text
 from spire.scraper.shared import SEASON_LIST, get_or_create_term
+from spire.scraper.web import fetch_soup, get_tag_text
 
 log = logging.getLogger(__name__)
 

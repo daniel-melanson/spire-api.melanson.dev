@@ -10,12 +10,12 @@ from django.conf import settings
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_driver import SpireDriver
 from spire.scraper.spire_search import (
+    ScrapeContext,
     scrape_all_terms,
     scrape_single_term,
-    ScrapeContext,
 )
-from spire.scraper.timer import Timer
 from spire.scraper.stats import Stats
+from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
 try:
