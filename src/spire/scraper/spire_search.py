@@ -223,7 +223,7 @@ def _scrape_section(
     else:
         reason = "does not exist"
 
-    context.stats.increment("sections_scraped")
+    context.stats.increment(f"{offering.subject.id}_sections_scraped")
 
     log.debug(
         "Navigating to section page for %s section %s...", offering.course.id, spire_id
@@ -532,7 +532,7 @@ def _search_query(context: ScrapeContext, term, subject, quick=False):
 
     log.info(
         "Scraped %s %s sections during %s in %s. Returning...",
-        context.stats.get("sections_scraped"),
+        context.stats.get(f"{subject.id}_sections_scraped"),
         subject,
         term,
         subject_timer,
