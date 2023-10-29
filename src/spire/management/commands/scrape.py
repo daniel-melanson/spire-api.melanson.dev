@@ -38,7 +38,7 @@ class Command(BaseCommand):
         mode = options["mode"][0]
         match mode:
             case "dispatch":
-                handle_scrape_dispatch()
+                return handle_scrape_dispatch()
             case "job":
                 term = options["term"]
                 assert term
