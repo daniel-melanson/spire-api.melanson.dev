@@ -90,7 +90,7 @@ class RawCourse(RawObject):
         )
 
     def push(self):
-        course = super().push()
+        course, created = super().push()
 
         if hasattr(self, "_raw_group"):
             self.subject.groups.add(self._raw_group.push())
@@ -99,3 +99,5 @@ class RawCourse(RawObject):
 
         if hasattr(self, "enrollment_information"):
             self.enrollment_information.push(course=course)
+
+        return course, created

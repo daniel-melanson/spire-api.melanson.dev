@@ -1,6 +1,11 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from spire.scraper import ScrapeCoverage, scrape_data
+from spire.scraper import (
+    ScrapeCoverage,
+    handle_scrape,
+    handle_scrape_dispatch,
+    handle_scrape_job,
+)
 
 
 class Command(BaseCommand):
@@ -8,28 +13,40 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--distributed",
-            action="store_true",
-            help="Whether the section scraper should run in distributed mode.",
+            "--term", type=str, nargs=2, help="A specific term of sections to scrape."
         )
 
         parser.add_argument(
-            "--term", type=str, nargs=2, help="A specific term of sections to scrape."
+            "--group",
+            nargs=1,
+            type=int,
+            help="The subject group to scrape.",
         )
 
         parser.add_argument("--quick", action="store_true")
 
         parser.add_argument(
-            "coverage",
+            "mode",
             nargs=1,
             type=str,
             default="all",
-            choices=("all", "sections", "courses", "calendar"),
+            choices=("all", "dispatch", "job", "sections", "courses", "calendar"),
             help="The data the scraper should scrape.",
         )
 
     def handle(self, *args, **options):
-        match options["coverage"][0]:
+        mode = options["mode"][0]
+        match mode:
+            case "dispatch":
+                handle_scrape_dispatch()
+            case "job":
+                term = options["term"]
+                assert term
+
+                group = options["group"]
+                assert group
+
+                return handle_scrape_job(term, group)
             case "all":
                 enum = ScrapeCoverage.Total
             case "sections":
@@ -39,7 +56,6 @@ class Command(BaseCommand):
             case "calendar":
                 enum = ScrapeCoverage.Calendar
             case _:
-                raise CommandError("Unexpected coverage option.")
+                raise CommandError("Unexpected mode option.")
 
-        del options["coverage"]
-        scrape_data(enum, **options)
+        handle_scrape(enum, **options)

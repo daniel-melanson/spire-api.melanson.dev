@@ -547,10 +547,8 @@ def _scrape_term(
     term_value,
     subject_options,
     quick=False,
-    subject_range=("A", "Z"),
+    subjects=None,
 ):
-    (subject_range_low, subject_range_high) = subject_range
-
     # Get term coverage entry
     coverage, _ = SectionCoverage.objects.get_or_create(  # type: ignore
         term=term,
@@ -568,18 +566,15 @@ def _scrape_term(
     for subject_value, subject_title in context.cache.skip_once(
         subject_options, "subject"
     ):
-        subject_letter = subject_title[0].upper()
-        if subject_range_low > subject_letter or subject_letter > subject_range_high:
-            log.info("Skipping %s, as it is out of range.", subject_title)
-            continue
-
         context.cache.push("subject", (subject_value, subject_title))
 
-        # Initialize and search for terrm and subject
-        _initialize_query(context.driver, term_value, subject_value)
-
         raw_subject = RawSubject(subject_value, subject_title)
-        subject = raw_subject.push()
+        subject, created = raw_subject.push()
+        if not created and subjects is not None and subject.id not in subjects:
+            continue
+
+        # Initialize and search for term and subject
+        _initialize_query(context.driver, term_value, subject_value)
 
         # Get subject term coverage
         subject_coverage, _ = SubjectSectionCoverage.objects.get_or_create(  # type: ignore
@@ -615,6 +610,32 @@ def _scrape_term(
     log.info("Scraped sections during %s in %s.", term, timer)
 
 
+def _get_term(spire_term_text: str) -> Term:
+    [season, year] = spire_term_text.split(" ")
+    return get_or_create_term(season, year)
+
+
+def scrape_live_terms(driver: SpireDriver) -> list[Term]:
+    (term_options, _) = _get_select_options(driver)
+
+    fall_2018_offset = term_options.index(("1187", "Fall 2018"))
+
+    live_terms = []
+    for term_offset in range(fall_2018_offset, -1, -1):
+        (_, spire_term_text) = term_options[term_offset]
+        term = _get_term(spire_term_text)
+
+        coverage, _ = SectionCoverage.objects.create(  # type: ignore
+            term=term,
+            defaults={"completed": False},
+        )
+
+        if not _should_skip_term(coverage):
+            live_terms.append(term)
+
+    return live_terms
+
+
 def scrape_single_term(context: ScrapeContext, season, year, **kwargs) -> None:
     term = get_or_create_term(season, year)
     log.info("Scraping sections for single term %s...", term.id)
@@ -643,9 +664,8 @@ def scrape_all_terms(context: ScrapeContext, **options):
     for term_offset in range(context.cache.get("term_offset", fall_2018_offset), -1, -1):  # type: ignore
         context.cache.push("term_offset", term_offset)
 
-        (term_option, term_id) = term_options[term_offset]
-        [season, year] = term_id.split(" ")
-        term = get_or_create_term(season, year)
+        (term_option, spire_term_text) = term_options[term_offset]
+        term = _get_term(spire_term_text)
 
         _scrape_term(context, term, term_option, subject_options, **options)
 

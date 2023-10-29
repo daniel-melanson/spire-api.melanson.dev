@@ -191,7 +191,7 @@ class RawObject:
 
         log.debug("%s %s: %s", "Created" if created else "Updated", self._model.__name__, object)  # type: ignore
 
-        return object
+        return object, created
 
 
 class RawDictionary(RawObject):

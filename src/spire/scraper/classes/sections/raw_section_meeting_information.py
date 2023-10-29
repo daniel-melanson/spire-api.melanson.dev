@@ -178,4 +178,4 @@ class RawSectionMeetingInformation(RawObject):
 
         mi.instructors.set(new_instructors)
 
-        return mi
+        return mi, True

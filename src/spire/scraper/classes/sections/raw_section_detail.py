@@ -121,10 +121,10 @@ class RawSectionDetail(RawDictionary):
         )
 
     def push(self, **kwargs):
-        sd = super().push(**kwargs)
+        sd, created = super().push(**kwargs)
 
         if hasattr(self, "units"):
             sd.units = self.units.push()
             sd.save()
 
-        return sd
+        return sd, created

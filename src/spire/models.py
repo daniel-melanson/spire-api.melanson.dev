@@ -400,7 +400,9 @@ class SectionMeetingSchedule(Model):
 
 
 class SectionCoverage(Model):
-    term = OneToOneField(Term, primary_key=True, on_delete=CASCADE)
+    term = OneToOneField(
+        Term, primary_key=True, on_delete=CASCADE, related_name="coverage"
+    )
     completed = BooleanField(default=False)
     updated_at = DateTimeField(null=True)
 

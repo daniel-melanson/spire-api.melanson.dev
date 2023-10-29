@@ -23,11 +23,11 @@ class RawBuilding(RawObject):
         super().__init__(Building, None, [RawField("name"), RawField("address")])
 
     def push(self):
-        obj, _ = Building.objects.get_or_create(
+        obj, created = Building.objects.get_or_create(
             name=self.name, defaults={"address": self.address}
         )
 
-        return obj
+        return obj, created
 
 
 class RawBuildingRoom(RawObject):
@@ -44,25 +44,24 @@ class RawBuildingRoom(RawObject):
 
     def push(self):
         if self.building:
-            building = self.building.push()
+            building, _ = self.building.push()
             log.debug("Pushed building: %s", building)
             try:
                 b = BuildingRoom.objects.get(alt=self.alt)
+                created = False
 
                 log.debug("Found building room: %s", b)
 
                 assert b.building == building
                 assert b.number == self.number
             except BuildingRoom.DoesNotExist:
-                b, _ = BuildingRoom.objects.get_or_create(
+                b, created = BuildingRoom.objects.get_or_create(
                     building=building, number=self.number, defaults={"alt": self.alt}
                 )
-
-            return b
         else:
-            b, _ = BuildingRoom.objects.get_or_create(alt=self.alt)
+            b, created = BuildingRoom.objects.get_or_create(alt=self.alt)
 
-        return b
+        return b, created
 
 
 BUILDINGS = [

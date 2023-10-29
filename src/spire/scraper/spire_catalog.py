@@ -111,7 +111,7 @@ def scrape_catalog(driver: SpireDriver, cache: VersionedCache):
             driver.click(subject_link_id, wait=False)
 
             # Push results to database
-            subject = scraped_subject.push()
+            subject, _ = scraped_subject.push()
 
             # Wait for spire to expand the list
             driver.wait_for_spire()

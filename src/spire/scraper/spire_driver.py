@@ -2,6 +2,7 @@
 
 import logging
 from enum import Enum
+from time import sleep
 from typing import Union
 
 from django.conf import settings
@@ -36,6 +37,24 @@ class SpireDriver:
 
         self._wait = WebDriverWait(self._driver, 60 * 2)
 
+        self._state = "none"
+
+        retry_count = 0
+        while self._state != "default":
+            try:
+                self._start()
+            except Exception as e:
+                if retry_count >= 3:
+                    raise e
+
+                log.exception("Failed to start driver: %s", e)
+
+                retry_count += 1
+                sleep(60)
+
+        log.info("Driver created.")
+
+    def _start(self):
         self._driver.get("https://www.spire.umass.edu")
 
         self._wait.until(
@@ -47,7 +66,6 @@ class SpireDriver:
         self.wait_for_spire()
 
         self._state = "default"
-        log.info("Driver created.")
 
     @property
     def root_driver(self) -> Firefox:
@@ -132,4 +150,5 @@ class SpireDriver:
         return [e.get_property("id") for e in self.find_all(selector, by)]
 
     def close(self) -> None:
+        log.info("Closing driver...")
         self._driver.close()

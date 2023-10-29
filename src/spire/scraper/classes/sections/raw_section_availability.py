@@ -62,12 +62,12 @@ def _get_combined_capacity(sections, term, defaults):
                 ]
                 combined_capacity.save()
 
-                return combined_capacity
+                return combined_capacity, False
         except Section.DoesNotExist:  # type: ignore
             continue
 
     log.debug("No combined capacity found, returning")
-    return SectionCombinedCapacity.objects.create(**defaults)
+    return SectionCombinedCapacity.objects.create(**defaults), True
 
 
 class RawSectionCombinedCapacity:
@@ -135,7 +135,9 @@ class RawSectionAvailability(RawDictionary):
             )
 
     def push(self, section: Section):
-        availability = super().push(section=section)
+        availability, created = super().push(section=section)
 
         if self._is_combined:
             self.combined_capacity.push(individual_availability=availability)
+
+        return availability, created

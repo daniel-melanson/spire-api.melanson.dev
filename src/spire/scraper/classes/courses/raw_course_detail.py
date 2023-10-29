@@ -59,15 +59,15 @@ class RawUnits(RawObject):
 
     def push(self):
         if self.base is not None:
-            u, _ = CourseUnits.objects.get_or_create(
+            u, created = CourseUnits.objects.get_or_create(
                 base=self.base, defaults={"min": None, "max": None}
             )
         else:
-            u, _ = CourseUnits.objects.get_or_create(
+            u, created = CourseUnits.objects.get_or_create(
                 min=self.min, max=self.max, defaults={"base": None}
             )
 
-        return u
+        return u, created
 
 
 class RawCourseDetail(RawDictionary):
@@ -132,10 +132,10 @@ class RawCourseDetail(RawDictionary):
         )
 
     def push(self, **kwargs):
-        cd = super().push(**kwargs)
+        cd, created = super().push(**kwargs)
 
         if hasattr(self, "units"):
-            cd.units = self.units.push()
+            cd.units, _ = self.units.push()
             cd.save()
 
-        return cd
+        return cd, created

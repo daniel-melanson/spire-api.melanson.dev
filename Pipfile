@@ -21,6 +21,7 @@ requests = "*"
 numpy = "*"
 redis = "*"
 hiredis = "*"
+google-cloud-run = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"
