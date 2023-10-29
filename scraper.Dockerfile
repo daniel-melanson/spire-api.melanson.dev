@@ -18,7 +18,7 @@ RUN apt-get update -y \
 
 # install geckodriver
 
-RUN wget --process=dot:giga https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz && \
+RUN wget --progress=dot:giga https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz && \
     tar -zxf geckodriver-v0.33.0-linux64.tar.gz -C /usr/local/bin && \
     chmod +x /usr/local/bin/geckodriver && \
     rm geckodriver-v0.33.0-linux64.tar.gz
@@ -26,7 +26,7 @@ RUN wget --process=dot:giga https://github.com/mozilla/geckodriver/releases/down
 # install firefox
 
 RUN FIREFOX_SETUP=firefox-setup.tar.bz2 && \
-    wget --process=dot:giga -O $FIREFOX_SETUP "https://download.mozilla.org/?product=firefox-95.0.1&os=linux64" && \
+    wget --progress=dot:giga -O $FIREFOX_SETUP "https://download.mozilla.org/?product=firefox-95.0.1&os=linux64" && \
     tar xjf $FIREFOX_SETUP -C /opt/ && \
     ln -s /opt/firefox/firefox /usr/bin/firefox && \
     rm $FIREFOX_SETUP
