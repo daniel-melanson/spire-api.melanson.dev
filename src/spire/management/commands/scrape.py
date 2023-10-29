@@ -18,7 +18,6 @@ class Command(BaseCommand):
 
         parser.add_argument(
             "--group",
-            nargs=1,
             type=int,
             help="The subject group to scrape.",
         )
@@ -27,7 +26,6 @@ class Command(BaseCommand):
 
         parser.add_argument(
             "mode",
-            nargs=1,
             type=str,
             default="all",
             choices=("all", "dispatch", "job", "sections", "courses", "calendar"),
@@ -35,8 +33,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        mode = options["mode"][0]
-        match mode:
+        match options["mode"]:
             case "dispatch":
                 return handle_scrape_dispatch()
             case "job":
