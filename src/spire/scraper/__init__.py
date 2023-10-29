@@ -123,8 +123,6 @@ def _dispatch_scrape_job(term, subject_group):
         overrides=RunJobRequest.Overrides(
             container_overrides=RunJobRequest.Overrides.ContainerOverride(
                 args=[
-                    "python",
-                    "manage.py",
                     "job",
                     "--term",
                     season,
