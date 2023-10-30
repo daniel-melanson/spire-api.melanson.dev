@@ -22,8 +22,6 @@ class Command(BaseCommand):
             help="The subject group to scrape.",
         )
 
-        parser.add_argument("--quick", action="store_true")
-
         parser.add_argument(
             "mode",
             type=str,

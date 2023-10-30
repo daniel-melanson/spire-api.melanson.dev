@@ -189,7 +189,7 @@ SPIRE_ID_OVERRIDES = {
 
 
 def _scrape_section(
-    context: ScrapeContext, offering, section_table_id: str, link_id: str, quick: bool
+    context: ScrapeContext, offering, section_table_id: str, link_id: str
 ):
     driver = context.driver
     link = driver.find(link_id)
@@ -211,15 +211,15 @@ def _scrape_section(
     except Section.DoesNotExist:
         section = None
 
-    if section and quick:
+    if section and settings.SCRAPER["SKIP_EXISTING"]:
         can_skip_section, reason = _can_skip(driver, section, link_number)
         if can_skip_section:
             log.info("Skipping %s (%s).", section, reason)
             return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)
-    elif not quick:
-        reason = "not quick"
+    elif not settings.SCRAPER["SKIP_EXISTING"]:
+        reason = "skip existing is disabled"
     else:
         reason = "does not exist"
 
@@ -232,7 +232,7 @@ def _scrape_section(
 
     log.info(
         "Scraping %s - (%s)...",
-        section,
+        spire_id,
         reason,
     )
 
@@ -350,7 +350,6 @@ def _scrape_search_results(
     context: ScrapeContext,
     term: Term,
     subject: Subject,
-    quick=False,
 ):
     driver = context.driver
     cache = context.cache
@@ -382,9 +381,7 @@ def _scrape_search_results(
 
         # For each section link id
         for link_id in link_ids:
-            section = _scrape_section(
-                context, offering, section_table_id, link_id, quick=quick
-            )
+            section = _scrape_section(context, offering, section_table_id, link_id)
 
             scraped_spire_ids_for_course.add(section.spire_id)
 
@@ -502,7 +499,7 @@ def _should_skip_term(coverage):
     return False
 
 
-def _search_query(context: ScrapeContext, term, subject, quick=False):
+def _search_query(context: ScrapeContext, term, subject):
     driver = context.driver
 
     log.info("Searching for sections in %s during %s...", subject, term.id)
@@ -526,7 +523,7 @@ def _search_query(context: ScrapeContext, term, subject, quick=False):
             log.warning("Failed while searching: %s", error_message_span.text)
             raise Exception(f"Unexpected search error: {warning}")
 
-    _scrape_search_results(context, term, subject, quick=quick)
+    _scrape_search_results(context, term, subject)
 
     log.info(
         "Covered %s %s sections during %s in %s. Returning...",
@@ -544,7 +541,6 @@ def _scrape_term(
     term,
     term_value,
     subject_options,
-    quick=False,
     subjects=None,
 ):
     # Get term coverage entry
@@ -582,7 +578,7 @@ def _scrape_term(
         )
 
         # Execute search
-        _search_query(context, term, subject, quick=quick)
+        _search_query(context, term, subject)
 
         if subject_coverage.end_time is None:
             subject_coverage.end_time = timezone.now()
@@ -591,7 +587,7 @@ def _scrape_term(
         subject_coverage.completed = True
         subject_coverage.save()
 
-        if quick:
+        if settings.SCRAPER["SKIP_EXISTING"]:
             sections_scraped = context.stats.get("sections_scraped")
             sections_found = context.stats.get("sections_found")
 
@@ -603,6 +599,7 @@ def _scrape_term(
     # Check if term coverage should be complete
     if coverage.subjects.count() == Subject.objects.count():
         coverage.completed = True
+        coverage.updated_at = timezone.now()
         coverage.save()
 
     log.info("Scraped sections during %s in %s.", term, timer)
@@ -623,7 +620,7 @@ def scrape_live_terms(driver: SpireDriver) -> list[Term]:
         (_, spire_term_text) = term_options[term_offset]
         term = _get_term(spire_term_text)
 
-        coverage, _ = SectionCoverage.objects.create(  # type: ignore
+        coverage, _ = SectionCoverage.objects.get_or_create(  # type: ignore
             term=term,
             defaults={"completed": False},
         )
@@ -636,14 +633,12 @@ def scrape_live_terms(driver: SpireDriver) -> list[Term]:
 
 def scrape_single_term(context: ScrapeContext, season, year, **kwargs) -> None:
     term = get_or_create_term(season, year)
-    log.info("Scraping sections for single term %s...", term.id)
 
     (term_options, subject_options) = _get_select_options(context.driver)
 
     term_value = [v for (v, id) in term_options if term.id == id][0]
 
     _scrape_term(context, term, term_value, subject_options, **kwargs)
-    log.info("Scraped sections for single term %s.", term.id)
 
 
 def scrape_all_terms(context: ScrapeContext, **options):

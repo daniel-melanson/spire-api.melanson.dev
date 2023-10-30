@@ -134,8 +134,10 @@ REST_FRAMEWORK = {
 SCRAPER = {
     "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
     "DEBUG": get_bool_env("SCRAPER_DEBUG", False),
-    "HEADLESS": get_bool_env("SCRAPER_HEADLESS", True),
+    # Skip terms that have already been scraped and wouldn't be reasonably updated
     "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
+    # Skip existing objects, unless information is different
+    "SKIP_EXISTING": get_bool_env("SKIP_EXISTING", True),
 }
 
 # Logging

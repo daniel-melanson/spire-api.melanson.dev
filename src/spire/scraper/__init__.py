@@ -8,7 +8,6 @@ from time import sleep
 from django.conf import settings
 from google.cloud.run_v2 import JobsClient
 from google.cloud.run_v2.types import RunJobRequest
-from config.settings import BASE_DIR
 
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_driver import SpireDriver
@@ -72,9 +71,10 @@ def _dump_cache(cache):
 
 
 def _scrape(s, func, **kwargs):
-    stats = Stats()
     start_date = datetime.datetime.now().replace(microsecond=0).isoformat()
-    driver = SpireDriver()
+
+    stats = Stats()
+
     if (
         debug_versioned_cache is not None
         and settings.SCRAPER["DEBUG"]
@@ -84,19 +84,19 @@ def _scrape(s, func, **kwargs):
     else:
         cache = VersionedCache(s)
 
-    retries = 0
-    while True:
+    for round in range(MAX_RETRIES):
+        driver = SpireDriver()
+
         try:
             if not cache.is_empty:
                 log.info("Scraping %s with cache: %s", s, cache)
 
-            driver.switch()
             func(ScrapeContext(driver, cache, stats), **kwargs)
-        except Exception as e:
-            driver.close()
 
-            retries += 1
-            if retries >= MAX_RETRIES:
+            driver.close()
+            break
+        except Exception as e:
+            if round == MAX_RETRIES - 1:
                 raise e
 
             log.exception(
@@ -104,9 +104,9 @@ def _scrape(s, func, **kwargs):
             )
 
             if settings.SCRAPER["DEBUG"]:
-                _dump_page_source(
-                    driver, f"scrape-html-dump-{retries}-{start_date}.html"
-                )
+                _dump_page_source(driver, f"scrape-html-dump-{round}-{start_date}.html")
+
+            driver.close()
 
             cache.commit()
             log.debug("Cache updated to: %s", cache)
@@ -118,11 +118,9 @@ def _scrape(s, func, **kwargs):
             for h in LOG_HANDLERS:
                 h.doRollover()  # type: ignore
 
-            driver = SpireDriver()
-
 
 def _dispatch_scrape_job(term, subject_group):
-    [season, year] = term.split(" ")
+    [season, year] = term.id.split(" ")
     run_client = JobsClient()
 
     request = RunJobRequest(
@@ -141,11 +139,15 @@ def _dispatch_scrape_job(term, subject_group):
 
 def handle_scrape_dispatch():
     log.info("Handling scrape trigger...")
-    driver = SpireDriver()
 
-    log.info("Fetching live terms")
-    for term in scrape_live_terms(driver):
-        log.info("Dispatcing scrape for term: %s", term)
+    log.info("Fetching live terms...")
+    driver = SpireDriver()
+    live_terms = scrape_live_terms(driver)
+    driver.close()
+    log.info("Fetched live terms %s", live_terms)
+
+    for term in live_terms:
+        log.info("Dispatcing scrape for %s", term)
 
         for i in range(len(SUBJECT_GROUPS)):
             _dispatch_scrape_job(term, i)
@@ -158,12 +160,10 @@ def handle_scrape_job(term, group):
         season=term[0],
         year=term[1],
         subjects=SUBJECT_GROUPS[group],
-        quick=True,
     )
 
 
 def handle_scrape(coverage: ScrapeCoverage, **kwargs):
-    quick = kwargs.get("quick", False)
     term = kwargs.get("term", None)
 
     log.info("Scraping data...")
@@ -186,7 +186,6 @@ def handle_scrape(coverage: ScrapeCoverage, **kwargs):
             scrape_single_term if term else scrape_all_terms,
             season=term[0] if term else None,
             year=term[1] if term else None,
-            quick=quick,
         )
 
     log.info("Scraped data in %s", scrape_timer)

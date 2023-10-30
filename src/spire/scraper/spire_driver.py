@@ -52,6 +52,7 @@ class SpireDriver:
                 retry_count += 1
                 sleep(60)
 
+        self.switch()
         log.info("Driver created.")
 
     def _start(self):
