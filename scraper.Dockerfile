@@ -42,7 +42,7 @@ RUN curl -fL -o /tmp/google-cloud-cli.tar.gz \
     && tar -xzf /tmp/google-cloud-cli.tar.gz -C /tmp/ \
     && chmod +x /tmp/google-cloud-sdk/install.sh \
     && /tmp/google-cloud-sdk/install.sh \
-    && source /tmp/google-cloud-sdk/path.bash.inc
+    && mv /tmp/google-cloud-sdk/bin/* /usr/local/bin/
 
 # Cleanup unnecessary stuff
 RUN apt-get purge -y --auto-remove \
