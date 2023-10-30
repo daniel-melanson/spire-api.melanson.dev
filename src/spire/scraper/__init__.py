@@ -124,11 +124,13 @@ def _dispatch_scrape_job(term, subject_group):
     run_client = JobsClient()
 
     request = RunJobRequest(
-        name="projects/spire-api/locations/us-east1/jobs/spire-api-scrape-job",
+        name=os.environ.get("GCP_JOB_NAME"),
         overrides=RunJobRequest.Overrides(
             container_overrides=[
                 RunJobRequest.Overrides.ContainerOverride(
+                    name=os.environ.get("GCP_JOB_CONTAINER_NAME"),
                     args=["--term", season, year, "--group", subject_group, "job"],
+                    env=[],
                 )
             ]
         ),
