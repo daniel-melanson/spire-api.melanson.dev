@@ -1,8 +1,10 @@
 FROM python:3
 
+# Geckodriver
 ARG firefox_ver=119.0
 ARG geckodriver_ver=0.33.0
 ARG build_rev=0
+ARG gcp_cli_ver=452.0.1
 
 RUN apt-get update \
     && apt-get upgrade -y \
@@ -34,6 +36,11 @@ RUN apt-get update \
     && chmod +x /tmp/geckodriver \
     && mv /tmp/geckodriver /usr/local/bin/ \
     \
+    && curl -fL -o /tmp/google-cloud-cli.tar.gz \
+    https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${gcp_cli_ver}-linux-x86_64.tar.gz \
+    && tar -xzf /tmp/google-cloud-cli.tar.gz -C /tmp/ \
+    && chmod +x /tmp/google-cloud-sdk/install.sh \
+    && /tmp/google-cloud-sdk/install.sh \
     # Cleanup unnecessary stuff
     && apt-get purge -y --auto-remove \
     -o APT::AutoRemove::RecommendsImportant=false \
@@ -42,6 +49,8 @@ RUN apt-get update \
     /tmp/*
 
 ENV MOZ_HEADLESS=1
+
+# Python dependencies
 ENV PYTHONUNBUFFERED 1
 ENV PIP_ROOT_USER_ACTION=ignore
 
@@ -49,12 +58,6 @@ ARG APP_PATH=/app
 
 RUN mkdir -p ${APP_PATH}
 WORKDIR ${APP_PATH}
-
-RUN apt-get update                             \
-    && apt-get install -y --no-install-recommends \
-    ca-certificates curl firefox-esr           \
-    && curl -L https://github.com/mozilla/geckodriver/releases/download/v0.33.0/geckodriver-v0.33.0-linux64.tar.gz | tar xz -C /usr/local/bin \
-    && apt-get purge -y ca-certificates curl
 
 COPY Pipfile Pipfile.lock ${APP_PATH}/
 RUN python -m pip install --no-cache-dir pipenv; \
