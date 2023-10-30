@@ -45,11 +45,13 @@ RUN curl -fL -o /tmp/google-cloud-cli.tar.gz \
 
 ENV PATH=/opt/google-cloud-sdk/bin:$PATH
 
+RUN gcloud components install beta
+
 # Cleanup unnecessary stuff
 RUN apt-get purge -y --auto-remove \
     -o APT::AutoRemove::RecommendsImportant=false \
     $toolDeps \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* 
 
 ENV MOZ_HEADLESS=1
 
