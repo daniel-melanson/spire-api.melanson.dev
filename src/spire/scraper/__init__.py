@@ -124,6 +124,8 @@ def _dispatch_scrape_job(term, subject_group):
     JOB_NAME = "spire-api-scrape-job"
     ARGS = [str(x) for x in ["--term", season, year, "--group", subject_group, "job"]]
 
+    log.info("Using args: %s", ARGS)
+
     command = f"gcloud beta run jobs execute {JOB_NAME} --region us-east1 --args={','.join(ARGS)}"
     subprocess.check_output(command, shell=True, universal_newlines=True)
 
