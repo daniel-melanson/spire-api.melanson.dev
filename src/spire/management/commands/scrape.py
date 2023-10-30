@@ -36,10 +36,10 @@ class Command(BaseCommand):
                 return handle_scrape_dispatch()
             case "job":
                 term = options["term"]
-                assert term
+                assert term is not None
 
                 group = options["group"]
-                assert group
+                assert group is not None
 
                 return handle_scrape_job(term, group)
             case "all":

@@ -4,10 +4,9 @@ import os
 from enum import Enum
 from textwrap import dedent
 from time import sleep
+import subprocess
 
 from django.conf import settings
-from google.cloud.run_v2 import JobsClient
-from google.cloud.run_v2.types import RunJobRequest
 
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_driver import SpireDriver
@@ -121,23 +120,14 @@ def _scrape(s, func, **kwargs):
 
 def _dispatch_scrape_job(term, subject_group):
     [season, year] = term.id.split(" ")
-    run_client = JobsClient()
 
-    request = RunJobRequest(
-        name=os.environ.get("GCP_JOB_NAME"),
-        overrides=RunJobRequest.Overrides(
-            container_overrides=[
-                RunJobRequest.Overrides.ContainerOverride(
-                    name=os.environ.get("GCP_JOB_CONTAINER_NAME"),
-                    args=["--term", season, year, "--group", subject_group, "job"],
-                    env=[],
-                )
-            ]
-        ),
-    )
+    JOB_NAME = "spire-api-scrape-job"
+    ARGS = [str(x) for x in ["--term", season, year, "--group", subject_group, "job"]]
 
-    result = run_client.run_job(request=request)
-    log.info("Dispatched scrape job: %s", result)
+    command = f"gcloud beta run jobs execute {JOB_NAME} --region us-east1 --args={','.join(ARGS)}"
+
+    subprocess.check_output(command, shell=True, universal_newlines=True)
+    log.info("Dispatched scrape job.")
 
 
 def handle_scrape_dispatch():
