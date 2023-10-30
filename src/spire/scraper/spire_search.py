@@ -214,7 +214,7 @@ def _scrape_section(
     if section and quick:
         can_skip_section, reason = _can_skip(driver, section, link_number)
         if can_skip_section:
-            log.info("Skipping %s - %s", section, reason)
+            log.info("Skipping %s (%s).", section, reason)
             return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)
@@ -231,10 +231,8 @@ def _scrape_section(
     driver.click(link_id)
 
     log.info(
-        "Scraping section page for %s - %s during %s (%s)...",
-        offering.course.id,
-        spire_id,
-        offering.term.id,
+        "Scraping %s - (%s)...",
+        section,
         reason,
     )
 
@@ -309,7 +307,7 @@ def _scrape_course_offering(context: ScrapeContext, term, subject, span_id):
     )
 
     log.info(
-        "Scraping sections for %s %s during %s...",
+        "Found sections for %s %s during %s...",
         "new" if created else "found",
         course,
         term.id,
@@ -531,7 +529,7 @@ def _search_query(context: ScrapeContext, term, subject, quick=False):
     _scrape_search_results(context, term, subject, quick=quick)
 
     log.info(
-        "Scraped %s %s sections during %s in %s. Returning...",
+        "Covered %s %s sections during %s in %s. Returning...",
         context.stats.get(f"{subject.id}_sections_scraped"),
         subject,
         term,
