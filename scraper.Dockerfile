@@ -39,17 +39,17 @@ RUN apt-get install -y --no-install-recommends --no-install-suggests \
 # Download and install gcloud SDK
 RUN curl -fL -o /tmp/google-cloud-cli.tar.gz \
     https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${gcp_cli_ver}-linux-x86_64.tar.gz \
-    && tar -xzf /tmp/google-cloud-cli.tar.gz -C /tmp/ \
-    && chmod +x /tmp/google-cloud-sdk/install.sh \
-    && /tmp/google-cloud-sdk/install.sh \
-    && mv /tmp/google-cloud-sdk/bin/* /usr/local/bin/
+    && tar -xzf /tmp/google-cloud-cli.tar.gz -C /opt \
+    && chmod +x /opt/google-cloud-sdk/install.sh \
+    && /opt/google-cloud-sdk/install.sh
+
+ENV PATH=/opt/google-cloud-sdk/bin:$PATH
 
 # Cleanup unnecessary stuff
 RUN apt-get purge -y --auto-remove \
     -o APT::AutoRemove::RecommendsImportant=false \
     $toolDeps \
-    && rm -rf /var/lib/apt/lists/* \
-    /tmp/*
+    && rm -rf /var/lib/apt/lists/*
 
 ENV MOZ_HEADLESS=1
 
