@@ -589,9 +589,15 @@ def _scrape_term(
             sections_scraped = context.stats.get("sections_scraped")
             sections_found = context.stats.get("sections_found")
 
+            skip_pct = (
+                (1 - (sections_scraped / sections_found)) * 100
+                if sections_found > 0
+                else 100
+            )
+
             log.info(
                 "Running skip percentage of: %.2f%%",
-                (1 - (sections_scraped / sections_found)) * 100,
+                skip_pct,
             )
 
     # Check if term coverage should be complete
