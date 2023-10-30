@@ -17,10 +17,10 @@ RUN apt-get update \
     curl bzip2 \
     " \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-    $toolDeps \
-    \
-    # Install dependencies for Firefox
-    && apt-get install -y --no-install-recommends --no-install-suggests \
+    $toolDeps 
+
+# Install dependencies for Firefox
+RUN apt-get install -y --no-install-recommends --no-install-suggests \
     `apt-cache depends firefox-esr | awk '/Depends:/{print$2}'` \
     \
     # Download and install Firefox
@@ -34,15 +34,18 @@ RUN apt-get update \
     https://github.com/mozilla/geckodriver/releases/download/v${geckodriver_ver}/geckodriver-v${geckodriver_ver}-linux64.tar.gz \
     && tar -xzf /tmp/geckodriver.tar.gz -C /tmp/ \
     && chmod +x /tmp/geckodriver \
-    && mv /tmp/geckodriver /usr/local/bin/ \
-    \
-    && curl -fL -o /tmp/google-cloud-cli.tar.gz \
+    && mv /tmp/geckodriver /usr/local/bin/
+
+# Download and install gcloud SDK
+RUN curl -fL -o /tmp/google-cloud-cli.tar.gz \
     https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${gcp_cli_ver}-linux-x86_64.tar.gz \
     && tar -xzf /tmp/google-cloud-cli.tar.gz -C /tmp/ \
     && chmod +x /tmp/google-cloud-sdk/install.sh \
     && /tmp/google-cloud-sdk/install.sh \
-    # Cleanup unnecessary stuff
-    && apt-get purge -y --auto-remove \
+    && source /tmp/google-cloud-sdk/path.bash.inc
+
+# Cleanup unnecessary stuff
+RUN apt-get purge -y --auto-remove \
     -o APT::AutoRemove::RecommendsImportant=false \
     $toolDeps \
     && rm -rf /var/lib/apt/lists/* \
