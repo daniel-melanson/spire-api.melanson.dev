@@ -309,7 +309,7 @@ def _scrape_course_offering(context: ScrapeContext, term, subject, span_id):
 
     log.info(
         "Found sections for %s %s during %s...",
-        "new" if created else "found",
+        "new" if created else "existing",
         course,
         term.id,
     )
