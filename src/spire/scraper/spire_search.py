@@ -224,6 +224,7 @@ def _scrape_section(
         reason = "does not exist"
 
     context.stats.increment(f"{offering.subject.id}_sections_scraped")
+    context.stats.increment("sections_scraped")
 
     log.debug(
         "Navigating to section page for %s section %s...", offering.course.id, spire_id
