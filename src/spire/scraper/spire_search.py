@@ -394,7 +394,7 @@ def _scrape_search_results(
         )
 
         log.info(
-            "Scraped %d %s sections during %s.",
+            "Covered %d %s sections during %s.",
             len(scraped_spire_ids_for_course),
             course,
             term.id,
