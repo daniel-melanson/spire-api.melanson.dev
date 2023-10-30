@@ -1,10 +1,10 @@
 import datetime
 import logging
 import os
+import subprocess
 from enum import Enum
 from textwrap import dedent
 from time import sleep
-import subprocess
 
 from django.conf import settings
 
@@ -125,8 +125,8 @@ def _dispatch_scrape_job(term, subject_group):
     ARGS = [str(x) for x in ["--term", season, year, "--group", subject_group, "job"]]
 
     command = f"gcloud beta run jobs execute {JOB_NAME} --region us-east1 --args={','.join(ARGS)}"
-
     subprocess.check_output(command, shell=True, universal_newlines=True)
+
     log.info("Dispatched scrape job.")
 
 
