@@ -86,10 +86,12 @@ class RawSectionCombinedCapacity:
             combined_capacity.nso_enrollment_capacity = self.nso_enrollment_capacity
 
             combined_capacity.save()
+
+            return combined_capacity, False
         else:
             section = individual_availability.section
 
-            individual_availability.combined_capacity = _get_combined_capacity(
+            return _get_combined_capacity(
                 term=section.offering.term,
                 sections=self.sections,
                 defaults={
@@ -98,10 +100,6 @@ class RawSectionCombinedCapacity:
                     "nso_enrollment_capacity": self.nso_enrollment_capacity,
                 },
             )
-
-            log.debug("Updated %s", individual_availability.combined_capacity)
-
-            individual_availability.save()
 
 
 class RawSectionAvailability(RawDictionary):
@@ -138,6 +136,9 @@ class RawSectionAvailability(RawDictionary):
         availability, created = super().push(section=section)
 
         if self._is_combined:
-            self.combined_capacity.push(individual_availability=availability)
+            availability.combined_capacity, _ = self.combined_capacity.push(
+                individual_availability=availability
+            )
+            availability.save()
 
         return availability, created

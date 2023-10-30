@@ -10,7 +10,6 @@ from spire.models import (
 
 
 def _get_combined_capacity(sections, term, defaults):
-    print(defaults)
     for sprie_id in sections:
         try:
             section = Section.objects.get(offering__term=term, spire_id=sprie_id)
