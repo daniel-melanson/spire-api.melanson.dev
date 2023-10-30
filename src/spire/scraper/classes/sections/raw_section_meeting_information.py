@@ -144,15 +144,22 @@ class RawSectionMeetingInformation(RawObject):
         self.instructors: list[RawInstructor] = table["instructors"]
         assert len(self.instructors) > 0
 
+        def _bad_meeting_value(s):
+            s = s.lower().strip()
+
+            return s.startswith("tba") or s.startswith("n/a")
+
         days_and_times = table["days_and_times"]
         log.debug("Processing date and time: %s", days_and_times)
-        if days_and_times.lower() not in ("tba", "tba 1:00am - 1:00am", "n/a"):
+        if not _bad_meeting_value(days_and_times):
             self.schedule = RawSectionMeetingSchedule(days_and_times)
             log.debug("Scraped meeting schedule:\n%s", self.schedule)
 
-        if days_and_times.lower() not in ("tba", "n/a"):
-            self.meeting_dates = RawSectionMeetingDates(table["meeting_dates"])
-            log.debug("Scraped meeting_dates:\n%s", self.meeting_dates)
+        meeting_dates = table["meeting_dates"]
+        log.debug("Processing meeting dates: %s", days_and_times)
+        if not _bad_meeting_value(meeting_dates):
+            self.meeting_dates = RawSectionMeetingDates(meeting_dates)
+            log.debug("Scraped meeting dates:\n%s", self.meeting_dates)
 
         super().__init__(
             SectionMeetingInformation,
