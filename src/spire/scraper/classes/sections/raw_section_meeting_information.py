@@ -161,8 +161,9 @@ class RawSectionMeetingInformation(RawObject):
         )
 
     def push(self, section: Section):
+        room, _ = self.room.push()
         mi = SectionMeetingInformation.objects.create(
-            section=section, room=self.room.push(), room_raw=self.room_raw
+            section=section, room=room, room_raw=self.room_raw
         )
         log.debug("Created SectionMeetingInformation: %s", mi)
 
