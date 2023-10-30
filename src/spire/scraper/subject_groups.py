@@ -23,8 +23,6 @@ SUBJECT_GROUPS = [
             "LLFOOD",
             "LLPARKS",
             "COM-HLTH",
-        ],
-        [
             "MUSICAPP",
             "ANTHRO",
             "STOCKSCH",
@@ -67,8 +65,6 @@ SUBJECT_GROUPS = [
             "LLWOOD",
             "PORTUGED",
             "LLBUS",
-        ],
-        [
             "MUSIC",
             "POLISCI",
             "SOCIOL",
@@ -111,8 +107,6 @@ SUBJECT_GROUPS = [
             "FINOPMGT",
             "IALS",
             "HAITCREO",
-        ],
-        [
             "KIN",
             "ENGLWRIT",
             "MIE",
@@ -155,8 +149,6 @@ SUBJECT_GROUPS = [
             "DUTCH",
             "BIOSTEP",
             "ENVIRDES",
-        ],
-        [
             "ECON",
             "HISTORY",
             "CEE",
@@ -199,8 +191,6 @@ SUBJECT_GROUPS = [
             "LLPER",
             "LLINGARM",
             "ROMANIA",
-        ],
-        [
             "COMPSCI",
             "BIOLOGY",
             "PHIL",
