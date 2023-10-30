@@ -492,9 +492,6 @@ def _should_skip_term(coverage):
                 assert False
 
         if coverage.updated_at and timezone.make_aware(end_date) < coverage.updated_at:
-            log.info(
-                "Skipping the %s term, as information is static.", coverage.term.id
-            )
             return True
 
     return False
