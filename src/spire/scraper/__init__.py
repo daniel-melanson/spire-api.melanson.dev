@@ -8,6 +8,7 @@ from time import sleep
 from django.conf import settings
 from google.cloud.run_v2 import JobsClient
 from google.cloud.run_v2.types import RunJobRequest
+from config.settings import BASE_DIR
 
 from spire.scraper.academic_calendar import scrape_academic_schedule
 from spire.scraper.spire_driver import SpireDriver
@@ -29,6 +30,8 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
+BASE_DIR = settings.BASE_DIR
+
 MAX_RETRIES = 10
 
 LOG_HANDLERS = [x for x in log.handlers if x.get_name().startswith("scrape")]
@@ -42,17 +45,21 @@ class ScrapeCoverage(Enum):
 
 
 def _dump_page_source(driver: SpireDriver, name: str):
-    sel_driver = driver.root_driver
-    if not os.path.isdir("./logs/dump"):
-        os.mkdir("./logs/dump")
+    dump_path = os.path.join(BASE_DIR, "..", "logs", "dump")
 
-    html_dump_path = os.path.join("./logs/dump", name)
+    sel_driver = driver.root_driver
+    if not os.path.isdir(dump_path):
+        os.mkdir(dump_path)
+
+    html_dump_path = os.path.join(dump_path, name)
     with open(html_dump_path, "wb") as f:
         f.write(sel_driver.page_source.encode("utf-8"))
 
 
 def _dump_cache(cache):
-    with open("./src/spire/scraper/debug_cache.py", "w+") as f:
+    file_path = os.path.join(BASE_DIR, "spire", "scraper", "debug_cache.py")
+
+    with open(file_path, "w+") as f:
         f.write(
             dedent(
                 f"""
