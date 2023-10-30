@@ -122,14 +122,7 @@ def _dispatch_scrape_job(term, subject_group):
         name="projects/spire-api/locations/us-east1/jobs/spire-api-scrape-job",
         overrides=RunJobRequest.Overrides(
             container_overrides=RunJobRequest.Overrides.ContainerOverride(
-                args=[
-                    "job",
-                    "--term",
-                    season,
-                    year,
-                    "--group",
-                    subject_group,
-                ],
+                args=["--term", season, year, "--group", subject_group, "job"],
                 clear_args=True,
             )
         ),

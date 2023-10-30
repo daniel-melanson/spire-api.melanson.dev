@@ -67,4 +67,4 @@ WORKDIR $APP_PATH/src
 
 RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
 
-ENTRYPOINT [ "python" , "manage.py", "scrape", "job", "--term", "Fall", "2023", "--group", "1" ]
+ENTRYPOINT [ "python" , "manage.py", "scrape" ]
