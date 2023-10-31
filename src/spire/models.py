@@ -257,6 +257,7 @@ class Section(Model):
 
     class Meta:
         ordering = ["offering", "spire_id"]
+        unique_together = ["offering", "spire_id"]
 
 
 class SectionDetail(Model):

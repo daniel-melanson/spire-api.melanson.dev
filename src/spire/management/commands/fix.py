@@ -8,44 +8,72 @@ from spire.models import (
     SectionCombinedCapacity,
 )
 
+fucked = [
+    ("03-IND(81902)", 61065),
+    ("01-IND(82640)", 61286),
+    ("25-IND(81930)", 61065),
+    ("02-IND(86096)", 61238),
+    ("01-LEC(82028)", 61687),
+    ("24-IND(81929)", 61065),
+    ("01AG-DIS(82620)", 61124),
+    ("01-SEM(84277)", 61399),
+    ("03-SEM(82597)", 61778),
+    ("01-SEM(82565)", 61797),
+    ("01-LEC(85470)", 61703),
+    ("01-SEM(82600)", 61771),
+    ("01AJ-DIS(82611)", 61094),
+    ("01-LEC(84769)", 61292),
+    ("01-SEM(82043)", 61406),
+    ("03LL-LAB(84804)", 61540),
+    ("01AC-DIS(83438)", 61687),
+    ("99AC-DIS(76756)", 61935),
+    ("02-LEC(83363)", 61508),
+    ("01-IND(82642)", 61301),
+    ("01AF-DIS(82609)", 61094),
+    ("03LM-LAB(84810)", 61540),
+    ("02-SEM(82574)", 61778),
+    ("04-IND(84253)", 61426),
+    ("01-LEC(83306)", 62088),
+    ("01-LEC(82053)", 61425),
+    ("01-SEM(85497)", 61752),
+    ("01AE-DIS(82618)", 61124),
+    ("02-LEC(82630)", 61217),
+    ("01-LEC(82629)", 61217),
+    ("01-SEM(81767)", 61299),
+    ("01-IND(82641)", 61296),
+    ("01LL-LAB(84803)", 61540),
+    ("02-PRA(82034)", 61461),
+    ("01-LEC(82376)", 60890),
+    ("01-SEM(82047)", 61430),
+    ("01-LEC(84522)", 61209),
+    ("02LM-LAB(84807)", 61540),
+    ("02-LEC(82095)", 61540),
+    ("01AA-DIS(76685)", 61850),
+    ("02-IND(82005)", 61754),
+    ("01-SEM(82011)", 61730),
+    ("03-IND(82576)", 61763),
+    ("01-SEM(82555)", 61778),
+    ("01-LEC(82007)", 61735),
+    ("03-LEC(82096)", 61540),
+    ("01-COL(83458)", 61842),
+    ("09-IND(76725)", 62001),
+    ("01-LEC(82100)", 61648),
+    ("02-LEC(82613)", 61124),
+    ("01-LEC(76751)", 62085),
+    ("01-LEC(76750)", 62058),
+    ("01-LEC(82627)", 61209),
+    ("01-IND(82563)", 61800),
+    ("05-IND(84368)", 61426),
+    ("01AG-DIS(82610)", 61094),
+    ("01-LEC(82032)", 61395),
+    ("01LM-LAB(84808)", 61540),
+]
 
-def _get_combined_capacity(sections, term, defaults):
-    for sprie_id in sections:
-        try:
-            section = Section.objects.get(offering__term=term, spire_id=sprie_id)
-
-            availability = section.availability
-            if availability and availability.combined_capacity:
-                return availability.combined_capacity
-        except Section.DoesNotExist:  # type: ignore
-            continue
-
-    return SectionCombinedCapacity.objects.create(**defaults)
 
 
 class Command(BaseCommand):
     help = "Random scripts to fix data."
 
     def handle(self, *args, **options):
-        SectionCombinedCapacity.objects.all().delete()
-
-        for combined_availability in SectionCombinedAvailability.objects.all():
-            individual_availability = combined_availability.individual_availability
-            section = individual_availability.section
-            term = section.offering.term
-
-            section_ids = set(combined_availability.sections)
-            section_ids.add(section.spire_id)
-
-            combined_capacity = _get_combined_capacity(
-                sections=section_ids,
-                term=term,
-                defaults={
-                    "capacity": combined_availability.capacity,
-                    "wait_list_capacity": combined_availability.wait_list_capacity,
-                    "nso_enrollment_capacity": combined_availability.nso_enrollment_capacity,
-                },
-            )
-
-            individual_availability.combined_capacity = combined_capacity
-            individual_availability.save()
+        for (spire_id, offering_id) in fucked:
+            Section.objects.filter(spire_id=spire_id, offering=offering_id).first().delete()
