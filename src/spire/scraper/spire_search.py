@@ -138,7 +138,9 @@ def _can_skip(driver: SpireDriver, section: Section, link_number: str):
     )
 
     src: str = status_icon.get_attribute("src")  # type: ignore
-    if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif"):
+    if src.endswith("PS_CS_STATUS_WAITLIST_ICN_1.gif") or src.endswith(
+        "PS_CS_STATUS_WAITLIST_ICN_1.JPG"
+    ):
         current_status = "Wait List"
     elif src.endswith("PS_CS_STATUS_OPEN_ICN_1.gif"):
         current_status = "Open"
