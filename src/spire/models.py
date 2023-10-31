@@ -99,7 +99,7 @@ class Term(Model):
     id = CharField(primary_key=True, validators=[_term_validator], max_length=2**5)
     season = CharField(max_length=2**4)
     year = PositiveIntegerField()
-    ordinal = PositiveIntegerField()
+    ordinal = PositiveIntegerField(unique=True)
     start_date = DateField(default=None, null=True)
     end_date = DateField(default=None, null=True)
 
@@ -121,6 +121,7 @@ class TermEvent(Model):
 
     class Meta:
         ordering = ["term", "date"]
+        unique_together = [["term", "description", "date"]]
 
 
 class AcademicGroup(Model):
@@ -167,7 +168,7 @@ class Course(Model):
         return f"Course[{self.id}](subject={self.subject}, title='{self.title}')"
 
     class Meta:
-        unique_together = ["subject", "number"]
+        unique_together = [["subject", "number"]]
         ordering = ["id"]
 
 
@@ -257,7 +258,7 @@ class Section(Model):
 
     class Meta:
         ordering = ["offering", "spire_id"]
-        unique_together = ["offering", "spire_id"]
+        unique_together = [["offering", "spire_id"]]
 
 
 class SectionDetail(Model):
