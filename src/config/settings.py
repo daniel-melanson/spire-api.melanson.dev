@@ -50,14 +50,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.cache.UpdateCacheMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.cache.FetchFromCacheMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.middleware.cache.FetchFromCacheMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
 
 SCRAPER = {
     "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
-    "DEBUG": get_bool_env("SCRAPER_DEBUG", False),
+    "DEBUG": DEBUG,
     # Skip terms that have already been scraped and wouldn't be reasonably updated
     "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
     # Skip existing objects, unless information is different
@@ -201,6 +201,8 @@ LOGGING = {
 MINUTE = 60
 HOUR = MINUTE * 60
 
+CACHE_MIDDLEWARE_ALIAS = "default"
+CACHE_MIDDLEWARE_KEY_PREFIX = "spireapi"
 CACHE_MIDDLEWARE_SECONDS = (
     MINUTE if DEBUG else int(os.environ.get("CACHE_MIDDLEWARE_SECONDS", 3 * HOUR))
 )
