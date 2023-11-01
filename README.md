@@ -6,6 +6,8 @@ An API for public information on [UMass Spire](https://www.spire.umass.edu/).
 
 Information about courses, sections, and subjects is publicly available; but retrieving that information from Spire is difficult. This web crawler will retrieve as much information from Spire as possible and serve it on a public RESTful API.
 
+If you have a need that is not met by this API, please open an issue, or email me and I can provide a `pg_dump` of the database.
+
 ## Documentation
 
 A list of schemas and endpoints can be found [here](https://spire-api.melanson.dev/docs).
@@ -16,7 +18,7 @@ A list of schemas and endpoints can be found [here](https://spire-api.melanson.d
 
 `Section` and `Course` records have an included `_updated_at` field which document when their information was last updated.
 
-**As of October 2023 sections information is scraped once a week (Sunday at Midnight).**
+**As of October 2023 section information is scraped once a week (Sunday at 00:00).**
 
 ### Coverage
 
