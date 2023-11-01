@@ -128,7 +128,7 @@ def _scrape_meeting_instructor_list(sections_table, link_number: str):
     return meeting_instructor_list
 
 
-def _can_skip(driver: SpireDriver, section: Section, link_number: str):
+def _can_skip_section(driver: SpireDriver, section: Section, link_number: str):
     if driver.find(f"win0divDERIVED_CLSRCH_CMB_SCT_DTL_PB\\${link_number}"):
         return False, "section is combined"
 
@@ -214,7 +214,7 @@ def _scrape_section(
         section = None
 
     if section and settings.SCRAPER["SKIP_EXISTING"]:
-        can_skip_section, reason = _can_skip(driver, section, link_number)
+        can_skip_section, reason = _can_skip_section(driver, section, link_number)
         if can_skip_section:
             log.info("Skipping %s (%s).", section, reason)
             return section
@@ -541,7 +541,7 @@ def _scrape_term(
     term,
     term_value,
     subject_options,
-    subjects=None,
+    subject_letters=None,
 ):
     # Get term coverage entry
     coverage, _ = SectionCoverage.objects.get_or_create(  # type: ignore
@@ -564,7 +564,12 @@ def _scrape_term(
 
         raw_subject = RawSubject(subject_value, subject_title)
         subject, created = raw_subject.push()
-        if not created and subjects is not None and subject.id not in subjects:
+        subject_letter = subject.id[0]
+        if (
+            not created
+            and subject_letters is not None
+            and subject_letter not in subject_letters
+        ):
             continue
 
         # Initialize and search for term and subject

@@ -17,7 +17,7 @@ from spire.scraper.spire_search import (
     scrape_single_term,
 )
 from spire.scraper.stats import Stats
-from spire.scraper.subject_groups import SUBJECT_GROUPS
+from spire.scraper.subject_groups import SUBJECT_LETTER_GROUPS
 from spire.scraper.timer import Timer
 from spire.scraper.versioned_cache import VersionedCache
 
@@ -144,7 +144,7 @@ def handle_scrape_dispatch():
     for term in live_terms:
         log.info("Dispatcing scrape for %s", term)
 
-        for i in range(len(SUBJECT_GROUPS)):
+        for i in range(len(SUBJECT_LETTER_GROUPS)):
             _dispatch_scrape_job(term, i)
 
 
@@ -154,7 +154,7 @@ def handle_scrape_job(term, group):
         scrape_single_term,
         season=term[0],
         year=term[1],
-        subjects=SUBJECT_GROUPS[group],
+        subject_letters=SUBJECT_LETTER_GROUPS[group],
     )
 
 
