@@ -217,6 +217,7 @@ def _scrape_section(
         can_skip_section, reason = _can_skip_section(driver, section, link_number)
         if can_skip_section:
             log.info("Skipping %s (%s).", section, reason)
+            context.stats.increment(f"{offering.subject.id}_sections_skipped")
             return section
         else:
             log.debug("Not skipping section: %s - %s", spire_id, reason)
@@ -526,8 +527,9 @@ def _search_query(context: ScrapeContext, term, subject):
     _scrape_search_results(context, term, subject)
 
     log.info(
-        "Covered %s %s sections during %s in %s. Returning...",
+        "Scraped %d and skipped %d %s sections during %s in %s. Returning...",
         context.stats.get(f"{subject.id}_sections_scraped"),
+        context.stats.get(f"{subject.id}_sections_skipped"),
         subject,
         term,
         subject_timer,
