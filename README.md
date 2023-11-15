@@ -18,7 +18,7 @@ A list of schemas and endpoints can be found [here](https://spire-api.melanson.d
 
 `Section` and `Course` records have an included `_updated_at` field which document when their information was last updated.
 
-**As of October 2023 section information is scraped once a week (Sunday at 00:00).**
+**As of November 2023 section information is scraped once a week (Sunday at 02:00AM EST).**
 
 ### Coverage
 
