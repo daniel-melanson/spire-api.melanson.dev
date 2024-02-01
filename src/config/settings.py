@@ -186,9 +186,11 @@ LOGGING = {
     },
     "loggers": {
         "spire.scraper": {
-            "handlers": ["scrape_handler", "scrape_debug_handler"]
-            if SCRAPER["DEBUG"]
-            else ["console"],
+            "handlers": (
+                ["scrape_handler", "scrape_debug_handler"]
+                if SCRAPER["DEBUG"]
+                else ["console"]
+            ),
             "level": "DEBUG" if SCRAPER["DEBUG"] else "INFO",
             "propagate": False,
         },
@@ -207,9 +209,10 @@ CACHE_MIDDLEWARE_SECONDS = (
     MINUTE if DEBUG else int(os.environ.get("CACHE_MIDDLEWARE_SECONDS", 3 * HOUR))
 )
 
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"),
+if not DEBUG:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": os.environ.get("REDIS_URL", "redis://127.0.0.1:6379"),
+        }
     }
-}
