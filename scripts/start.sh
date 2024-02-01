@@ -1,4 +1,4 @@
 #!/bin/bash
 cd ./src
-python3.11 manage.py collectstatic
-python3.11 -m gunicorn -c python:config.gunicorn config.wsgi
+pipenv run python ./src/manage.py collectstatic
+pipenv run gunicorn -c python:src.config.gunicorn src.config.wsgi
