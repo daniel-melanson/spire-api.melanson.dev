@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = "*"
-psycopg = "*"
+psycopg2-binary = "*"
 djangorestframework = "*"
 pyyaml = "*"
 uritemplate = "*"
