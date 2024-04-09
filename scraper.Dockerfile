@@ -2,7 +2,7 @@ FROM python:3
 
 # Geckodriver
 ARG firefox_ver=119.0
-ARG geckodriver_ver=0.33.0
+ARG geckodriver_ver=0.34.0
 ARG build_rev=0
 ARG gcp_cli_ver=452.0.1
 
