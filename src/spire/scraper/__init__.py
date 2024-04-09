@@ -136,7 +136,7 @@ def _dispatch_section_scrape_job(term, subject_group):
 
 
 def _dispatch_calendar_scrape_job():
-    _dispatch_scrape_job("scrape", "calendar")
+    _dispatch_scrape_job("calendar")
 
 
 def handle_scrape_dispatch():
