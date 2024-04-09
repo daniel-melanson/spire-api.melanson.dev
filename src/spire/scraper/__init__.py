@@ -118,22 +118,32 @@ def _scrape(s, func, **kwargs):
                 h.doRollover()  # type: ignore
 
 
-def _dispatch_scrape_job(term, subject_group):
-    [season, year] = term.id.split(" ")
+def _dispatch_scrape_job(*args):
+    ARGS = [str(x) for x in args]
 
-    JOB_NAME = "spire-api-scrape-job"
-    ARGS = [str(x) for x in ["--term", season, year, "--group", subject_group, "job"]]
+    log.info("Dispatching job: %s", ARGS)
 
-    log.info("Using args: %s", ARGS)
-
-    command = f"gcloud beta run jobs execute {JOB_NAME} --region us-east1 --args={','.join(ARGS)}"
+    command = f"gcloud beta run jobs execute spire-api-scrape-job --region us-east1 --args={','.join(ARGS)}"
     subprocess.check_output(command, shell=True, universal_newlines=True)
 
-    log.info("Dispatched scrape job.")
+    log.info("Dispatched job.")
+
+
+def _dispatch_section_scrape_job(term, subject_group):
+    [season, year] = term.id.split(" ")
+
+    _dispatch_scrape_job("--term", season, year, "--group", subject_group, "job")
+
+
+def _dispatch_calendar_scrape_job():
+    _dispatch_scrape_job("scrape", "calendar")
 
 
 def handle_scrape_dispatch():
     log.info("Handling scrape trigger...")
+
+    log.info("Dispatching calendar scrape job...")
+    _dispatch_calendar_scrape_job()
 
     log.info("Fetching live terms...")
     driver = SpireDriver()
@@ -142,10 +152,10 @@ def handle_scrape_dispatch():
     log.info("Fetched live terms %s", live_terms)
 
     for term in live_terms:
-        log.info("Dispatcing scrape for %s", term)
+        log.info("Dispatching scrape for %s", term)
 
         for i in range(len(SUBJECT_LETTER_GROUPS)):
-            _dispatch_scrape_job(term, i)
+            _dispatch_section_scrape_job(term, i)
 
 
 def handle_scrape_job(term, group):
