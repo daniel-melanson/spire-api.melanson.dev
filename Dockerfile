@@ -9,7 +9,6 @@ RUN apt-get update && \
   apt-get install --no-install-recommends -y redis && \
   rm -rf /var/lib/apt/lists/*
 
-RUN redis-server /etc/redis/redis.conf --daemonize yes
 ENV REDIS_URL=redis://localhost:6379
 
 ENV APP_PATH=/app
@@ -29,4 +28,5 @@ RUN SECRET_KEY=dummy python manage.py collectstatic --no-input
 
 EXPOSE 8000
 
-CMD [ "python", "-m", "gunicorn", "-c", "python:config.gunicorn", "config.wsgi" ]
+CMD redis-server /etc/redis/redis.conf --daemonize yes && \
+  python -m gunicorn -c python:config.gunicorn config.wsgi

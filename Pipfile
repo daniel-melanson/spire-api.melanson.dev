@@ -19,6 +19,8 @@ bs4 = "*"
 html5lib = "*"
 requests = "*"
 numpy = "*"
+hiredis = "*"
+redis = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"
