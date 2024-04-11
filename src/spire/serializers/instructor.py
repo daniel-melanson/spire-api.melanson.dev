@@ -6,4 +6,4 @@ from spire.models import Instructor
 class InstructorSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Instructor
-        fields = "__all__"
+        fields = ["url", "name"]
