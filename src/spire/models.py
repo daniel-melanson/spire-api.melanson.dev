@@ -155,9 +155,7 @@ class Subject(Model):
 
 
 class Course(Model):
-    id = CharField(
-        max_length=2**5, primary_key=True, validators=[_course_id_validator]
-    )
+    id = CharField(max_length=2**5, primary_key=True, validators=[_course_id_validator])
     subject = ForeignKey(Subject, on_delete=CASCADE, related_name="courses")
     number = CharField(max_length=2**4, validators=[_course_id_number_validator])
     title = CharField(max_length=2**8, validators=[_course_title_validator])

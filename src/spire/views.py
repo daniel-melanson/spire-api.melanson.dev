@@ -1,5 +1,5 @@
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import OuterRef, Prefetch, Subquery, F
+from django.db.models import F, OuterRef, Prefetch, Subquery
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response

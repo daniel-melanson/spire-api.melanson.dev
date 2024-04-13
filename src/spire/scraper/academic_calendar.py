@@ -81,9 +81,11 @@ def scrape_academic_schedule():
                 )
 
                 if re.match(
-                    "First day of classes - Session One"
-                    if is_uww
-                    else "First day of classes",
+                    (
+                        "First day of classes - Session One"
+                        if is_uww
+                        else "First day of classes"
+                    ),
                     event_desc,
                     re.I,
                 ):

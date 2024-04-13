@@ -21,6 +21,8 @@ requests = "*"
 numpy = "*"
 hiredis = "*"
 redis = "*"
+isort = "*"
+black = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"
@@ -31,3 +33,4 @@ scrape = "python src/manage.py scrape"
 makemigrations = "python src/manage.py makemigrations"
 migrate = "python src/manage.py migrate"
 fix = "python src/manage.py fix"
+format = "sh -c 'isort --profile black . && black .'"

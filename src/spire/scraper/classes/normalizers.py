@@ -42,8 +42,8 @@ _BAD_DESCRIPTIONS = (
     "course description not available at this time.",
 )
 
-DESCRIPTION_NOT_AVAILABLE_TO_NONE: Callable[[str], Optional[str]] = (
-    lambda x: None if x.lower() in _BAD_DESCRIPTIONS else x
+DESCRIPTION_NOT_AVAILABLE_TO_NONE: Callable[[str], Optional[str]] = lambda x: (
+    None if x.lower() in _BAD_DESCRIPTIONS else x
 )
 
 
