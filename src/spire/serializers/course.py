@@ -9,6 +9,7 @@ from spire.models import (
     CourseDetail,
     CourseEnrollmentInformation,
     CourseOffering,
+    Instructor,
 )
 from spire.serializers.fields import (
     CourseFieldSerializer,
@@ -76,6 +77,21 @@ class CourseSerializer(HyperlinkedModelSerializer):
         ]
 
 
+class DummyObject:
+    def __init__(self, pk):
+        self.pk = pk
+
+
 class CourseInstructorsSerializer(Serializer):
     offering = CourseOfferingFieldSerializer()
     instructors = InstructorSerializer(many=True)
+
+    def to_representation(self, instance):
+        return super().to_representation(
+            {
+                "offering": CourseOffering.objects.get(pk=instance["offering"]),
+                "instructors": Instructor.objects.filter(
+                    pk__in=instance["instructors"]
+                ),
+            }
+        )

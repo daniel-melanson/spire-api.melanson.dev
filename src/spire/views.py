@@ -1,3 +1,5 @@
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import OuterRef, Prefetch, Subquery, F
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
@@ -85,26 +87,31 @@ class CourseViewSet(ReadOnlyModelViewSet):
     )
     def instructors(self, request, pk=None):
         course = self.get_object()
-        offerings = CourseOffering.objects.filter(course__id=course.id)
-        result_list = []
-        for offering in offerings:
-            meeting_entries = (
-                SectionMeetingInformation.objects.filter(
-                    section__offering__id=offering.id
-                )
-                .prefetch_related("instructors")
-                .values("instructors")
-            )
-            instructors_list = list(map(lambda x: x["instructors"], meeting_entries))
-            result_list.append(
-                {
-                    "offering": offering,
-                    "instructors": Instructor.objects.filter(id__in=instructors_list),
-                }
-            )
 
-        serializer = self.get_serializer(result_list, many=True)
-        return Response(serializer.data)
+        queryset = (
+            SectionMeetingInformation.objects.filter(
+                section__offering__course_id=course.id
+            )
+            .annotate(
+                instructor=Subquery(
+                    Instructor.objects.filter(id=OuterRef("instructors__id")).values(
+                        "id"
+                    )[:1]
+                ),
+            )
+            .values("section__offering_id")
+            .order_by("section__offering")
+            .annotate(
+                offering=F("section__offering_id"),
+                instructors=ArrayAgg("instructor", distinct=True),
+            )
+            .values("offering", "instructors")
+        )
+
+        page = self.paginate_queryset(queryset)
+        assert page
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class CourseOfferingViewSet(ReadOnlyModelViewSet):
