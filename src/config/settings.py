@@ -180,10 +180,18 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "log_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "/tmp/spire-api/spire-api.log",
+            "delay": True,
+            "backupCount": 10,
+            "formatter": "verbose",
+            "level": "INFO",
+        },
     },
     "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
+        "handlers": ["console"] if DEBUG else ["log_file"],
+        "level": "INFO",
     },
     "loggers": {
         "spire.scraper": {
