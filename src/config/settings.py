@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 import os
+import socket
 from distutils.util import strtobool
 from pathlib import Path
 
@@ -34,8 +35,14 @@ SECRET_KEY = os.getenv("SECRET_KEY", None)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_bool_env("DEBUG", True)
 
-allowed_hosts = os.getenv("ALLOWED_HOSTS", "localhost,0.0.0.0,127.0.0.1,[::1]")
-ALLOWED_HOSTS = list(map(str.strip, allowed_hosts.split(",")))
+# Allowed hosts
+allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = list(map(str.strip, allowed_hosts_env.split(",")))
+
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+
+ALLOWED_HOSTS.extend(["localhost", "0.0.0.0", "127.0.0.1", "[::1]", local_ip])
 
 
 # Application definition
