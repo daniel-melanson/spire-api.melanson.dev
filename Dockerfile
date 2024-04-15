@@ -16,4 +16,3 @@ COPY ./src $APP_PATH/src
 
 WORKDIR $APP_PATH/src
 
-RUN SECRET_KEY=dummyvalue python manage.py collectstatic --no-input
