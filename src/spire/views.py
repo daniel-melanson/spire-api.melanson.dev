@@ -1,8 +1,11 @@
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import F, OuterRef, Prefetch, Subquery
+from django.db.models import F, OuterRef, Subquery
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from spire.models import (
@@ -152,3 +155,15 @@ class SectionViewSet(ReadOnlyModelViewSet):
 class CoverageViewSet(ReadOnlyModelViewSet):
     queryset = SectionCoverage.objects.all()
     serializer_class = SectionCoverageSerializer
+
+
+class CurrentTermsView(GenericAPIView):
+    queryset = Term.objects.all()
+    serializer_class = TermSerializer
+
+    def get(self, request):
+        queryset = self.get_queryset().filter(
+            start_date__lte=timezone.now(), end_date__gte=timezone.now()
+        )
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

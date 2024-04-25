@@ -9,6 +9,7 @@ from spire.views import (
     CourseOfferingViewSet,
     CourseViewSet,
     CoverageViewSet,
+    CurrentTermsView,
     InstructorViewSet,
     SectionViewSet,
     SubjectViewSet,
@@ -38,4 +39,5 @@ router.register("coverage", CoverageViewSet, basename="coverage")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("current-terms/", CurrentTermsView.as_view()),
 ]
