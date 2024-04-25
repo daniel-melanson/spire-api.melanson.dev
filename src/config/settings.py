@@ -140,6 +140,7 @@ REST_FRAMEWORK = {
 # spire.scraper
 
 SCRAPER = {
+    "DEBUG": DEBUG,
     "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
     # Skip terms that have already been scraped and wouldn't be reasonably updated
     "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),

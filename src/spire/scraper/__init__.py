@@ -43,7 +43,7 @@ class ScrapeCoverage(Enum):
 
 
 def _dump_page_source(driver: SpireDriver, name: str):
-    dump_path = os.path.join(BASE_DIR, "..", "logs", "dump")
+    dump_path = "/tmp/spire-api/dump"
 
     sel_driver = driver.root_driver
     if not os.path.isdir(dump_path):

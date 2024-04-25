@@ -16,10 +16,10 @@ log = logging.getLogger(__name__)
 def class_component_norm(x: str) -> list[str]:
     l = []
     for s in x.split("\n"):
-        if s == "Required":
-            # l[-1] = l[-1] + " (Required)"
-            # After scraping 65000 sections, every class component
-            # was listed as required... Nice!
+        if s in ("Required", "Optional"):
+            # Prior to Summer 2024, all components were required
+            # After Summer 2024, some components are optional
+            # FUCK!!!!!
             pass
         elif s == "Studio / Skills":
             l.append("Studio/Skills")
@@ -89,6 +89,8 @@ class RawSectionDetail(RawDictionary):
                                 "UWW": "University Without Walls",
                                 "*University Eligible/UWW": "University Eligible/UWW",
                                 "*University Non-standard Dates": "University Non-standard Dates",
+                                "Univ+ Non-Stand. (UWW)": "University Without Walls Non-standard Dates",
+                                "Univ+ Summer Session 1 (UWW)": "University Without Walls Summer Session 1",
                             }
                         )
                     ],
