@@ -1,17 +1,48 @@
+volumes:
+  static:
+
 services:
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./static:/app/static
+    ports:
+      - 80:80
+      - 443:443
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+    depends_on:
+      - app
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
   app:
     build: .
-    restart: unless-stopped
     depends_on:
       - cache
     working_dir: /app/src
-    command: "/bin/sh -c 'python manage.py collectstatic --no-input && python -m gunicorn -c python:config.gunicorn config.wsgi'"
+    command: python -m gunicorn -c python:config.gunicorn config.wsgi
     environment:
       REDIS_URL: redis://cache:6379
-    volumes:
-      - ./static:/app/static
+    env_file:
+      - .env
     ports:
       - 8000:8000
+    volumes:
+      - static:/app/static
+    healthcheck:
+      test: curl localhost:8000/up
+      interval: "120s"
+      timeout: "3s"
+      start_period: "5s"
+      retries: 3
   cache:
     restart: unless-stopped
     image: redis:latest
