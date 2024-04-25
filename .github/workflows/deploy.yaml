@@ -1,0 +1,23 @@
+name: Delpoy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          request_pty: true
+          script: |
+            cd spire-api.melanson.dev
+            git pull origin master
+            ./scripts/restart.sh
