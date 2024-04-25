@@ -23,6 +23,7 @@ hiredis = "*"
 redis = "*"
 isort = "*"
 black = "*"
+inflection = "*"
 
 [scripts]
 dev = "python src/manage.py runserver"
