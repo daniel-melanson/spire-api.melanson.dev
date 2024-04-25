@@ -4,7 +4,6 @@ FROM python:3
 ARG firefox_ver=119.0
 ARG geckodriver_ver=0.34.0
 ARG build_rev=0
-ARG gcp_cli_ver=452.0.1
 
 RUN apt-get update \
   && apt-get upgrade -y \
@@ -38,10 +37,11 @@ RUN apt-get install -y --no-install-recommends --no-install-suggests \
 
 # Download and install gcloud SDK
 RUN curl https://sdk.cloud.google.com > /tmp/install.sh \
-  && bash /tmp/install.sh --disable-prompts
+  && bash /tmp/install.sh --disable-prompts --install-dir=/opt
 
+ENV PATH=$PATH:/opt/google-cloud-sdk/bin
 
-ENV PATH=/opt/google-cloud-sdk/bin:$PATH
+RUN gcloud --version
 
 # Cleanup unnecessary stuff
 RUN apt-get purge -y --auto-remove \
