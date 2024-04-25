@@ -186,7 +186,7 @@ LOGGING = {
             "formatter": "verbose",
         },
         "production": {
-            "class": "logging.handlers.TimeRotatingFileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": "/tmp/spire-api/root.log",
             "delay": True,
             "backupCount": 10,
