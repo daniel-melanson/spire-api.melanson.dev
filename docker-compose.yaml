@@ -9,7 +9,7 @@ services:
       - ./nginx:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-      - ./static:/app/static
+      - static:/app/static
     ports:
       - 80:80
       - 443:443
