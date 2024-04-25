@@ -141,7 +141,6 @@ REST_FRAMEWORK = {
 
 SCRAPER = {
     "SELENIUM_SERVER_URL": os.environ.get("SELENIUM_SERVER_URL", None),
-    "DEBUG": DEBUG,
     # Skip terms that have already been scraped and wouldn't be reasonably updated
     "SKIP_OLD_TERMS": get_bool_env("SCRAPER_SKIP_OLD_TERMS", True),
     # Skip existing objects, unless information is different
@@ -155,8 +154,8 @@ def ensure_exists(directory_path):
     os.makedirs(directory_path, exist_ok=True)
 
 
-ensure_exists(os.path.join(BASE_DIR, "..", "logs", "info"))
-ensure_exists(os.path.join(BASE_DIR, "..", "logs", "debug"))
+ensure_exists("/tmp/spire-api/info")
+ensure_exists("/tmp/spire-api/debug")
 
 LOGGING = {
     "version": 1,
@@ -169,14 +168,14 @@ LOGGING = {
     "handlers": {
         "scrape_debug_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./logs/debug/scrape-debug-results.log",
+            "filename": "/tmp/spire-api/scrape-debug.log",
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
         },
         "scrape_handler": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": "./logs/info/scrape-results.log",
+            "filename": "/tmp/spire-api/scrape.log",
             "delay": True,
             "backupCount": 10,
             "formatter": "verbose",
@@ -186,27 +185,26 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
-        "log_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": "/tmp/spire-api/spire-api.log",
+        "production": {
+            "class": "logging.handlers.TimeRotatingFileHandler",
+            "filename": "/tmp/spire-api/root.log",
             "delay": True,
             "backupCount": 10,
+            "when": "midnight",
             "formatter": "verbose",
             "level": "INFO",
         },
     },
     "root": {
-        "handlers": ["console"] if DEBUG else ["log_file"],
+        "handlers": ["console"] if DEBUG else ["production"],
         "level": "INFO",
     },
     "loggers": {
         "spire.scraper": {
             "handlers": (
-                ["scrape_handler", "scrape_debug_handler"]
-                if SCRAPER["DEBUG"]
-                else ["console"]
+                ["scrape_handler", "scrape_debug_handler"] if DEBUG else ["console"]
             ),
-            "level": "DEBUG" if SCRAPER["DEBUG"] else "INFO",
+            "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,
         },
     },
