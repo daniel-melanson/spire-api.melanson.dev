@@ -123,7 +123,7 @@ def _dispatch_scrape_job(*args):
 
     log.info("Dispatching job: %s", ARGS)
 
-    command = f"gcloud beta run jobs execute spire-api-scrape-job --project spire-api --region us-east1 --args={','.join(ARGS)}"
+    command = f"gcloud run jobs execute spire-api-scrape-job --project spire-api --region us-east1 --args={','.join(ARGS)}"
     subprocess.check_output(command, shell=True, universal_newlines=True)
 
     log.info("Dispatched job.")
