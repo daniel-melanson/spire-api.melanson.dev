@@ -1,3 +1,4 @@
+# Update (Jan 2025): Due to hosting costs and my graduation, I have decided to take this project down.
 # spire-api.melanson.dev
 
 An API for public information on [UMass Spire](https://www.spire.umass.edu/).
@@ -17,8 +18,6 @@ A list of schemas and endpoints can be found [here](https://spire-api.melanson.d
 **Requests to endpoints do not immediately query Spire and get the most up-to-date information.** Requests will query a database that is routinely updated. This means that the information in this database is not guaranteed to be accurate.
 
 `Section` and `Course` records have an included `_updated_at` field which document when their information was last updated.
-
-**As of November 2023 section information is scraped once a week (Sunday at 02:00AM EST).**
 
 ### Coverage
 
