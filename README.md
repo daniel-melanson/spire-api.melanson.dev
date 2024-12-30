@@ -1,4 +1,4 @@
-# Update (Jan 2025): Due to hosting costs and my graduation, I have decided to take this project down.
+# Update (Jan 2025): I have graduated and have taken this project offline.
 # spire-api.melanson.dev
 
 An API for public information on [UMass Spire](https://www.spire.umass.edu/).
